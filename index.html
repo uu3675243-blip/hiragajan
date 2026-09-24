@@ -4,278 +4,154 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="color-scheme" content="dark">
-<title>ひらがじゃん｜カード版・牌ばーじょん</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<title>ひらがじゃん オンライン（身内向け）</title>
 <style>
-:root{
-  --felt:#0d3629; --felt2:#15503c; --felt3:#0a2b21;
-  --paper:#fbf6e9; --paper2:#efe4cb;
-  --ink:#1d2b25; --muted:#8fa79a;
-  --red:#c2352b; --red2:#e0573f;
-  --gold:#d9a441; --jade:#3aa87a;
-  --line:rgba(255,255,255,.16); --tileline:rgba(29,43,37,.16);
-  --space:clamp(12px,2.4vw,22px); --radius:16px;
-  --shadow:0 1px 2px rgba(0,0,0,.25), 0 14px 34px -18px rgba(0,0,0,.7);
-}
+:root{--bg1:#0b1220;--bg2:#172033;--surface:#fff;--ink:#172033;--muted:#64748b;--accent:#f59e0b;--accent2:#fbbf24;--ok:#059669;--danger:#dc2626;--line:rgba(255,255,255,.14);--focus:#93c5fd}
 *{box-sizing:border-box}
 html{min-height:100%}
-body{margin:0;min-height:100vh;padding:var(--space);
-  font-family:"Noto Sans JP","Hiragino Sans","Yu Gothic",system-ui,sans-serif;
-  font-size:clamp(15px,0.9rem+.3vw,17px);line-height:1.8;color:#eaf3ee;
-  background:radial-gradient(120% 90% at 50% -10%,var(--felt2),var(--felt3) 70%),var(--felt)}
-h1,h2,h3,.tile,.slot-word,.pile-count{font-family:"Zen Maru Gothic","Hiragino Maru Gothic ProN","Yu Gothic",sans-serif}
-h1,h2,h3{line-height:1.35;letter-spacing:-.01em;font-feature-settings:"palt"}
-button,input,select{font:inherit;color:inherit}
-:focus-visible{outline:3px solid var(--gold);outline-offset:2px;border-radius:10px}
-.shell{max-width:1100px;margin:0 auto;display:flex;flex-direction:column;gap:var(--space)}
-
-.top{display:flex;flex-wrap:wrap;align-items:center;gap:14px}
-.brand{display:flex;align-items:center;gap:12px;margin-right:auto}
-.mini-tile{flex:none;width:46px;height:54px;border-radius:9px;display:grid;place-items:center;
-  font-family:"Zen Maru Gothic";font-weight:900;font-size:26px;color:var(--ink);
-  background:linear-gradient(175deg,#fffdf6,var(--paper2));
-  box-shadow:inset 0 1px 0 #fff,0 4px 0 #c9bb98,0 10px 20px -12px rgba(0,0,0,.8)}
-.brand h1{margin:0;font-size:clamp(22px,3.6vw,32px);font-weight:900;color:#fff}
-.ver{align-self:flex-start;margin-top:6px;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:700;color:var(--felt3);background:var(--gold)}
-.tagline{flex:1 1 260px;margin:0;color:#c8ded1;font-size:14px}
-
-.panel{border:1px solid var(--line);border-radius:var(--radius);
-  background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.03));
-  padding:clamp(14px,2vw,20px);box-shadow:var(--shadow)}
-.panel h2{margin:0 0 10px;font-size:16px;color:#fff}
-.hint{margin:0;color:var(--muted);font-size:13px}
-
-.setup-grid{display:flex;flex-wrap:wrap;gap:10px;align-items:end}
-.field{display:flex;flex-direction:column;gap:4px}
-.field label{font-size:12px;color:#bcd2c6;font-weight:700}
-input,select{height:42px;padding:0 12px;border-radius:11px;border:1px solid rgba(255,255,255,.24);background:rgba(0,0,0,.22);color:#fff;min-width:120px}
-input::placeholder{color:#9db3a7}
-button{min-height:42px;padding:0 16px;border:0;border-radius:11px;font-weight:800;cursor:pointer;transition:transform .12s ease,filter .12s ease}
-button:disabled{cursor:not-allowed;opacity:.4;filter:saturate(.35)}
-button:not(:disabled):hover{transform:translateY(-1px)}
-.btn-main{background:linear-gradient(180deg,var(--gold),#c08c2c);color:#2a1c04}
-.btn-sub{background:rgba(255,255,255,.14);color:#fff}
-.btn-red{background:linear-gradient(180deg,var(--red2),var(--red));color:#fff}
-.btn-jade{background:linear-gradient(180deg,#4cc191,var(--jade));color:#052b1d}
-
-.modes{display:inline-flex;padding:4px;border-radius:999px;background:rgba(0,0,0,.28);gap:4px}
-.modes label{cursor:pointer;position:relative}
-.modes input{position:absolute;opacity:0;width:0;height:0;min-width:0}
-.modes span{display:inline-flex;padding:6px 14px;border-radius:999px;font-size:13px;font-weight:800;color:#cfe3d8;transition:.15s}
-.modes input:checked + span{background:var(--gold);color:#2a1c04}
-.modes input:focus-visible + span{outline:3px solid var(--gold);outline-offset:2px}
-.optbox{display:flex;flex-direction:column;gap:6px;margin-top:12px}
-.slot-label{font-size:11px;font-weight:800;color:#bcd2c6;letter-spacing:.04em}
-.optline{display:flex;align-items:center;gap:8px;font-size:13.5px;color:#d5e6dc;cursor:pointer}
-.optline input{height:20px;min-width:20px}
-.optline.off{opacity:.4;cursor:not-allowed}
-
-.status{padding:12px 16px;border-radius:12px;font-weight:700;font-size:14px;color:#ffeccc;background:rgba(217,164,65,.14);border:1px solid rgba(217,164,65,.4)}
-.meta{display:flex;flex-wrap:wrap;gap:8px}
-.pill{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;font-size:13px;background:rgba(255,255,255,.1)}
-.pill.mode{background:var(--gold);color:#2a1c04;font-weight:800}
-
-.board{display:flex;flex-wrap:wrap;gap:20px;align-items:center}
-.piles{display:flex;gap:10px;flex:1 1 auto}
-.pile{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px;border-radius:12px;border:1px dashed rgba(255,255,255,.22);background:rgba(0,0,0,.16)}
-.pile-count{font-size:15px;font-weight:700;color:#dff1e7}
-.river{flex:1 1 240px;min-width:200px}
-.river-label{font-size:12px;color:var(--muted);font-weight:700;margin-bottom:6px}
-.river-tiles{display:flex;flex-wrap:wrap;gap:4px;min-height:44px}
-
-.tile{position:relative;flex:none;width:var(--tw,52px);height:calc(var(--tw,52px)*1.16);border-radius:9px;display:grid;place-items:center;padding:0;
-  font-family:"Zen Maru Gothic";font-weight:700;font-size:calc(var(--tw,52px)*0.56);color:var(--ink);
-  background:linear-gradient(175deg,#fffdf7,var(--paper2));border:1px solid var(--tileline);
-  box-shadow:inset 0 1px 0 #fff,0 3px 0 #cbbd99,0 8px 16px -10px rgba(0,0,0,.9);
-  transition:transform .12s ease,box-shadow .12s ease}
-button.tile{cursor:pointer}
-button.tile:not(:disabled):hover{transform:translateY(-3px);box-shadow:inset 0 1px 0 #fff,0 5px 0 #cbbd99,0 12px 20px -10px rgba(0,0,0,.9)}
-.tile.small{--tw:38px}
-.tile.mid{--tw:44px}
-.tile.drawn{outline:2px solid var(--gold);outline-offset:2px}
-.tile.back{background:linear-gradient(150deg,#1f6d52,#0f4232);border-color:rgba(0,0,0,.3);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 3px 0 #0a2b21,0 8px 16px -10px rgba(0,0,0,.9)}
-.tile.back::after{content:"";width:38%;height:38%;border-radius:50%;border:2px solid rgba(217,164,65,.6)}
-.tile.on{outline:3px solid var(--jade);outline-offset:2px;transform:translateY(-3px)}
-.tile .badge{position:absolute;top:-7px;right:-7px;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:900;color:#fff;background:var(--red);border:2px solid var(--felt3)}
-.hand{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-.meld-note{margin-top:8px}
-
-.players{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:var(--space)}
-.player{border:1px solid var(--line);border-radius:var(--radius);padding:14px;background:rgba(255,255,255,.05)}
-.player.active{background:rgba(217,164,65,.14);border-color:rgba(217,164,65,.55);box-shadow:0 0 0 1px rgba(217,164,65,.35),var(--shadow)}
-.player.win{background:rgba(58,168,122,.18);border-color:rgba(58,168,122,.6)}
-.p-head{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
-.p-name{font-weight:800;color:#fff}
-.p-tag{font-size:11px;padding:2px 8px;border-radius:999px;background:rgba(255,255,255,.14)}
-.p-tag.turn{background:var(--gold);color:#2a1c04;font-weight:800}
-.p-tag.host{background:rgba(194,53,43,.85)}
-.p-score{margin-left:auto;font-weight:900;color:var(--gold)}
-.p-empty{color:var(--muted);font-size:13px}
-.melds{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
-.meld{display:flex;gap:3px;padding:5px;border-radius:9px;background:rgba(0,0,0,.22);border:1px solid rgba(217,164,65,.4)}
-
-.builder{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0}
-.slot{flex:1 1 150px;border:1px dashed rgba(255,255,255,.28);border-radius:12px;padding:10px;background:rgba(0,0,0,.18)}
-.slot.full{border-style:solid;border-color:rgba(217,164,65,.6)}
-.slot-tiles{display:flex;gap:5px;margin-top:7px;min-height:46px;align-items:center}
-.slot-word{margin-top:6px;font-size:19px;font-weight:700;color:#ffeccc;min-height:26px}
-.wtag{margin-left:8px;font-size:11px;font-weight:800}
-.wtag.ok{color:#7ee0b4}
-.wtag.check{color:#f3b7a9}
-.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
-.actions.end{margin-top:14px}
-.pool{border-radius:12px;padding:10px;background:rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.14);margin:8px 0}
-.approve-word{display:inline-flex;align-items:center;gap:6px;margin:3px 8px 3px 0;padding:4px 10px;border-radius:8px;background:rgba(255,255,255,.12);font-weight:700}
-
-.log{max-height:230px;overflow:auto;font-size:13px}
-.log-item{padding:7px 10px;border-bottom:1px solid rgba(255,255,255,.09);color:#d5e6dc}
-.log-time{color:var(--muted);font-size:11px}
-.toast{position:fixed;right:14px;bottom:14px;z-index:20;max-width:min(420px,calc(100vw - 28px));padding:12px 15px;border-radius:12px;color:#fff;background:rgba(8,22,17,.96);border:1px solid var(--line);box-shadow:var(--shadow);opacity:0;transform:translateY(8px);pointer-events:none;transition:.2s}
+body{margin:0;min-height:100vh;padding:clamp(12px,3vw,24px);font-family:"Hiragino Sans","Yu Gothic UI","Noto Sans JP",system-ui,sans-serif;color:#e2e8f0;background:linear-gradient(150deg,var(--bg1),var(--bg2))}
+button,input{font:inherit}
+button:focus-visible,input:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+button:disabled{cursor:not-allowed;opacity:.45;filter:saturate(.5)}
+.shell{max-width:960px;margin:auto}
+.top{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:14px 18px;margin-bottom:12px;border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,.06)}
+h1{margin:0 auto 0 0;font-size:clamp(19px,4vw,24px);color:var(--accent2)}
+label.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+input{width:140px;height:38px;padding:0 11px;border:1px solid rgba(255,255,255,.24);border-radius:10px;color:#fff;background:rgba(255,255,255,.1)}
+input::placeholder{color:#cbd5e1}
+button{min-height:38px;padding:0 14px;border:0;border-radius:10px;font-weight:800;cursor:pointer}
+.primary{color:#422006;background:linear-gradient(90deg,var(--accent),var(--accent2))}
+.secondary{color:#fff;background:#334155}
+.success{color:#fff;background:var(--ok)}
+.danger{color:#fff;background:var(--danger)}
+.status{padding:12px 16px;margin-bottom:12px;border:1px solid #fcd34d;border-radius:12px;color:#78350f;background:linear-gradient(180deg,#fffbeb,#fef3c7);font-weight:800}
+.meta{display:flex;flex-wrap:wrap;gap:7px;margin:0 0 12px}
+.pill{display:inline-flex;align-items:center;min-height:30px;padding:5px 10px;border-radius:999px;background:rgba(255,255,255,.1);font-size:12px}
+.copy{border:1px solid rgba(255,255,255,.2);color:#fff;cursor:pointer}
+.players{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.player{flex:1 1 170px;padding:11px 14px;border-radius:12px;background:rgba(255,255,255,.07)}
+.player.turn{outline:2px solid var(--accent2)}
+.card{padding:16px;margin-bottom:12px;border-radius:16px;color:var(--ink);background:var(--surface);box-shadow:0 6px 20px rgba(0,0,0,.15)}
+.card h2{margin:0 0 10px;font-size:16px}
+.card p{margin:0;color:var(--muted);font-size:13px;line-height:1.8}
+.log{max-height:250px;overflow:auto;font-size:13px}
+.log-item{padding:7px 10px;border-bottom:1px solid #e5e7eb;color:#334155}
+.log-time{margin-top:2px;color:#94a3b8;font-size:10px}
+.toast{position:fixed;right:14px;bottom:14px;z-index:10;max-width:min(420px,calc(100vw - 28px));padding:11px 14px;border-radius:10px;color:#fff;background:rgba(17,24,39,.96);box-shadow:0 10px 30px rgba(0,0,0,.3);opacity:0;transform:translateY(8px);pointer-events:none;transition:.2s}
 .toast.show{opacity:1;transform:none}
-details summary{cursor:pointer;font-weight:800;color:#fff}
-details[open] summary{margin-bottom:10px}
-dl.rules{margin:0;display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:13.5px}
-dl.rules dt{font-weight:800;color:var(--gold)}
-dl.rules dd{margin:0;color:#d5e6dc}
-.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
-@media(max-width:560px){.board{flex-direction:column;align-items:stretch}.river{flex-basis:auto}}
-@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.note{border-left:4px solid #f59e0b;padding-left:12px}
+/* ゲーム部分 */
+.optbox{display:flex;flex-direction:column;gap:6px;margin:8px 0}
+.optbox label{font-size:13px;color:#334155}
+.tile{width:46px;height:56px;margin:3px;padding:0;border:1px solid #cbd5e1;border-radius:8px;background:linear-gradient(180deg,#fff,#f1f5f9);color:var(--ink);font-size:24px;font-weight:800;cursor:pointer}
+.tile[aria-pressed="true"]{outline:3px solid var(--accent);background:#fffbeb}
+.tile.big{width:56px;height:66px;font-size:28px}
+.hand{min-height:70px;padding:6px;border:1px dashed #cbd5e1;border-radius:10px}
+.groups{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px}
+.group{display:flex;align-items:center;gap:2px;padding:6px 8px;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc}
+.group.exposed{background:#fef3c7}
+.group .badge{font-size:11px;color:var(--muted);margin-left:4px}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.actions button{min-width:90px}
+.center-info{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:8px;font-size:14px}
+.discarded{font-size:30px;font-weight:800;color:var(--danger)}
+.claimwords span{display:inline-block;margin:2px 6px;padding:3px 8px;border-radius:6px;background:#eef2ff;font-weight:700}
+.badge-known{color:var(--ok);font-size:11px}
+.badge-unknown{color:var(--danger);font-size:11px}
+@media(max-width:620px){.top>*{flex:1 1 100%}.top h1{margin-bottom:6px}.top button{flex-basis:calc(50% - 4px)}input{width:100%}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
 </style>
 </head>
 <body>
-<div class="shell">
-
-  <header class="top">
-    <div class="brand">
-      <span class="mini-tile" aria-hidden="true">あ</span>
-      <h1>ひらがじゃん</h1>
-      <span class="ver">2つのあそび方</span>
-    </div>
-    <p class="tagline">ひらがなを並べてことばをつくる。手札を組み替えて、決められた数の単語をいちばん先に完成させた人の勝ち。</p>
-  </header>
-
-  <section class="panel" id="setup" aria-labelledby="setup-h">
-    <h2 id="setup-h">はじめる</h2>
-    <div class="setup-grid">
-      <div class="field">
-        <span class="slot-label">あそび方</span>
-        <div class="modes" role="radiogroup" aria-label="あそび方">
-          <label><input type="radio" name="modeSel" value="card" checked><span>カード版</span></label>
-          <label><input type="radio" name="modeSel" value="tile"><span>牌ばーじょん</span></label>
-        </div>
-      </div>
-    </div>
-    <div id="optBlock" class="optbox" hidden></div>
-    <div class="setup-grid" style="margin-top:14px">
-      <div class="field">
-        <label for="name">表示名</label>
-        <input id="name" maxlength="20" autocomplete="nickname" placeholder="名前">
-      </div>
-      <div class="field">
-        <label for="roomInput">部屋番号（オンライン）</label>
-        <input id="roomInput" maxlength="6" autocomplete="off" autocapitalize="characters" placeholder="6文字">
-      </div>
-      <button class="btn-main" id="createBtn">部屋作成</button>
-      <button class="btn-sub" id="joinBtn">参加</button>
-    </div>
-    <div class="setup-grid" style="margin-top:14px">
-      <div class="field">
-        <label for="count">ローカル人数</label>
-        <select id="count"><option>2</option><option selected>3</option><option>4</option><option>5</option><option>6</option></select>
-      </div>
-      <div class="field" style="flex:1 1 200px">
-        <label for="names">名前（カンマ区切り・任意）</label>
-        <input id="names" placeholder="例：あき, ゆう, みお">
-      </div>
-      <button class="btn-jade" id="localBtn">この端末だけで開始</button>
-    </div>
-    <p class="hint" style="margin-top:10px">この端末だけで遊ぶ場合は Firebase 設定は不要です。オンラインは 部屋作成 → 相手が参加 → 作成者が「ゲーム開始」。あそび方は部屋を作るときに決まり、参加者はそれに合わせます。</p>
+<main class="shell">
+  <section class="top" aria-label="接続操作">
+    <h1>&#127918; ひらがじゃん オンライン</h1>
+    <label class="sr-only" for="name">表示名</label>
+    <input id="name" placeholder="名前" maxlength="20" autocomplete="nickname">
+    <label class="sr-only" for="roomInput">部屋番号</label>
+    <input id="roomInput" placeholder="部屋番号" maxlength="8" autocomplete="off" autocapitalize="characters">
+    <button class="primary" id="createBtn">部屋作成</button>
+    <button class="secondary" id="joinBtn">参加</button>
+    <button class="success" id="startBtn" disabled>ゲーム開始</button>
+    <button class="danger" id="resetBtn" hidden disabled>ルーム初期化</button>
   </section>
 
-  <div class="status" id="status" role="status" aria-live="polite">準備中です…</div>
+  <div class="status" id="status" role="status" aria-live="polite">Firebase を初期化しています&#8230;</div>
 
-  <div class="meta">
-    <span class="pill mode" id="modePill">-</span>
+  <div class="meta" aria-label="ルーム情報">
     <span class="pill" id="roomPill">部屋: -</span>
+    <span class="pill" id="modePill">モード: -</span>
+    <span class="pill" id="deckPill">山: -</span>
     <span class="pill" id="turnPill">手番: -</span>
     <span class="pill" id="statePill">状態: -</span>
-    <span class="pill" id="peekPill" hidden></span>
+    <button class="pill copy" id="copyBtn" hidden type="button">&#128203; 部屋番号とURLをコピー</button>
   </div>
 
-  <section class="panel board" id="board" aria-label="場">
-    <div class="piles" id="piles"></div>
-    <div class="river">
-      <div class="river-label">捨てられた牌</div>
-      <div class="river-tiles" id="river"></div>
+  <section class="players" id="players" aria-label="参加者一覧"></section>
+
+  <section class="card" id="lobbyCard" hidden>
+    <h2>モード選択（開始者が選択します）</h2>
+    <div class="optbox" role="radiogroup" aria-label="モード">
+      <label><input type="radio" name="mode" value="card" checked> カード版：手札7枚＋1枚引き、2文字×1＋3文字×2 の3単語で上がり。鳴きなし・手札オープン。</label>
+      <label><input type="radio" name="mode" value="tile"> 牌ばーじょん：手札13枚＋1枚引き、2文字×1＋3文字×4 の5単語で上がり。ポン・ロンあり・手札は見えない。</label>
     </div>
+    <div class="optbox" aria-label="任意ルール">
+      <label><input type="checkbox" id="optScoring"> 得点をつける（ロン +3/−3、ツモ +3/各−1）※任意ルール</label>
+      <label><input type="checkbox" id="optKan"> カンを有効にする（4文字以上の単語で宣言、補充は文字数−3枚）※任意ルール</label>
+      <label><input type="checkbox" id="optPairs7"> 七対子を有効にする（2文字×7で上がり）※任意ルール</label>
+    </div>
+    <p>単語は「実在する語」を全員の合意で判定します。上がり宣言は他の全員の承認（全員承認）で確定します。</p>
   </section>
 
-  <section class="panel" id="approve" aria-labelledby="approve-h" hidden>
-    <h2 id="approve-h">上がり宣言の承認</h2>
-    <div id="approveBody"></div>
+  <section class="card" id="gameCard" hidden aria-label="ゲーム画面">
+    <div class="center-info">
+      <span>捨て牌: <span class="discarded" id="discardView">-</span></span>
+      <span id="openInfo"></span>
+    </div>
+    <h2>あなたの手牌 <span class="badge-unknown" id="handCount"></span></h2>
+    <div class="hand" id="hand" role="group" aria-label="手札"></div>
+    <h2 style="margin-top:12px">できた単語 <span class="badge-unknown">※単語をクリックすると解除できます（鳴いた単語は不可）</span></h2>
+    <div class="groups" id="groups"></div>
+    <div class="actions">
+      <button class="primary" id="drawBtn" aria-label="山から1枚引く">引く</button>
+      <button class="secondary" id="pairBtn" aria-label="選択した2枚で単語を作る">2文字で組む</button>
+      <button class="secondary" id="tripleBtn" aria-label="選択した3枚で単語を作る">3文字で組む</button>
+      <button class="secondary" id="kanBtn" hidden aria-label="選択した4枚以上でカン">カン</button>
+      <button class="danger" id="discardBtn" aria-label="選択した1枚を捨てる">捨てる</button>
+      <button class="success" id="ponBtn" hidden aria-label="捨て牌でポン">ポン</button>
+      <button class="success" id="ronBtn" hidden aria-label="捨て牌でロン">ロン</button>
+      <button class="success" id="agariBtn" aria-label="上がり宣言">アガリ</button>
+      <button class="primary" id="nextBtn" hidden aria-label="次の回を始める">もう一回（同じ点数で）</button>
+    </div>
+    <p class="badge-unknown" id="hint" style="margin-top:8px"></p>
   </section>
 
-  <section class="panel" id="call" aria-labelledby="call-h" hidden>
-    <h2 id="call-h">鳴き（ポン / ロン）</h2>
-    <div id="callBody"></div>
+  <section class="card" id="claimCard" hidden aria-label="上がり宣言の承認">
+    <h2>上がり宣言の承認（全員承認）</h2>
+    <p id="claimBody"></p>
+    <div class="claimwords" id="claimWords"></div>
+    <div class="actions" id="claimActions"></div>
   </section>
 
-  <section class="panel" id="ctrl" aria-labelledby="ctrl-h" hidden>
-    <h2 id="ctrl-h">手番の操作</h2>
-    <div id="ctrlBody"></div>
-  </section>
+  <section class="card note">
+   
 
-  <section class="players" id="players" aria-label="参加者"></section>
-
-  <section class="panel" aria-labelledby="log-h">
-    <h2 id="log-h">ログ</h2>
+  <section class="card">
+    <h2>ログ</h2>
     <div class="log" id="log"></div>
   </section>
-
-  <section class="panel">
-    <details>
-      <summary>ルール（カード版）</summary>
-      <dl class="rules">
-        <dt>目的</dt><dd>手札から「2もじ×1組 ＋ 3もじ×2組＝3つの単語」をいち早く完成させた人がその回の勝ち。</dd>
-        <dt>人数</dt><dd>2〜4人推奨（5人以上も可）。手札は全員オープン。</dd>
-        <dt>セット</dt><dd>ひらがなカード120枚。各人に7枚配り、残りを中央の4つの山に分ける（どの山から引いてもよい）。</dd>
-        <dt>手番</dt><dd>時計回り。山から1枚引いて手札8枚にし、組み替える。完成しないときは1枚捨てて次の人へ。</dd>
-        <dt>上がり</dt><dd>手札8枚で「2もじ語×1 ＋ 3もじ語×2」を成立させる。</dd>
-        <dt>鳴き</dt><dd>なし。ポン・カン・ロン等はカード版では行いません。</dd>
-        <dt>単語の認定</dt><dd>「実在する単語」は事前に合意（辞書に載っている語／固有名詞の可否など）。アプリは文字の組み分けと、収録例の照合だけを行い、最終的な語の認定は「上がり宣言の承認」で全員が行います。</dd>
-      </dl>
-    </details>
-    <details style="margin-top:10px">
-      <summary>ルール（牌ばーじょん）</summary>
-      <dl class="rules">
-        <dt>目的</dt><dd>「2もじ×1組 ＋ 3もじ×4組＝5つの単語」をいち早く完成させた人がその回のアガリ。複数回プレイし、合計点で総合勝者を決めます。</dd>
-        <dt>セット</dt><dd>ひらがな牌120個。各人に13枚配り、残りは中央の山にまとめる。</dd>
-        <dt>手番</dt><dd>時計回り。山から1個取って14枚にし、組み替える。完成しないときは1枚を表向きに捨てる。</dd>
-        <dt>上がり</dt><dd>手牌14枚で「2もじ語×1 ＋ 3もじ語×4」。文字数が4以上のカン語は3もじ枠に入ります。</dd>
-        <dt>ポン / ロン</dt><dd>他の人の捨て牌で単語を作れるとき「ポン」で牌をもらえる。上がりで宣言するときは「ロン」。鳴いたら以後はツモ上がりのみ。自分が捨てた牌と同じ文字でのロンは不可。</dd>
-        <dt>カン</dt><dd>手番で4文字以上の単語を作れたら「カン」。単語は手牌の右に置き全員に見せ、文字数−3枚を山から補充します。</dd>
-        <dt>得点</dt><dd>ロン：+3点／振り込んだ人 −3点。ツモ：+3点／他は各 −1点。</dd>
-        <dt>七対子</dt><dd>手牌のみで2もじ語×7で上がり可（ポン・カンをしている場合は不可）。</dd>
-        <dt>任意ルール</dt><dd>得点・カン・七対子は「任意ルール」です。部屋を作る人が待機中にオン／オフを切り替えられます（牌ばーじょんで既定オン）。</dd>
-        <dt>公式情報の注意</dt><dd>得点・七対子・カンの補充枚数は公式商品ページで確認できない箇所があります。このアプリの実装は第三者解説に基づく一つの解釈で、任意ルールとして扱ってください。天和・地和・食物一色・疑似俳句・各種しばりは採用していません。</dd>
-      </dl>
-    </details>
-  </section>
-</div>
-
+</main>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
-<noscript><p style="padding:16px">このゲームのプレイには JavaScript が必要です。</p></noscript>
 
+<!-- Firebase SDK（認証は使わないため app と database のみ） -->
 <script src="https://www.gstatic.com/firebasejs/12.18.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.18.0/firebase-database-compat.js"></script>
 <script>
 'use strict';
 
-/*==PURE==*/
-/* ---- Firebase 設定：オンラインで遊ぶときだけ Console の値に置き換える ---- */
+/* ============================================================
+   Firebase 設定 - Firebase Console の値をそのまま貼り付ける
+   ============================================================ */
 var FIREBASE_CONFIG = {
   apiKey: "AIzaSyCfVaNuaVFMbR5ZvDVPtzCeL_r-n1yFJrI",
   authDomain: "buckshot-roulette-acf9e.firebaseapp.com",
@@ -285,813 +161,788 @@ var FIREBASE_CONFIG = {
   messagingSenderId: "165006499616",
   appId: "1:165006499616:web:5bfe2e555a655c7e584145"
 };
-var ROOM_PATH = 'rooms_br';          /* Realtime Database Rules のトップキーと一致 */
-var ROOM_CODE_LENGTH = 6, MAX_PLAYERS = 6, MAX_LOGS = 100;
-var ROOM_KEY = 'hiragana_room_id', NAME_KEY = 'hiragana_display_name',
-    TOKEN_KEY = 'hiragana_player_token', LOCAL_KEY = 'hiragana_local_room';
+/* firebase-rules.json のトップキーと必ず一致させる。 */
+var ROOM_PATH = 'template_rooms';
+var ROOM_CODE_LENGTH = 8;
+var MAX_PLAYERS = 10;
+var MAX_LOGS = 100;
+var ROOM_KEY = 'battle_room_id';
+var NAME_KEY = 'battle_display_name';
+var TOKEN_KEY = 'battle_player_token';
 
-/* ---- 2つのあそび方 ---- */
+/*PURE_START*/
 var MODES = {
-  card: { label:'カード版',      sizes:[2,3,3],     piles:4, open:true,  calls:false },
-  tile: { label:'牌ばーじょん',  sizes:[2,3,3,3,3], piles:1, open:false, calls:true  }
+  card: { label: 'カード版', handSize: 7, pairs: 1, triples: 2, naki: false },
+  tile: { label: '牌ばーじょん', handSize: 13, pairs: 1, triples: 4, naki: true }
 };
-function optsFor(mode) {
-  return mode === 'tile'
-    ? { scoring:true,  kan:true,  pairs7:true,  approve:true }
-    : { scoring:false, kan:false, pairs7:false, approve:true };
+/* 「を」を除く45音×2枚 + 濁音・半濁音・拗音・長音30音×1枚 = 120 */
+var BASE = 'あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわん'.split('');
+var EXTRA = 'がぎぐげござじずぜぞだぢづでどばびぶべぼぱぴぷぺぽゃゅょっー'.split('');
+function deckFor() {
+  var d = [];
+  BASE.forEach(function (c) { d.push(c, c); });
+  EXTRA.forEach(function (c) { d.push(c); });
+  return d;
 }
-function cfg(state) { return MODES[state.mode] || MODES.card; }
-function sizeSum(state) { return cfg(state).sizes.reduce(function (a, b) { return a + b; }, 0); }
-
-/* ---- 文字と牌（両版とも120枚で共通） ---- */
-var SEION = 'あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわん';
-var DAKUON = 'がぎぐげござじずぜぞだぢづでどばびぶべぼぱぴぷぺぽ';
-var YOON = 'ゃゅょっー';
-function buildDeck() {
-  var ids = [];
-  function add(ch, n) { for (var i = 0; i < n; i++) ids.push(ch + '#' + i); }
-  for (var a = 0; a < SEION.length; a++) add(SEION[a], 2);
-  for (var b = 0; b < DAKUON.length; b++) add(DAKUON[b], 1);
-  for (var c = 0; c < YOON.length; c++) add(YOON[c], 1);
-  return ids;
-}
-
-/* 収録例の語（上がり宣言の承認を助ける目安。載っていない語も全員の合意で可） */
-var WORDS = ('いぬ ねこ やま うみ そら つき ほし はな みち とり かさ ゆき あめ くま さる ふね へや まど はし あし てら かみ しま しお かぜ うし うま かめ かえる たこ かに すし にく ごはん すいか いちご りんご みかん ばなな さかな とけい ねずみ さくら こども おとな たまご ことり かばん でんしゃ じてんしゃ たべもの のみもの うた おと いろ かたち ゆび めがね ぼうし くつした てぶくろ').split(' ');
-var WORD_SET = {};
-WORDS.forEach(function (w) { WORD_SET[w] = true; });
-function isKnown(w) { return !!WORD_SET[w]; }
-
-function charOf(id) { return String(id).split('#')[0]; }
-function shuffle(list) {
-  for (var i = list.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = list[i]; list[i] = list[j]; list[j] = t; }
-  return list;
-}
-function sortedPlayers(state) {
-  var map = (state && state.players) || {};
-  return Object.keys(map).map(function (id) { return map[id]; }).sort(function (a, b) { return a.seat - b.seat; });
-}
-function sameMultiset(a, b) {
-  if (a.length !== b.length) return false;
-  var x = a.slice().sort(), y = b.slice().sort();
-  for (var i = 0; i < x.length; i++) if (x[i] !== y[i]) return false;
-  return true;
-}
-function removeFrom(hand, cards) {
-  var h = hand.slice();
-  for (var i = 0; i < cards.length; i++) { var at = h.indexOf(cards[i]); if (at < 0) return null; h.splice(at, 1); }
-  return h;
-}
-function sanitizeName(value) {
-  var s = String(value == null ? '' : value).replace(/[\u0000-\u001f<>]/g, '').trim().slice(0, 20);
-  return s || 'ゲスト';
-}
-function nextToken(state, token) {
-  var ordered = sortedPlayers(state), at = -1;
-  for (var i = 0; i < ordered.length; i++) if (ordered[i].id === token) at = i;
-  return at < 0 ? null : ordered[(at + 1) % ordered.length].id;
-}
-function log(state, text, token) {
-  state.logs = state.logs || {};
-  state.counter = (state.counter || 0) + 1;
-  state.logs['L' + String(state.counter).padStart(7, '0')] = { at: Date.now(), text: String(text).slice(0, 160), actorId: token || '' };
-  var keys = Object.keys(state.logs).sort();
-  while (keys.length > MAX_LOGS) delete state.logs[keys.shift()];
-}
-
-/* 単語の枠：確定した鳴き（メルド）を差し引いた、手牌で作るべき単語の長さ一覧 */
-function slotDefs(state, player) {
-  var c = cfg(state), melds = (player && player.melds) || [];
-  var have2 = melds.some(function (m) { return m.cards.length === 2; });
-  var have3 = melds.filter(function (m) { return m.cards.length >= 3; }).length;
-  var defs = [];
-  c.sizes.forEach(function (s) { defs.push(s); });
-  var twoSlots = defs.filter(function (s) { return s === 2; }).length - (have2 ? 1 : 0);
-  var threeSlots = defs.filter(function (s) { return s === 3; }).length - have3;
-  var out = [];
-  for (var i = 0; i < twoSlots; i++) out.push(2);
-  for (var j = 0; j < threeSlots; j++) out.push(3);
-  return out;
-}
-function handTarget(state, player) { return slotDefs(state, player).reduce(function (a, b) { return a + b; }, 0); }
-function structureOK(state, lens, hasMelds, o) {
-  var c = cfg(state);
-  if (o.pairs7 && !hasMelds && lens.length === 7 && lens.every(function (l) { return l === 2; })) return true;
-  if (lens.length !== c.sizes.length) return false;
-  var two = lens.filter(function (l) { return l === 2; }).length;
-  var big = lens.filter(function (l) { return l >= 3; }).length;
-  return two === 1 && big === c.sizes.length - 1;
-}
-function newPlayer(id, name, seat) { return { id: id, name: sanitizeName(name), seat: seat, hand: [], melds: [] }; }
-function newRoom(roomId, token, name, mode) {
-  var m = MODES[mode] ? mode : 'card';
-  var state = { roomId: roomId, mode: m, opts: optsFor(m), status: 'waiting', createdAt: Date.now(),
-    hostToken: token, turnToken: token, players: {}, piles: [], discards: [], lastDiscard: null, logs: {}, counter: 0 };
-  state.players[token] = newPlayer(token, name, 0);
-  log(state, state.players[token].name + ' が部屋を作成しました（' + MODES[m].label + '）', token);
-  return state;
-}
-function deal(state) {
-  var c = cfg(state), deck = shuffle(buildDeck()), players = sortedPlayers(state);
-  var seatCount = sizeSum(state) - 1;
-  players.forEach(function (p) { p.hand = deck.splice(0, seatCount); p.melds = []; });
-  state.piles = [];
-  var per = Math.floor(deck.length / c.piles);
-  for (var i = 0; i < c.piles; i++) state.piles.push(i === c.piles - 1 ? deck.splice(0) : deck.splice(0, per));
-  state.discards = []; state.lastDiscard = null; state.winner = null; state.claim = null;
-  state.status = 'playing'; state.turnToken = players[0].id; state.startedAt = Date.now();
-  state.scores = {}; players.forEach(function (p) { state.scores[p.id] = 0; });
-}
-function finalizeWin(state, win, o) {
-  state.status = 'ended'; state.winner = win; state.claim = null; state.lastDiscard = null;
-  if (o.scoring) {
-    state.scoreBefore = JSON.parse(JSON.stringify(state.scores || {}));
-    state.scores = state.scores || {};
-    if (win.via === 'ron' && win.from) {
-      state.scores[win.token] = (state.scores[win.token] || 0) + 3;
-      state.scores[win.from] = (state.scores[win.from] || 0) - 3;
-    } else {
-      sortedPlayers(state).forEach(function (p) { state.scores[p.id] = (state.scores[p.id] || 0) + (p.id === win.token ? 3 : -1); });
-    }
+function shuffled(deck) {
+  var a = deck.slice();
+  for (var i = a.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t;
   }
+  return a;
 }
-
-/* すべての状態変更はこの純粋なリデューサ1本。オンラインは transaction にそのまま渡す。 */
-function reduce(state, action) {
-  if (!state || !action || !action.type) return undefined;
-  var t = String(action.token || '');
-  var s = JSON.parse(JSON.stringify(state));
-  var c = cfg(s), o = s.opts || (s.opts = optsFor(s.mode)), type = action.type;
-  var me = s.players && s.players[t];
-
-  if (type === 'join') {
-    if (!s.players) return undefined;
-    if (s.players[t]) { s.players[t].name = sanitizeName(action.name); return s; }
-    if (s.status !== 'waiting') return undefined;
-    var used = sortedPlayers(s).map(function (p) { return p.seat; });
-    if (used.length >= MAX_PLAYERS) return undefined;
-    var seat = 0; while (used.indexOf(seat) !== -1) seat++;
-    s.players[t] = newPlayer(t, action.name, seat);
-    log(s, s.players[t].name + ' が入室しました', t);
-    return s;
+/* 上がり判定：単語グループ配列が「2文字×pairs＋3文字×triples」を満たすか。
+   seven=true の場合は 2文字×7（七対子）も上がり。 */
+function winSplit(groups, mode, seven) {
+  if (!groups || !groups.length) return false;
+  if (seven && groups.length === 7 && groups.every(function (g) { return g.chars.length === 2; })) return true;
+  var n2 = 0, n3 = 0;
+  for (var i = 0; i < groups.length; i++) {
+    var n = groups[i].chars.length;
+    if (n === 2) n2++;
+    else if (n === 3) n3++;
+    else return false;
   }
-  if (!me) return undefined;
-  me.melds = me.melds || [];
-
-  if (type === 'opts') {
-    if (s.hostToken !== t || s.status !== 'waiting' || !action.opts) return undefined;
-    ['scoring','kan','pairs7','approve'].forEach(function (k) { if (typeof action.opts[k] === 'boolean') o[k] = action.opts[k]; });
-    return s;
-  }
-
-  if (type === 'start') {
-    if (s.hostToken !== t || s.status !== 'waiting') return undefined;
-    if (sortedPlayers(s).length < 2) return undefined;
-    deal(s);
-    log(s, 'ゲーム開始（' + c.label + '）：' + sortedPlayers(s).map(function (p) { return p.name; }).join('・'), t);
-    return s;
-  }
-
-  /* 承認・却下は手番に関係なく参加者全員が行える */
-  if (type === 'approve' || type === 'deny') {
-    var cl = s.claim;
-    if (!cl || cl.claimer === t) return undefined;
-    if (type === 'deny') {
-      log(s, me.name + ' が却下しました（単語の合意が取れません）', t);
-      s.claim = null;
-      return s;
-    }
-    cl.approvals = cl.approvals || {};
-    cl.approvals[t] = true;
-    var all = sortedPlayers(s).every(function (p) { return p.id === cl.claimer || cl.approvals[p.id]; });
-    if (all) {
-      finalizeWin(s, { token: cl.claimer, name: (s.players[cl.claimer] || {}).name, words: cl.words, via: cl.via, from: cl.from }, o);
-      log(s, '全員が承認。' + (s.players[cl.claimer] || {}).name + ' が' + (cl.via === 'ron' ? 'ロン' : 'ツモ') + 'であがり！　' + cl.words.join(' ／ '), t);
-    } else {
-      log(s, me.name + ' が承認しました', t);
-    }
-    return s;
-  }
-
-  /* 上がり宣言が出ている間は他の操作を止める */
-  if (s.claim && type !== 'undo') return undefined;
-
-  if (type === 'draw') {
-    if (s.status !== 'playing' || s.turnToken !== t) return undefined;
-    if (me.hand.length !== handTarget(s, me) - 1) return undefined;
-    var pile = s.piles[action.pile];
-    if (!pile || !pile.length) { s.status = 'ended'; s.winner = null; log(s, '山が尽きました（流局）', t); return s; }
-    me.hand.push(pile.pop());
-    log(s, me.name + ' が山から1枚引きました', t);
-    return s;
-  }
-
-  if (type === 'discard') {
-    if (s.status !== 'playing' || s.turnToken !== t) return undefined;
-    if (me.hand.length !== handTarget(s, me)) return undefined;
-    var idx = me.hand.indexOf(action.cardId);
-    if (idx < 0) return undefined;
-    me.hand.splice(idx, 1);
-    s.discards.push({ id: action.cardId, by: t });
-    s.lastDiscard = { id: action.cardId, by: t };
-    log(s, me.name + ' が「' + charOf(action.cardId) + '」を捨てました', t);
-    s.turnToken = nextToken(s, t);
-    return s;
-  }
-
-  if (type === 'kan') {
-    if (!c.calls || !o.kan || s.status !== 'playing' || s.turnToken !== t) return undefined;
-    if (me.hand.length !== handTarget(s, me)) return undefined;
-    var kc = action.cards;
-    if (!Array.isArray(kc) || kc.length < 4) return undefined;
-    if (slotDefs(s, me).filter(function (x) { return x === 3; }).length < 1) return undefined;
-    var rest = removeFrom(me.hand, kc);
-    if (!rest) return undefined;
-    me.hand = rest;
-    me.melds.push({ cards: kc.slice(), kind: 'kan', by: t });
-    for (var i = 0; i < kc.length - 3; i++) { var p0 = s.piles[0]; if (p0 && p0.length) me.hand.push(p0.pop()); }
-    log(s, me.name + ' がカン（' + kc.map(charOf).join('') + '）', t);
-    return s;
-  }
-
-  if (type === 'pon') {
-    if (!c.calls || s.status !== 'playing') return undefined;
-    var ld0 = s.lastDiscard;
-    if (!ld0 || ld0.by === t) return undefined;
-    var L = Array.isArray(action.cards) ? action.cards.length + 1 : 0;
-    if (L !== 2 && L !== 3) return undefined;
-    if (me.hand.length !== handTarget(s, me) - 1) return undefined;
-    if (slotDefs(s, me).indexOf(L) === -1) return undefined;
-    var rest2 = removeFrom(me.hand, action.cards);
-    if (!rest2) return undefined;
-    me.hand = rest2;
-    me.melds.push({ cards: [ld0.id].concat(action.cards), kind: 'pon', by: t, from: ld0.by });
-    s.lastDiscard = null;
-    s.turnToken = t;
-    log(s, me.name + ' がポン（' + me.melds[me.melds.length - 1].cards.map(charOf).join('') + '）', t);
-    return s;
-  }
-
-  if (type === 'agari') {
-    if (s.status !== 'playing') return undefined;
-    var via = action.via === 'ron' ? 'ron' : 'tsumo', tiles, from = null;
-    if (via === 'ron') {
-      if (!c.calls) return undefined;
-      var ld = s.lastDiscard;
-      if (!ld || ld.by === t) return undefined;
-      if (me.melds.length) return undefined;
-      if (me.hand.length !== handTarget(s, me) - 1) return undefined;
-      if (s.discards.some(function (d) { return d.by === t && charOf(d.id) === charOf(ld.id); })) return undefined;
-      tiles = me.hand.concat([ld.id]); from = ld.by;
-    } else {
-      if (s.turnToken !== t) return undefined;
-      if (me.hand.length !== handTarget(s, me)) return undefined;
-      tiles = me.hand.slice();
-    }
-    var groups = action.words;
-    if (!Array.isArray(groups)) return undefined;
-    var flat = [];
-    for (var g = 0; g < groups.length; g++) { if (!Array.isArray(groups[g])) return undefined; flat = flat.concat(groups[g]); }
-    if (!sameMultiset(flat, tiles)) return undefined;
-    var allLens = groups.map(function (w) { return w.length; }).concat(me.melds.map(function (m) { return m.cards.length; }));
-    if (!structureOK(s, allLens, me.melds.length > 0, o)) return undefined;
-    var words = groups.map(function (w) { return w.map(charOf).join(''); }).concat(me.melds.map(function (m) { return m.cards.map(charOf).join(''); }));
-    if (words.some(function (w) { return !w; })) return undefined;
-    s.lastDiscard = null;
-    var win = { token: t, name: me.name, words: words, via: via, from: from };
-    if (o.approve && !action.skipApproval) {
-      s.claim = { claimer: t, via: via, from: from, words: words, approvals: {} };
-      log(s, me.name + ' が' + (via === 'ron' ? 'ロン' : 'ツモ') + 'を宣言（全員承認待ち）　' + words.join(' ／ '), t);
-    } else {
-      finalizeWin(s, win, o);
-      log(s, me.name + ' が' + (via === 'ron' ? 'ロン' : 'ツモ') + 'であがり！　' + words.join(' ／ '), t);
-    }
-    return s;
-  }
-
-  if (type === 'nextround') {
-    if (!o.scoring || s.hostToken !== t || s.status !== 'ended') return undefined;
-    var prev = s.winner ? s.winner.token : null;
-    deal(s);
-    if (prev && s.players[prev]) s.turnToken = prev;
-    log(s, '次の局を始めます（点数は持ち越し）', t);
-    return s;
-  }
-
-  if (type === 'undo') {
-    if (s.hostToken !== t || (s.status !== 'ended' && !s.claim)) return undefined;
-    s.status = 'playing'; s.winner = null; s.claim = null;
-    if (s.scoreBefore) { s.scores = s.scoreBefore; delete s.scoreBefore; }
-    log(s, 'アガリを取り消して続行します', t);
-    return s;
-  }
-
-  if (type === 'reset') {
-    if (s.hostToken !== t) return undefined;
-    Object.keys(s.players).forEach(function (id) { s.players[id].hand = []; s.players[id].melds = []; });
-    s.piles = []; s.discards = []; s.lastDiscard = null; s.winner = null; s.claim = null;
-    s.status = 'waiting'; s.turnToken = t; delete s.startedAt; delete s.scoreBefore;
-    log(s, '部屋を初期化しました', t);
-    return s;
-  }
-  return undefined;
+  return n2 === mode.pairs && n3 === mode.triples;
 }
-/*==/PURE==*/
+/* 収録例語（判定の補助。載っていなくても全員承認で可） */
+var WORDS = { 'いぬ':1,'ねこ':1,'やま':1,'うみ':1,'そら':1,'つき':1,'ほし':1,'はな':1,'みち':1,'とり':1,'かさ':1,'ゆき':1,'あめ':1,'くま':1,'さる':1,'ふね':1,'へや':1,'まど':1,'はし':1,'あし':1,'てら':1,'かみ':1,'しま':1,'しお':1,'かぜ':1,'うし':1,'うま':1,'かめ':1,'さかな':1,'とけい':1,'ねずみ':1,'さくら':1,'こども':1,'おとな':1,'たまご':1,'ことり':1,'たべる':1,'のむ':1,'よむ':1,'かう':1 };
+function isKnown(w) { return Object.prototype.hasOwnProperty.call(WORDS, w); }
+/*PURE_END*/
 
-/* ---- 状態と DOM ---- */
-var ONLINE = !(!FIREBASE_CONFIG.apiKey || /YOUR_/.test(JSON.stringify(FIREBASE_CONFIG)));
-var S = { token: '', roomId: '', room: null, local: false, ready: false, roomRef: null, handler: null,
-          assign: {}, sel: [], pick: null, ron: false, peek: false };
-var E = {};
-['name','roomInput','count','names','createBtn','joinBtn','localBtn','status','optBlock','modePill','roomPill','turnPill','statePill','peekPill',
- 'piles','river','approve','approveBody','call','callBody','ctrl','ctrlBody','players','log','toast','setup'].forEach(function (id) { E[id] = document.getElementById(id); });
+var DEMO = null;
+var S = { token: '', roomId: '', room: null, roomRef: null, roomHandler: null, ready: false, sel: [] };
+var E = {
+  name: document.getElementById('name'), roomInput: document.getElementById('roomInput'),
+  createBtn: document.getElementById('createBtn'), joinBtn: document.getElementById('joinBtn'),
+  startBtn: document.getElementById('startBtn'), resetBtn: document.getElementById('resetBtn'),
+  copyBtn: document.getElementById('copyBtn'), status: document.getElementById('status'),
+  roomPill: document.getElementById('roomPill'), modePill: document.getElementById('modePill'),
+  deckPill: document.getElementById('deckPill'), turnPill: document.getElementById('turnPill'),
+  statePill: document.getElementById('statePill'), players: document.getElementById('players'),
+  log: document.getElementById('log'), toast: document.getElementById('toast'),
+  lobbyCard: document.getElementById('lobbyCard'), gameCard: document.getElementById('gameCard'),
+  claimCard: document.getElementById('claimCard'), claimBody: document.getElementById('claimBody'),
+  claimWords: document.getElementById('claimWords'), claimActions: document.getElementById('claimActions'),
+  hand: document.getElementById('hand'), groups: document.getElementById('groups'),
+  handCount: document.getElementById('handCount'), discardView: document.getElementById('discardView'),
+  openInfo: document.getElementById('openInfo'), hint: document.getElementById('hint'),
+  drawBtn: document.getElementById('drawBtn'), pairBtn: document.getElementById('pairBtn'),
+  tripleBtn: document.getElementById('tripleBtn'), kanBtn: document.getElementById('kanBtn'),
+  discardBtn: document.getElementById('discardBtn'), ponBtn: document.getElementById('ponBtn'),
+  ronBtn: document.getElementById('ronBtn'), agariBtn: document.getElementById('agariBtn'),
+  nextBtn: document.getElementById('nextBtn')
+};
 
+var SERVER_TIME = (typeof firebase !== 'undefined') ? firebase.database.ServerValue.TIMESTAMP : Date.now();
+
+function configIsUnset() {
+  return !FIREBASE_CONFIG.apiKey || /YOUR_/.test(JSON.stringify(FIREBASE_CONFIG));
+}
 function roomRef(roomId) { return firebase.database().ref(ROOM_PATH + '/' + roomId); }
-function cleanRoomId() { return (E.roomInput.value || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, ROOM_CODE_LENGTH); }
+function cleanName() { return (E.name.value || '').trim().slice(0, 20) || 'ゲスト'; }
+function cleanRoomId() { return (E.roomInput.value || '').trim().toUpperCase().replace(/[^A-Z2-9]/g, '').slice(0, ROOM_CODE_LENGTH); }
+
+function loadToken() {
+  var t = localStorage.getItem(TOKEN_KEY);
+  if (!t) {
+    var bytes = new Uint8Array(16);
+    crypto.getRandomValues(bytes);
+    t = 'p_';
+    for (var i = 0; i < bytes.length; i++) t += ('0' + bytes[i].toString(16)).slice(-2);
+    localStorage.setItem(TOKEN_KEY, t);
+  }
+  return t;
+}
 function randomRoomId() {
-  var alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', bytes = new Uint8Array(ROOM_CODE_LENGTH);
+  var alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  var bytes = new Uint8Array(ROOM_CODE_LENGTH);
   crypto.getRandomValues(bytes);
   var id = '';
   for (var i = 0; i < bytes.length; i++) id += alphabet[bytes[i] % alphabet.length];
   return id;
 }
-function loadToken() {
-  var token = localStorage.getItem(TOKEN_KEY);
-  if (!token) {
-    var bytes = new Uint8Array(16); crypto.getRandomValues(bytes); token = 'p_';
-    for (var i = 0; i < bytes.length; i++) token += ('0' + bytes[i].toString(16)).slice(-2);
-    localStorage.setItem(TOKEN_KEY, token);
-  }
-  return token;
+function makeLog(text) { return { at: SERVER_TIME, text: String(text).slice(0, 200), actorId: S.token }; }
+function addLog(roomState, text, logKey) {
+  roomState.logs = roomState.logs || {};
+  var keys = Object.keys(roomState.logs).sort();
+  while (keys.length >= MAX_LOGS) delete roomState.logs[keys.shift()];
+  roomState.logs[logKey || ('l' + Math.random().toString(36).slice(2, 10))] = makeLog(text);
 }
 function toast(message) {
-  E.toast.textContent = message; E.toast.classList.add('show');
-  clearTimeout(toast.timer); toast.timer = setTimeout(function () { E.toast.classList.remove('show'); }, 2600);
+  E.toast.textContent = message;
+  E.toast.classList.add('show');
+  clearTimeout(toast.timer);
+  toast.timer = setTimeout(function () { E.toast.classList.remove('show'); }, 2600);
+}
+function setReady(ready) {
+  S.ready = ready;
+  E.createBtn.disabled = !ready;
+  E.joinBtn.disabled = !ready;
 }
 function showError(error) {
   console.error(error);
-  var message = (error && error.message) || String(error);
-  toast('エラー: ' + message); E.status.textContent = '接続エラー: ' + message;
+  var message = error && error.message ? error.message : String(error);
+  toast('エラー: ' + message);
+  E.status.textContent = '接続エラー: ' + message;
 }
-function selectedMode() {
-  var el = document.querySelector('input[name="modeSel"]:checked');
-  return el ? el.value : 'card';
+function unsubscribe() {
+  if (S.roomRef && S.roomHandler) S.roomRef.off('value', S.roomHandler);
+  S.roomRef = null;
+  S.roomHandler = null;
 }
-function persistLocal() {
-  try { if (S.local && S.room) localStorage.setItem(LOCAL_KEY, JSON.stringify(S.room)); else localStorage.removeItem(LOCAL_KEY); }
-  catch (error) { /* 保存できなくても遊べる */ }
-}
-
-/* すべての操作はここを通す。オンラインは transaction、ローカルは同じリデューサを直接適用。 */
-function commit(action) {
-  function mutator(current) { return reduce(current, action); }
-  if (S.local) {
-    var next = mutator(S.room ? JSON.parse(JSON.stringify(S.room)) : null);
-    if (!next) { toast('その操作はできません'); return Promise.resolve(); }
-    S.room = next; S.assign = {}; S.sel = []; S.pick = null; S.ron = false;
-    persistLocal(); render();
-    return Promise.resolve();
-  }
-  return roomRef(S.roomId).transaction(mutator, null, false).then(function (result) {
-    if (!result || !result.committed) toast('操作が反映されませんでした');
-  }).catch(showError);
-}
-function actToken() { return S.local ? (S.room && S.room.turnToken) : S.token; }
-function me() { var room = S.room; return room && room.players && room.players[actToken()]; }
-function otherSeat(room, t) { return room && room.players && room.players[t]; }
-function visibleToken(room) { return S.local ? (room && room.turnToken) : S.token; }
-
-function unsubscribe() { if (S.roomRef && S.handler) S.roomRef.off('value', S.handler); S.roomRef = null; S.handler = null; }
 function subscribe(roomId) {
-  unsubscribe(); S.roomId = roomId; S.local = false;
-  localStorage.setItem(ROOM_KEY, roomId); E.roomInput.value = roomId;
-  var url = new URL(location.href); url.searchParams.set('room', roomId); history.replaceState({}, '', url.toString());
+  unsubscribe();
+  S.roomId = roomId;
+  localStorage.setItem(ROOM_KEY, roomId);
+  E.roomInput.value = roomId;
+  updateUrl(roomId);
   S.roomRef = roomRef(roomId);
-  S.handler = S.roomRef.on('value', function (snapshot) {
-    if (!snapshot.exists()) { S.room = null; E.status.textContent = '部屋が見つかりません。番号を確認してください。'; render(); return; }
-    S.room = snapshot.val(); render();
+  S.roomHandler = S.roomRef.on('value', function (snapshot) {
+    if (!snapshot.exists()) {
+      S.room = null;
+      E.status.textContent = '部屋が見つかりません。番号を確認してください。';
+      render();
+      return;
+    }
+    S.room = snapshot.val();
+    S.sel = [];
+    render();
   }, showError);
 }
+function sortedPlayers(room) {
+  return Object.keys((room && room.players) || {}).map(function (id) { return room.players[id]; })
+    .sort(function (a, b) { return a.seat - b.seat; });
+}
+function playerName(room, id) {
+  return (room.players && room.players[id] && room.players[id].name) || '？';
+}
+function myTurn() { return S.room && S.room.turnToken === S.token && S.room.status === 'playing'; }
+function curMode() { return MODES[(S.room && S.room.mode) || 'card']; }
+
+/* ゲーム状態への更新。DEMO時はローカル、通常時はtransaction。 */
+function gameTx(mutator, failMsg) {
+  if (DEMO) { mutator(S.room); S.sel = []; render(); return; }
+  roomRef(S.roomId).transaction(function (cur) {
+    if (!cur || cur.status !== 'playing') return cur;
+    mutator(cur);
+    return cur;
+  }, null, false).then(function (res) {
+    if (!res.committed) toast(failMsg || '更新できませんでした');
+  }).catch(showError);
+}
+function advanceTurnFrom(cur, fromToken) {
+  var ps = sortedPlayers(cur);
+  for (var i = 0; i < ps.length; i++) {
+    if (ps[i].id === fromToken) { cur.turnToken = ps[(i + 1) % ps.length].id; return; }
+  }
+  cur.turnToken = ps.length ? ps[0].id : fromToken;
+}
+function startRoomGame(cur, firstTurnToken) {
+  var deck = shuffled(deckFor());
+  cur.deck = [];
+  cur.hands = {};
+  var ps = sortedPlayers(cur);
+  ps.forEach(function (p) {
+    cur.hands[p.id] = deck.splice(0, curModeHandSize(cur));
+  });
+  cur.groups = {};
+  cur.scores = cur.scores || {};
+  ps.forEach(function (p) { if (typeof cur.scores[p.id] !== 'number') cur.scores[p.id] = 0; });
+  cur.drawn = null;
+  cur.lastDiscard = null;
+  cur.claim = null;
+  cur.called = {};
+  cur.status = 'playing';
+  cur.turnToken = firstTurnToken;
+}
+function curModeHandSize(cur) { return MODES[cur.mode || 'card'].handSize; }
+
+/* ---- ルーム作成・参加・開始 ---- */
 function createRoom() {
-  if (!S.ready) return toast('オンラインの準備中です');
-  var name = sanitizeName(E.name.value); E.name.value = name; localStorage.setItem(NAME_KEY, name);
-  var mode = selectedMode();
+  if (!S.ready) return toast('初期化の完了を待ってください');
+  var name = cleanName();
+  E.name.value = name;
+  localStorage.setItem(NAME_KEY, name);
+
   function attempt(remaining) {
-    if (remaining <= 0) throw new Error('部屋番号を確保できませんでした。もう一度お試しください。');
-    var roomId = randomRoomId(), ref = roomRef(roomId);
-    return ref.transaction(function (current) { if (current !== null) return; return newRoom(roomId, S.token, name, mode); }, null, false)
-      .then(function (result) { if (!result.committed) return attempt(remaining - 1); subscribe(roomId); toast('部屋を作成しました: ' + roomId); });
+    if (remaining <= 0) throw new Error('部屋番号を確保できませんでした。再度お試しください。');
+    var roomId = randomRoomId();
+    var ref = roomRef(roomId);
+    var logKey = ref.child('logs').push().key;
+    var players = {};
+    players[S.token] = { id: S.token, name: name, seat: 0, joinedAt: SERVER_TIME };
+    var initial = { roomId: roomId, status: 'waiting', createdAt: SERVER_TIME, hostToken: S.token, players: players, turnToken: S.token, logs: {} };
+    initial.logs[logKey] = makeLog(name + ' が部屋を作成しました');
+
+    return ref.transaction(function (current) {
+      if (current !== null) return; // 既存部屋なら中止
+      return initial;
+    }, null, false).then(function (result) {
+      if (!result.committed) return attempt(remaining - 1);
+      subscribe(roomId);
+      toast('部屋を作成しました: ' + roomId);
+    });
   }
   attempt(6).catch(showError);
 }
 function joinRoom() {
-  if (!S.ready) return toast('オンラインの準備中です');
+  if (!S.ready) return toast('初期化の完了を待ってください');
   var roomId = cleanRoomId();
   if (roomId.length !== ROOM_CODE_LENGTH) return toast(ROOM_CODE_LENGTH + '文字の部屋番号を入力してください');
-  var name = sanitizeName(E.name.value); E.name.value = name; localStorage.setItem(NAME_KEY, name);
-  roomRef(roomId).transaction(function (current) { return reduce(current, { type: 'join', token: S.token, name: name }); }, null, false)
-    .then(function (result) { if (!result.committed) throw new Error('参加できませんでした（存在しない・開始済み・満員など）'); subscribe(roomId); toast('参加しました'); })
-    .catch(showError);
+  var name = cleanName();
+  E.name.value = name;
+  localStorage.setItem(NAME_KEY, name);
+  var ref = roomRef(roomId);
+
+  ref.once('value').then(function (snapshot) {
+    if (!snapshot.exists()) throw new Error('部屋がありません');
+    var logKey = ref.child('logs').push().key;
+    return ref.transaction(function (current) {
+      if (!current) return;
+      current.players = current.players || {};
+      if (current.players[S.token]) {
+        current.players[S.token].name = name;
+        return current;
+      }
+      if (current.status !== 'waiting') return; // 開始後は参加不可
+      var seats = sortedPlayers(current).map(function (p) { return p.seat; });
+      if (seats.length >= MAX_PLAYERS) return; // 満員
+      var seat = 0;
+      while (seats.indexOf(seat) !== -1) seat++;
+      current.players[S.token] = { id: S.token, name: name, seat: seat, joinedAt: SERVER_TIME };
+      addLog(current, name + ' が参加しました', logKey);
+      return current;
+    }, null, false);
+  }).then(function (result) {
+    if (!result || !result.committed) throw new Error('参加できませんでした。開始済み・満員などを確認してください。');
+    subscribe(roomId);
+    toast('参加しました');
+  }).catch(showError);
 }
-function startLocal() {
-  if (S.room && !S.local && !confirm('オンラインの部屋から離れてローカルで始めますか？')) return;
-  var n = parseInt(E.count.value, 10);
-  if (!(n >= 2 && n <= MAX_PLAYERS)) return toast('人数は2〜' + MAX_PLAYERS + '人です');
-  var names = (E.names.value || '').split(/[,、\s]+/).filter(Boolean).slice(0, n);
-  S.token = loadToken();
-  var state = newRoom('LOCAL', S.token, names[0] || 'プレイヤー1', selectedMode());
-  for (var i = 1; i < n; i++) state = reduce(state, { type: 'join', token: 'local_' + i, name: names[i] || ('プレイヤー' + (i + 1)) });
-  state = reduce(state, { type: 'start', token: S.token });
-  unsubscribe();
-  S.local = true; S.room = state; S.roomId = 'LOCAL'; S.assign = {}; S.sel = []; S.pick = null; S.ron = false;
-  persistLocal(); render(); toast(MODES[state.mode].label + 'で開始しました');
+function startGame() {
+  if (!S.roomId || !S.room) return;
+  var mode = (document.querySelector('input[name="mode"]:checked') || {}).value || 'card';
+  var opts = {
+    scoring: document.getElementById('optScoring').checked,
+    kan: document.getElementById('optKan').checked,
+    pairs7: document.getElementById('optPairs7').checked
+  };
+  var logKey = roomRef(S.roomId).child('logs').push().key;
+  roomRef(S.roomId).transaction(function (current) {
+    if (!current) return;
+    if (current.hostToken !== S.token || current.status !== 'waiting') return;
+    var players = sortedPlayers(current);
+    if (players.length < 2) return;
+    current.mode = mode;
+    current.opts = opts;
+    startRoomGame(current, players[0].id);
+    addLog(current, 'ゲームを開始しました（' + MODES[mode].label + '）', logKey);
+    return current;
+  }, null, false).then(function (result) {
+    if (!result.committed) throw new Error('作成者のみ、2人以上の待機中ルームを開始できます。');
+  }).catch(showError);
+}
+function resetRoom() {
+  if (!S.roomId || !S.room || S.room.hostToken !== S.token) return;
+  if (!confirm('ルームを待機状態に戻しますか？')) return;
+  var logKey = roomRef(S.roomId).child('logs').push().key;
+  roomRef(S.roomId).transaction(function (current) {
+    if (!current || current.hostToken !== S.token) return;
+    var players = sortedPlayers(current);
+    current.status = 'waiting';
+    current.turnToken = players.length ? players[0].id : S.token;
+    ['startedAt','endedAt','deck','hands','groups','drawn','lastDiscard','claim','called','winner'].forEach(function (k) { delete current[k]; });
+    addLog(current, 'ルームを初期化しました', logKey);
+    return current;
+  }, null, false).then(function (result) {
+    if (!result.committed) throw new Error('初期化できませんでした');
+    toast('ルームを初期化しました');
+  }).catch(showError);
+}
+function nextRound() {
+  if (!S.room || S.room.hostToken !== S.token || S.room.status !== 'ended') return;
+  gameTx(function (cur) {
+    if (cur.hostToken !== S.token || cur.status !== 'ended') return;
+    var players = sortedPlayers(cur);
+    if (players.length < 2) return;
+    startRoomGame(cur, players[0].id);
+    addLog(cur, '次の回を開始しました');
+  }, '次の回を開始できませんでした');
+}
+
+/* ---- ゲーム操作 ---- */
+function drawTile() {
+  if (!myTurn() || S.room.drawn) return;
+  gameTx(function (cur) {
+    if (cur.turnToken !== S.token || cur.drawn) return;
+    var deck = cur.deck || [];
+    if (!deck.length) return;
+    var c = deck.pop();
+    cur.hands[S.token] = cur.hands[S.token] || [];
+    cur.hands[S.token].push(c);
+    cur.drawn = S.token;
+    cur.lastDiscard = null;
+    addLog(cur, playerName(cur, S.token) + ' が山から引きました');
+  }, '引けませんでした');
+}
+function takeSel(cur, count) {
+  /* 選択中の手札を検証して取り出す（同時操作対策でtransaction内で再検証） */
+  var h = cur.hands[S.token] || [];
+  var picks = [], idx = S.sel.slice().sort(function (a, b) { return b - a; });
+  if (idx.length !== count) return null;
+  for (var i = 0; i < idx.length; i++) {
+    if (idx[i] < 0 || idx[i] >= h.length) return null;
+    picks.push(h[idx[i]]);
+  }
+  for (var j = 0; j < idx.length; j++) h.splice(idx[j], 1);
+  cur.hands[S.token] = h;
+  return picks;
+}
+function formGroup(n) {
+  if (!myTurn() || S.sel.length !== n || (n !== 2 && n !== 3)) return;
+  gameTx(function (cur) {
+    if (cur.turnToken !== S.token) return;
+    var picks = takeSel(cur, n);
+    if (!picks) return;
+    cur.groups[S.token] = cur.groups[S.token] || [];
+    cur.groups[S.token].push({ chars: picks.slice().sort(), exposed: false });
+    addLog(cur, playerName(cur, S.token) + ' が「' + picks.join('') + '」を作りました');
+  }, '組めませんでした');
+}
+function ungroup(gi) {
+  var room = S.room;
+  if (!room || room.status !== 'playing') return;
+  var g = ((room.groups || {})[S.token] || [])[gi];
+  if (!g || g.exposed) return;
+  gameTx(function (cur) {
+    var gs = (cur.groups || {})[S.token] || [];
+    if (!gs[gi] || gs[gi].exposed) return;
+    gs.splice(gi, 1);
+    cur.groups[S.token] = gs;
+    cur.hands[S.token] = cur.hands[S.token] || [];
+    for (var i = 0; i < g.chars.length; i++) cur.hands[S.token].push(g.chars[i]);
+  }, '解除できませんでした');
+}
+function discardSel() {
+  if (!myTurn() || S.room.drawn !== S.token || S.sel.length !== 1) return;
+  gameTx(function (cur) {
+    if (cur.turnToken !== S.token || cur.drawn !== S.token) return;
+    var picks = takeSel(cur, 1);
+    if (!picks) return;
+    cur.lastDiscard = { char: picks[0], by: S.token };
+    cur.drawn = null;
+    advanceTurnFrom(cur, S.token);
+    addLog(cur, playerName(cur, S.token) + ' が「' + picks[0] + '」を捨てました');
+  }, '捨てられませんでした');
+}
+function ponSel() {
+  var room = S.room;
+  if (!room || room.status !== 'playing' || !MODES[room.mode].naki) return;
+  if (!room.lastDiscard || room.lastDiscard.by === S.token || S.sel.length !== 2) return;
+  gameTx(function (cur) {
+    var d = cur.lastDiscard;
+    if (!d || d.by === S.token) return;
+    var picks = takeSel(cur, 2);
+    if (!picks) return;
+    cur.groups[S.token] = cur.groups[S.token] || [];
+    cur.groups[S.token].push({ chars: [picks[0], picks[1], d.char].sort(), exposed: true });
+    cur.called = cur.called || {};
+    cur.called[S.token] = true;
+    cur.lastDiscard = null;
+    cur.drawn = S.token;
+    cur.turnToken = S.token;
+    addLog(cur, playerName(cur, S.token) + ' が「' + d.char + '」でポン（鳴き後はツモ上がりのみ）');
+  }, 'ポンできませんでした');
+}
+function ronSel() {
+  var room = S.room;
+  if (!room || room.status !== 'playing' || !MODES[room.mode].naki) return;
+  if (!room.lastDiscard || room.lastDiscard.by === S.token || S.sel.length !== 2) return;
+  var mode = MODES[room.mode], opts = room.opts || {};
+  var d = room.lastDiscard;
+  var picks = [(room.hands[S.token] || [])[S.sel[0]], (room.hands[S.token] || [])[S.sel[1]]];
+  if (picks[0] == null || picks[1] == null) return;
+  var newGroup = { chars: [picks[0], picks[1], d.char].sort(), exposed: true };
+  var gs = ((room.groups || {})[S.token] || []).slice();
+  gs.push(newGroup);
+  if (!winSplit(gs, mode, opts.pairs7)) return toast('ロン形になっていません（2×1＋3×4が必要です）');
+  gameTx(function (cur) {
+    var dd = cur.lastDiscard;
+    if (!dd || dd.by === S.token) return;
+    var p = takeSel(cur, 2);
+    if (!p) return;
+    cur.groups[S.token] = cur.groups[S.token] || [];
+    cur.groups[S.token].push({ chars: [p[0], p[1], dd.char].sort(), exposed: true });
+    cur.lastDiscard = null;
+    cur.drawn = null;
+    cur.claim = {
+      claimer: S.token, type: 'ロン',
+      target: dd.by, revertGroup: cur.groups[S.token].length - 1,
+      words: cur.groups[S.token].map(function (g) { return g.chars.join(''); }),
+      approvals: {}
+    };
+    addLog(cur, playerName(cur, S.token) + ' がロン宣言（全員承認待ち）');
+  }, 'ロンできませんでした');
+}
+function kanSel() {
+  var room = S.room;
+  if (!room || room.status !== 'playing' || room.mode !== 'tile' || !(room.opts && room.opts.kan)) return;
+  if (!myTurn() || room.drawn !== S.token || S.sel.length < 4) return;
+  gameTx(function (cur) {
+    if (cur.turnToken !== S.token || cur.drawn !== S.token) return;
+    var n = S.sel.length;
+    var picks = takeSel(cur, n);
+    if (!picks) return;
+    cur.groups[S.token] = cur.groups[S.token] || [];
+    cur.groups[S.token].push({ chars: picks.slice().sort(), exposed: true });
+    cur.called = cur.called || {};
+    cur.called[S.token] = true;
+    /* 任意ルール：補充は文字数−3枚 */
+    var refill = n - 3;
+    for (var i = 0; i < refill && (cur.deck || []).length; i++) {
+      cur.hands[S.token].push(cur.deck.pop());
+    }
+    addLog(cur, playerName(cur, S.token) + ' が「' + picks.join('') + '」でカン（' + refill + '枚補充）');
+  }, 'カンできませんでした');
+}
+function agari() {
+  var room = S.room;
+  if (!room || room.status !== 'playing') return;
+  if (!myTurn() || room.drawn !== S.token) return;
+  var mode = MODES[room.mode], opts = room.opts || {};
+  var hand = room.hands[S.token] || [];
+  var gs = (room.groups || {})[S.token] || [];
+  if (hand.length) return toast('手牌をすべて単語にしてください');
+  if (!winSplit(gs, mode, opts.pairs7)) return toast('上がり形になっていません');
+  var seven = opts.pairs7 && gs.length === 7 && gs.every(function (g) { return g.chars.length === 2; });
+  gameTx(function (cur) {
+    if (cur.turnToken !== S.token || cur.drawn !== S.token) return;
+    if ((cur.hands[S.token] || []).length) return;
+    if (!winSplit((cur.groups || {})[S.token] || [], MODES[cur.mode], (cur.opts || {}).pairs7)) return;
+    cur.claim = {
+      claimer: S.token, type: seven ? 'ツモ（七対子）' : 'ツモ',
+      target: null, revertGroup: null,
+      words: ((cur.groups || {})[S.token] || []).map(function (g) { return g.chars.join(''); }),
+      approvals: {}
+    };
+    addLog(cur, playerName(cur, S.token) + ' が' + cur.claim.type + '宣言（全員承認待ち）');
+  }, '宣言できませんでした');
+}
+function approveClaim() {
+  if (!S.room || !S.room.claim || S.room.claim.claimer === S.token) return;
+  gameTx(function (cur) {
+    var c = cur.claim;
+    if (!c || c.claimer === S.token) return;
+    c.approvals = c.approvals || {};
+    c.approvals[S.token] = true;
+    var ps = sortedPlayers(cur);
+    var allOk = ps.every(function (p) { return p.id === c.claimer || c.approvals[p.id]; });
+    if (allOk) {
+      cur.status = 'ended';
+      cur.endedAt = SERVER_TIME;
+      cur.winner = c.claimer;
+      if (cur.opts && cur.opts.scoring) {
+        cur.scores = cur.scores || {};
+        if (c.type === 'ロン') {
+          cur.scores[c.claimer] = (cur.scores[c.claimer] || 0) + 3;
+          cur.scores[c.target] = (cur.scores[c.target] || 0) - 3;
+        } else {
+          cur.scores[c.claimer] = (cur.scores[c.claimer] || 0) + 3;
+          ps.forEach(function (p) { if (p.id !== c.claimer) cur.scores[p.id] = (cur.scores[p.id] || 0) - 1; });
+        }
+      }
+      addLog(cur, '全員が承認。' + playerName(cur, c.claimer) + ' が ' + c.type + ' で上がり！');
+      cur.claim = null;
+    } else {
+      addLog(cur, playerName(cur, S.token) + ' が承認しました');
+    }
+  }, '承認できませんでした');
+}
+function denyClaim() {
+  if (!S.room || !S.room.claim || S.room.claim.claimer === S.token) return;
+  gameTx(function (cur) {
+    var c = cur.claim;
+    if (!c) return;
+    if (c.revertGroup != null) {
+      var gs = (cur.groups || {})[c.claimer] || [];
+      if (gs[c.revertGroup]) gs.splice(c.revertGroup, 1);
+      cur.groups[c.claimer] = gs;
+    }
+    addLog(cur, playerName(cur, S.token) + ' が却下しました（「実在する語」の合意が取れません）');
+    cur.claim = null;
+  }, '却下できませんでした');
+}
+
+function copyRoom() {
+  if (!S.roomId) return;
+  var text = '部屋番号: ' + S.roomId + '\n' + location.href;
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(function () { toast('コピーしました'); }).catch(function () { fallbackCopy(text); });
+  } else fallbackCopy(text);
+}
+function fallbackCopy(text) {
+  var area = document.createElement('textarea');
+  area.value = text;
+  area.setAttribute('readonly', '');
+  area.style.position = 'fixed'; area.style.opacity = '0';
+  document.body.appendChild(area); area.select();
+  try { document.execCommand('copy'); toast('コピーしました'); }
+  catch (error) { toast('コピーできませんでした'); }
+  area.remove();
+}
+function updateUrl(roomId) {
+  var url = new URL(location.href);
+  url.searchParams.set('room', roomId);
+  history.replaceState({}, '', url.toString());
+}
+function escapeHtml(value) {
+  var div = document.createElement('div');
+  div.textContent = String(value == null ? '' : value);
+  return div.innerHTML;
+}
+function formatTime(value) {
+  if (!value) return '';
+  try { return new Date(value).toLocaleTimeString('ja-JP', { hour:'2-digit', minute:'2-digit', second:'2-digit' }); }
+  catch (error) { return ''; }
 }
 
 /* ---- 描画 ---- */
-function esc(value) {
-  return String(value == null ? '' : value).replace(/[&<>"']/g, function (cd) {
-    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[cd];
-  });
-}
-function tileHtml(id, extraClass, badge) {
-  return '<span class="tile ' + extraClass + '">' + esc(charOf(id)) + (badge ? '<span class="badge">' + badge + '</span>' : '') + '</span>';
-}
-function backHtml(extraClass) { return '<span class="tile ' + extraClass + ' back" aria-label="伏せ札"></span>'; }
-function buttonTile(id, label, extraClass, badge, on) {
-  return '<button class="tile ' + extraClass + (on ? ' on' : '') + '" data-card="' + esc(id) + '" aria-label="' + esc(label) + '"' + (on ? ' aria-pressed="true"' : '') + '>' +
-    esc(charOf(id)) + (badge ? '<span class="badge">' + badge + '</span>' : '') + '</button>';
-}
-function wordTag(w) {
-  return '<span class="wtag ' + (isKnown(w) ? 'ok' : 'check') + '">' + (isKnown(w) ? '収録例' : '要承認') + '</span>';
-}
-function slotCards(state, player, slot) {
-  return ((player && player.hand) || []).filter(function (id) { return (S.assign[id] || 0) === slot; });
-}
-function defsFor(state, player) { return slotDefs(state, player); }
-
-function renderSetup(room) {
-  var playing = !!(room && (room.status === 'playing' || room.status === 'ended'));
-  E.setup.hidden = playing;
-  renderOpts(room);
-}
-function renderOpts(room) {
-  if (!room || room.status !== 'waiting') { E.optBlock.hidden = true; E.optBlock.innerHTML = ''; return; }
-  E.optBlock.hidden = false;
-  var host = room.hostToken === S.token;
-  var mode = host ? selectedMode() : (room.mode || 'card');
-  var o = room.opts || optsFor(mode);
-  var keys = [
-    ['approve', '上がりは全員承認で確定します', true],
-    ['scoring', '得点をつける（ロン +3/−3、ツモ +3/他 −1）', mode === 'tile'],
-    ['kan', 'カンを有効にする（補充は文字数−3枚）', mode === 'tile'],
-    ['pairs7', '七対子を有効にする（2もじ×7）', mode === 'tile']
-  ];
-  if (!host) {
-    var on = keys.filter(function (k) { return k[2] && o[k[0]]; }).map(function (k) { return k[1].split('（')[0]; });
-    E.optBlock.innerHTML = '<span class="slot-label">任意ルール（開始者が設定）</span><p class="hint">' + (on.length ? esc(on.join(' ／ ')) : 'なし') + '</p>';
-    return;
-  }
-  E.optBlock.innerHTML = '<span class="slot-label">任意ルール（開始者が設定）</span>' +
-    keys.map(function (k) {
-      return '<label class="optline' + (k[2] ? '' : ' off') + '"><input type="checkbox" data-opt="' + k[0] + '"' +
-        (o[k[0]] ? ' checked' : '') + (k[2] ? '' : ' disabled') + '> ' + k[1] + '</label>';
-    }).join('');
-}
-E_optChange();
-
-function renderMeta(room) {
-  var c = room ? cfg(room) : MODES[selectedMode()];
-  E.modePill.textContent = c.label;
-  E.roomPill.textContent = '部屋: ' + (S.roomId || '-') + (S.local ? '（ローカル）' : '');
-  E.peekPill.hidden = !room || cfg(room).open;
-  E.peekPill.textContent = S.peek ? '手牌: 公開中（覗く）' : '手牌: 伏せ';
-  if (!room) { E.turnPill.textContent = '手番: -'; E.statePill.textContent = '状態: -'; return; }
-  var turn = room.players && room.players[room.turnToken];
-  var labels = { waiting: '待機中', playing: '対戦中', ended: '終了' };
-  E.statePill.textContent = '状態: ' + (labels[room.status] || room.status);
-  E.turnPill.textContent = '手番: ' + (room.status === 'playing' && turn ? turn.name : (room.winner ? room.winner.name + ' の勝ち' : '-'));
-}
-function renderBoard(room) {
-  if (!room || !room.piles || !room.piles.length) {
-    E.piles.innerHTML = '<p class="hint">ゲーム開始後に山が置かれます。</p>';
-  } else {
-    var canDraw = room.status === 'playing' && !room.claim && room.turnToken === actToken() &&
-      me() && me().hand.length === handTarget(room, me()) - 1;
-    E.piles.innerHTML = room.piles.map(function (pile, i) {
-      return '<div class="pile"><button class="btn-main" data-pile="' + i + '"' + (canDraw && pile.length ? '' : ' disabled') + '>山から引く</button>' +
-        '<span class="pile-count">残り ' + pile.length + '枚</span></div>';
-    }).join('');
-  }
-  var discards = (room && room.discards) || [];
-  E.river.innerHTML = discards.length
-    ? discards.map(function (d) { return tileHtml(d.id, 'small' + (room.lastDiscard && room.lastDiscard.id === d.id && room.lastDiscard.by === d.by ? ' drawn' : '')); }).join('')
-    : '<p class="hint" style="margin:0">まだ捨て牌はありません。</p>';
-}
-function canPon(room) {
-  var t = actToken(), p = me();
-  if (!room || !cfg(room).calls || room.claim || room.status !== 'playing' || !p || !room.lastDiscard || room.lastDiscard.by === t) return false;
-  if (p.hand.length !== handTarget(room, p) - 1) return false;
-  var defs = defsFor(room, p);
-  return defs.indexOf(2) !== -1 || defs.indexOf(3) !== -1;
-}
-function canRon(room) {
-  var t = actToken(), p = me();
-  if (!room || !cfg(room).calls || room.claim || room.status !== 'playing' || !p || !room.lastDiscard || room.lastDiscard.by === t) return false;
-  if (p.melds.length) return false;
-  if (p.hand.length !== handTarget(room, p) - 1) return false;
-  return !(room.discards || []).some(function (d) { return d.by === t && charOf(d.id) === charOf(room.lastDiscard.id); });
-}
-function renderClaim(room) {
-  var have = canPon(room) || canRon(room);
-  if (!have && S.pick !== 'pon') { E.call.hidden = true; E.callBody.innerHTML = ''; return; }
-  if (!have) { E.call.hidden = true; return; }
-  E.call.hidden = false;
-  var ld = room.lastDiscard, html = '';
-  html += '<p class="hint">「' + esc(charOf(ld.id)) + '」が捨てられました。この牌で単語を作れるなら宣言できます。</p>';
-  html += '<div class="pool"><span class="slot-label">捨て牌</span><div class="slot-tiles">' + tileHtml(ld.id, 'mid') + '</div></div>';
-  if (S.pick === 'pon') {
-    var defs = defsFor(room, me()), max = defs.indexOf(3) !== -1 ? 2 : 1;
-    html += '<p class="hint">手牌から' + (max === 1 ? '1枚' : '1〜2枚') + 'を選んでください（捨て牌と合わせて2〜3もじの単語）。</p>';
-    html += '<div class="hand">' + me().hand.map(function (id) {
-      return buttonTile(id, '「' + charOf(id) + '」を選ぶ', 'small', '', S.sel.indexOf(id) >= 0);
-    }).join('') + '</div>';
-    var okPon = S.sel.length >= 1 && S.sel.length <= max;
-    html += '<div class="actions"><button class="btn-jade" id="ponGo"' + (okPon ? '' : ' disabled') + '>この牌でポン（' + (S.sel.length + 1) + 'もじ）</button>' +
-      '<button class="btn-sub" id="pickCancel">やめる</button></div>';
-  } else {
-    html += '<div class="actions">' +
-      (canPon(room) ? '<button class="btn-main" id="ponBtn">ポン</button>' : '') +
-      (canRon(room) ? '<button class="btn-red" id="ronBtn">ロン（あがり）</button>' : '') +
-      '<button class="btn-sub" id="passBtn">見送る</button></div>';
-  }
-  E.callBody.innerHTML = html;
-}
-function renderApprove(room) {
-  var cl = room && room.claim;
-  if (!cl || room.status !== 'playing') { E.approve.hidden = true; E.approveBody.innerHTML = ''; return; }
-  E.approve.hidden = false;
-  var claimer = (room.players[cl.claimer] || {}).name || '？';
-  var words = cl.words.map(function (w) { return '<span class="approve-word">' + esc(w) + wordTag(w) + '</span>'; }).join('');
-  var html = '<p class="hint"><strong>' + esc(claimer) + '</strong> が' + esc(cl.via === 'ron' ? 'ロン' : 'ツモ') + 'を宣言しました。単語が「実在する語」か全員で確認してください。</p>' +
-    '<div>' + words + '</div>';
-  if (cl.claimer === actToken()) {
-    var n = Object.keys(cl.approvals || {}).length, total = sortedPlayers(room).length - 1;
-    html += '<p class="hint">承認待ち ' + n + ' / ' + total + '</p><div class="actions"><button class="btn-sub" id="undoBtn">宣言を取り消す</button></div>';
-  } else {
-    html += '<div class="actions"><button class="btn-jade" id="okBtn">承認する</button><button class="btn-red" id="ngBtn">却下する</button></div>';
-  }
-  E.approveBody.innerHTML = html;
-}
-function renderCtrl(room) {
-  if (!room || room.status !== 'playing') { E.ctrl.hidden = true; E.ctrlBody.innerHTML = ''; return; }
-  E.ctrl.hidden = false;
-  var p = me(), t = actToken(), c = cfg(room), o = room.opts || optsFor(room.mode);
-  var html = '';
-  if (!p) { E.ctrlBody.innerHTML = '<p class="hint">手番のプレイヤーが見つかりません。</p>'; return; }
-  if (room.claim) {
-    E.ctrlBody.innerHTML = '<p class="hint">上がり宣言の承認待ちです。</p>';
-    return;
-  }
-  var target = handTarget(room, p);
-  var waiting = p.hand.length === target - 1, ready = p.hand.length === target;
-  var myTurn = room.turnToken === t && !S.ron;
-  var pool = p.hand.slice();
-  if (S.ron && room.lastDiscard && room.lastDiscard.by !== t) pool = pool.concat([room.lastDiscard.id]);
-
-  if (S.ron || (myTurn && ready)) {
-    var defs = defsFor(room, p), slots = '';
-    defs.forEach(function (want, i) {
-      var cards = (S.ron ? pool : p.hand).filter(function (id) { return (S.assign[id] || 0) === i + 1; });
-      var w = cards.map(charOf).join('');
-      slots += '<div class="slot' + (cards.length === want ? ' full' : '') + '">' +
-        '<div class="slot-label">単語' + (i + 1) + '（' + want + 'もじ）</div>' +
-        '<div class="slot-tiles">' + (cards.map(function (id) { return tileHtml(id, 'small', i + 1); }).join('') || '<span class="hint">…</span>') + '</div>' +
-        '<div class="slot-word">' + esc(w) + (w.length === want ? wordTag(w) : '') + '</div></div>';
-    });
-    var meldHtml = (p.melds || []).map(function (m) {
-      var w = m.cards.map(charOf).join('');
-      return '<div class="meld">' + m.cards.map(function (id) { return tileHtml(id, 'small'); }).join('') + '<span class="wtag ' + (isKnown(w) ? 'ok' : 'check') + '">' + esc(w) + '</span></div>';
-    }).join('');
-    var complete = defs.every(function (want, i) { return (S.ron ? pool : p.hand).filter(function (id) { return (S.assign[id] || 0) === i + 1; }).length === want; });
-    html += '<p class="hint">' + (S.ron ? 'ロン：' : '') + '牌をクリックして単語の枠に組み込みます。もう一度押すと戻ります。' + (o.approve ? '「アガリ！」で全員の承認に進みます。' : '') + '</p>';
-    if (meldHtml) html += '<div class="meld-note"><span class="slot-label">鳴いた単語</span><div class="melds">' + meldHtml + '</div></div>';
-    html += '<div class="builder">' + slots + '</div>';
-    html += '<div class="hand">' + pool.map(function (id) {
-      return buttonTile(id, '「' + charOf(id) + '」を組み込む', 'small', '', (S.assign[id] || 0) > 0);
-    }).join('') + '</div>';
-    html += '<div class="actions">' +
-      '<button class="btn-jade" id="agariBtn"' + (complete ? '' : ' disabled') + '>' + (S.ron ? 'ロンであがり' : 'アガリ！') + '</button>' +
-      (S.ron ? '<button class="btn-sub" id="pickCancel">やめる</button>' : '') +
-      '<button class="btn-sub" id="clearBtn">組み方をクリア</button>' +
-      (!S.ron && myTurn ? '<button class="btn-red" id="discardBtn">1枚捨てる</button>' : '') +
-      (c.calls && o.kan && myTurn ? '<button class="btn-sub" id="kanBtn">カン</button>' : '') + '</div>';
-    E.ctrlBody.innerHTML = html;
-    return;
-  }
-  if (S.pick === 'kan') {
-    html += '<p class="hint">4文字以上の単語になるよう、手牌を4枚以上えらんでください。</p>';
-    html += '<div class="hand">' + p.hand.map(function (id) {
-      return buttonTile(id, '「' + charOf(id) + '」を選ぶ', 'small', '', S.sel.indexOf(id) >= 0);
-    }).join('') + '</div>';
-    html += '<div class="actions"><button class="btn-jade" id="kanGo"' + (S.sel.length >= 4 ? '' : ' disabled') + '>この' + S.sel.length + '枚でカン</button>' +
-      '<button class="btn-sub" id="pickCancel">やめる</button></div>';
-    E.ctrlBody.innerHTML = html;
-    return;
-  }
-  if (S.pick === 'discard') {
-    html += '<p class="hint">捨てる牌をクリックしてください（表向きに場へ出ます）。</p>';
-    html += '<div class="hand">' + p.hand.map(function (id) { return buttonTile(id, '「' + charOf(id) + '」を捨てる', 'small'); }).join('') + '</div>';
-    html += '<div class="actions"><button class="btn-sub" id="pickCancel">やめる</button></div>';
-    E.ctrlBody.innerHTML = html;
-    return;
-  }
-  if (myTurn && waiting) {
-    html += '<p class="hint">山から1枚引いてください（手牌' + p.hand.length + '枚 → ' + target + '枚）。' + (c.calls ? '捨て牌でポンできるときは、引く前に宣言します。' : '') + '</p>';
-    E.ctrlBody.innerHTML = html;
-    return;
-  }
-  var who = otherSeat(room, room.turnToken);
-  html += '<p class="hint">' + esc(who ? who.name : '-') + ' の手番です。</p>';
-  E.ctrlBody.innerHTML = html;
-}
-function renderPlayers(room) {
-  if (!room) { E.players.innerHTML = ''; return; }
-  var c = cfg(room), o = room.opts || optsFor(room.mode), mine = actToken();
-  E.players.innerHTML = sortedPlayers(room).map(function (p) {
-    var isTurn = room.status === 'playing' && p.id === room.turnToken;
-    var isWin = room.winner && room.winner.token === p.id;
-    var tags = (p.id === room.hostToken ? '<span class="p-tag host">作成者</span>' : '') +
-      (isTurn ? '<span class="p-tag turn">手番</span>' : '') + (isWin ? '<span class="p-tag">勝ち</span>' : '');
-    var score = o.scoring && room.scores ? '<span class="p-score">' + (room.scores[p.id] || 0) + '点</span>' : '';
-    var faceUp = c.open || p.id === mine || S.peek;
-    var hand = (p.hand && p.hand.length)
-      ? '<div class="hand">' + p.hand.map(function (id, i) {
-          if (!faceUp) return backHtml('small');
-          return tileHtml(id, (i === p.hand.length - 1 && p.hand.length === handTarget(room, p) ? 'small drawn' : 'small'));
-        }).join('') + '</div>'
-      : '<p class="p-empty">手札はまだありません。</p>';
-    var melds = (p.melds && p.melds.length)
-      ? '<div class="melds">' + p.melds.map(function (m) {
-          return '<div class="meld">' + m.cards.map(function (id) { return tileHtml(id, 'small'); }).join('') + '</div>';
-        }).join('') + '</div>'
-      : '';
-    var win = isWin ? '<p class="slot-word">' + esc(room.winner.words.join(' ／ ')) + '</p>' : '';
-    return '<article class="player' + (isTurn ? ' active' : '') + (isWin ? ' win' : '') + '">' +
-      '<div class="p-head"><span class="p-name">' + esc(p.name) + '</span>' + tags + score + '</div>' + melds + win + hand + '</article>';
-  }).join('');
-}
-function renderLog(room) {
-  var logs = room && room.logs ? Object.keys(room.logs).sort().reverse().slice(0, 60).map(function (k) { return room.logs[k]; }) : [];
-  function time(v) { if (!v || typeof v !== 'number') return ''; try { return new Date(v).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' }); } catch (e) { return ''; } }
-  E.log.innerHTML = logs.length
-    ? logs.map(function (i) { return '<div class="log-item"><div>' + esc(i.text) + '</div><div class="log-time">' + time(i.at) + '</div></div>'; }).join('')
-    : '<div class="log-item">ログなし</div>';
-}
-function renderStatus(room) {
-  if (!room) { E.status.textContent = ONLINE ? '6文字の部屋番号を入力して参加するか、部屋を作成してください。' : 'オンライン未設定です。「この端末だけで開始」で遊べます。'; return; }
-  var c = cfg(room), turn = room.players[room.turnToken];
-  if (room.claim) {
-    E.status.textContent = '上がり宣言の承認待ち：' + ((room.players[room.claim.claimer] || {}).name || '？') + ' の「' + room.claim.words.join(' ／ ') + '」を全員で確認してください。';
-  } else if (room.status === 'waiting') {
-    var host = room.players[room.hostToken];
-    E.status.textContent = '待機中（' + c.label + '）：' + sortedPlayers(room).length + '人。作成者「' + (host ? host.name : '-') + '」が2人以上でゲーム開始できます。';
-  } else if (room.status === 'playing') {
-    E.status.textContent = '対戦中（' + c.label + '）：' + (turn ? turn.name : '-') + ' の手番です。' + (canPon(room) || canRon(room) ? '鳴きを宣言できます。' : '');
-  } else {
-    E.status.textContent = '終了：' + (room.winner ? room.winner.name + ' が' + (room.winner.via === 'ron' ? 'ロン' : 'ツモ') + 'であがりました（' + room.winner.words.join(' ／ ') + '）' : '流局です。');
-  }
-}
-function renderActions(room) {
-  if (!room) return;
-  var host = room.hostToken === S.token;
-  var o = room ? (room.opts || optsFor(room.mode)) : null;
-  var list = sortedPlayers(room).length;
-  E.ctrlBody.insertAdjacentHTML('afterend', '<div id="globalActions" class="panel"><div class="actions end">' +
-    '<button class="btn-main" id="startBtn"' + (host && room.status === 'waiting' && list >= 2 ? '' : ' disabled') + '>ゲーム開始</button>' +
-    '<button class="btn-jade" id="nextBtn"' + (host && o && o.scoring && room.status === 'ended' ? '' : ' disabled') + '>次の局へ（点数持ち越し）</button>' +
-    '<button class="btn-sub" id="undoBtn2"' + (host && room.status === 'ended' ? '' : ' disabled') + '>アガリを取り消して続行</button>' +
-    '<button class="btn-red" id="resetBtn"' + (host ? '' : ' disabled') + '>部屋をリセット</button>' +
-    (room && !cfg(room).open ? '<button class="btn-sub" id="peekBtn">' + (S.peek ? '手牌を伏せる' : '手牌を覗く') + '</button>' : '') +
-    (S.local ? '<button class="btn-sub" id="leaveLocalBtn">ローカルを終了</button>' : '') +
-    '</div></div>');
+function tileButton(c, i, pressed, extraLabel) {
+  return '<button type="button" class="tile" data-i="' + i + '" aria-pressed="' + (pressed ? 'true' : 'false') +
+    '" aria-label="' + extraLabel + ' ' + escapeHtml(c) + '">' + escapeHtml(c) + '</button>';
 }
 function render() {
-  var room = S.room, old = document.getElementById('globalActions');
-  if (old) old.remove();
-  renderSetup(room); renderMeta(room); renderBoard(room);
-  renderCtrl(room); renderClaim(room); renderApprove(room); renderActions(room);
-  renderPlayers(room); renderLog(room); renderStatus(room);
-}
-
-/* ---- 操作 ---- */
-document.addEventListener('click', function (event) {
-  var room = S.room; if (!room) return;
-  var el = event.target.closest('[data-pile],[data-card],#agariBtn,#discardBtn,#clearBtn,#startBtn,#resetBtn,#undoBtn,#undoBtn2,#nextBtn,#leaveLocalBtn,#peekBtn,#ponBtn,#ronBtn,#passBtn,#ponGo,#kanBtn,#kanGo,#pickCancel,#okBtn,#ngBtn');
-  if (!el) return;
-  var token = actToken();
-
-  if (el.dataset.pile !== undefined && el.dataset.pile !== '') { commit({ type: 'draw', token: token, pile: Number(el.dataset.pile) }); return; }
-  if (el.id === 'startBtn') { commit({ type: 'start', token: S.token }); return; }
-  if (el.id === 'nextBtn') { commit({ type: 'nextround', token: S.token }); return; }
-  if (el.id === 'resetBtn') { if (confirm('手札をすべて戻して待機状態にしますか？')) commit({ type: 'reset', token: S.token }); return; }
-  if (el.id === 'undoBtn' || el.id === 'undoBtn2') { commit({ type: 'undo', token: S.token }); return; }
-  if (el.id === 'okBtn') { commit({ type: 'approve', token: token }); return; }
-  if (el.id === 'ngBtn') { commit({ type: 'deny', token: token }); return; }
-  if (el.id === 'peekBtn') { S.peek = !S.peek; render(); return; }
-  if (el.id === 'clearBtn') { S.assign = {}; render(); return; }
-  if (el.id === 'pickCancel') { S.pick = null; S.sel = []; S.ron = false; render(); return; }
-  if (el.id === 'discardBtn') { S.pick = 'discard'; S.sel = []; render(); return; }
-  if (el.id === 'kanBtn') { S.pick = 'kan'; S.sel = []; render(); return; }
-  if (el.id === 'kanGo') { commit({ type: 'kan', token: token, cards: S.sel.slice() }); return; }
-  if (el.id === 'ponBtn') { S.pick = 'pon'; S.sel = []; render(); return; }
-  if (el.id === 'passBtn') { toast('見送りました'); return; }
-  if (el.id === 'ponGo') { commit({ type: 'pon', token: token, cards: S.sel.slice() }); return; }
-  if (el.id === 'ronBtn') { S.ron = true; S.assign = {}; render(); return; }
-  if (el.id === 'agariBtn') {
-    var p = me(), defs = defsFor(room, p);
-    var wordsArray = defs.map(function (want, i) {
-      return p.hand.concat(S.ron ? [room.lastDiscard.id] : []).filter(function (id) { return (S.assign[id] || 0) === i + 1; });
-    });
-    commit({ type: 'agari', token: token, via: S.ron ? 'ron' : 'tsumo', words: wordsArray, skipApproval: S.local });
+  var room = S.room;
+  E.roomPill.textContent = '部屋: ' + (S.roomId || '-');
+  E.copyBtn.hidden = !S.roomId;
+  if (!room) {
+    E.modePill.textContent = 'モード: -';
+    E.deckPill.textContent = '山: -';
+    E.turnPill.textContent = '手番: -';
+    E.statePill.textContent = '状態: -';
+    E.players.innerHTML = '';
+    E.log.innerHTML = '<div class="log-item">ログなし</div>';
+    E.startBtn.disabled = true;
+    E.resetBtn.hidden = true;
+    E.lobbyCard.hidden = true;
+    E.gameCard.hidden = true;
+    E.claimCard.hidden = true;
     return;
   }
-  if (el.dataset.card) {
-    var cardId = el.dataset.card;
-    if (S.pick === 'kan' || S.pick === 'pon') {
-      var at = S.sel.indexOf(cardId);
-      if (at >= 0) S.sel.splice(at, 1); else S.sel.push(cardId);
-      render(); return;
-    }
-    if (S.pick === 'discard') { commit({ type: 'discard', token: token, cardId: cardId }); return; }
-    if (S.ron) {
-      if (S.assign[cardId]) { delete S.assign[cardId]; render(); return; }
-      var defs2 = defsFor(room, me()), pool2 = me().hand.concat([room.lastDiscard.id]);
-      for (var i2 = 0; i2 < defs2.length; i2++) {
-        var used = pool2.filter(function (id) { return (S.assign[id] || 0) === i2 + 1; }).length;
-        if (used < defs2[i2]) { S.assign[cardId] = i2 + 1; render(); return; }
-      }
-      toast('単語の枠がいっぱいです'); return;
-    }
-    if (S.assign[cardId]) { delete S.assign[cardId]; render(); return; }
-    var defs3 = defsFor(room, me());
-    for (var i3 = 0; i3 < defs3.length; i3++) {
-      var used3 = me().hand.filter(function (id) { return (S.assign[id] || 0) === i3 + 1; }).length;
-      if (used3 < defs3[i3]) { S.assign[cardId] = i3 + 1; render(); return; }
-    }
-    toast('単語の枠がいっぱいです');
+  var players = sortedPlayers(room);
+  var isHost = room.hostToken === S.token;
+  var isMember = !!(room.players && room.players[S.token]);
+  var stateLabel = {waiting:'待機中',playing:'対戦中',ended:'終了'}[room.status] || room.status;
+  var turn = room.players && room.players[room.turnToken];
+  var mode = MODES[room.mode || 'card'];
+  E.modePill.textContent = 'モード: ' + (room.mode ? mode.label : '-');
+  E.deckPill.textContent = '山: ' + (room.deck ? room.deck.length : '-');
+  E.statePill.textContent = '状態: ' + stateLabel;
+  E.turnPill.textContent = '手番: ' + (room.status === 'playing' && turn ? turn.name : '-');
+  E.status.textContent = !isMember ? '部屋を確認しました。名前を入力して「参加」を押してください。' :
+    room.status === 'waiting' ? '待機中：作成者が2人以上でゲームを開始できます。' :
+    room.status === 'playing' ? '対戦中：' + (turn ? turn.name : '-') + ' の手番です。' :
+    '終了：' + (room.winner ? playerName(room, room.winner) + ' が上がりました。' : 'ゲーム終了');
+  E.players.innerHTML = players.map(function (player) {
+    var classes = 'player' + (room.status === 'playing' && player.id === room.turnToken ? ' turn' : '');
+    var marks = (player.id === room.hostToken ? '\u{1F451} ' : '') + (player.id === S.token ? '\u2B50 ' : '');
+    var score = (room.opts && room.opts.scoring && room.scores) ? '<div style="margin-top:4px;font-size:11px">点数: ' + (room.scores[player.id] || 0) + '</div>' : '';
+    return '<article class="' + classes + '"><strong>' + marks + escapeHtml(player.name) + '</strong><div style="margin-top:4px;color:#cbd5e1;font-size:11px">席 ' + (player.seat + 1) + '</div>' + score + '</article>';
+  }).join('');
+  E.startBtn.disabled = !(isHost && room.status === 'waiting' && players.length >= 2);
+  E.resetBtn.hidden = !isHost;
+  E.resetBtn.disabled = !isHost;
+
+  /* ロビー（待機中）：開始者にモード選択を表示 */
+  E.lobbyCard.hidden = room.status !== 'waiting';
+  document.getElementById('optPairs7').closest('label').style.display = (room.mode !== 'card' || !room.mode) ? '' : 'none';
+
+  /* ログ */
+  var logs = Object.keys(room.logs || {}).sort().reverse().map(function (key) { return room.logs[key]; });
+  E.log.innerHTML = logs.map(function (item) {
+    return '<div class="log-item"><div>' + escapeHtml(item.text) + '</div><div class="log-time">' + formatTime(item.at) + '</div></div>';
+  }).join('') || '<div class="log-item">ログなし</div>';
+
+  renderGame(room, mode, isHost);
+  renderClaim(room);
+}
+function renderGame(room, mode, isHost) {
+  if (room.status === 'waiting') { E.gameCard.hidden = true; return; }
+  E.gameCard.hidden = false;
+  var isMember = !!(room.players && room.players[S.token]);
+  var myHand = (room.hands || {})[S.token] || [];
+  var myGroups = (room.groups || {})[S.token] || [];
+  var opts = room.opts || {};
+  var drawnByMe = room.drawn === S.token;
+
+  E.discardView.textContent = room.lastDiscard ? room.lastDiscard.char : '-';
+  E.openInfo.textContent = room.mode === 'card' ? 'カード版：手札は全員オープン' : '牌ばーじょん：他の手牌は見えません';
+  E.handCount.textContent = '(' + myHand.length + '枚)';
+
+  /* 手札（自分） */
+  E.hand.innerHTML = myHand.map(function (c, i) {
+    return tileButton(c, i, S.sel.indexOf(i) !== -1, '手札');
+  }).join('') || '<span class="badge-unknown">手牌は空です（すべて単語になっています）</span>';
+
+  /* 他のプレイヤー */
+  var others = sortedPlayers(room).filter(function (p) { return p.id !== S.token; });
+  var othersHtml = others.map(function (p) {
+    var gs = (room.groups || {})[p.id] || [];
+    var gHtml = gs.map(function (g) {
+      return '<span class="group' + (g.exposed ? ' exposed' : '') + '">' + g.chars.map(function (c) { return '<span class="tile" style="cursor:default">' + escapeHtml(c) + '</span>'; }).join('') + (g.exposed ? '<span class="badge">鳴き</span>' : '') + '</span>';
+    }).join('');
+    var handInfo = room.mode === 'card'
+      ? '<div class="groups">' + ((room.hands || {})[p.id] || []).map(function (c) { return '<span class="tile" style="cursor:default">' + escapeHtml(c) + '</span>'; }).join('') + '</div>'
+      : '<div class="badge-unknown">手牌 ' + (((room.hands || {})[p.id] || []).length) + '枚</div>';
+    return '<div style="margin-bottom:8px"><strong>' + escapeHtml(p.name) + '</strong>' + handInfo + (gHtml ? '<div class="groups">' + gHtml + '</div>' : '') + '</div>';
+  }).join('');
+  E.openInfo.innerHTML += '<div style="flex-basis:100%">' + othersHtml + '</div>';
+
+  /* 自分の単語 */
+  E.groups.innerHTML = myGroups.map(function (g, gi) {
+    var w = g.chars.join('');
+    var known = isKnown(w);
+    return '<span class="group' + (g.exposed ? ' exposed' : '') + '" role="button" tabindex="0" data-gi="' + gi + '" aria-label="単語 ' + escapeHtml(w) + (g.exposed ? ' 鳴いた単語' : ' クリックで解除') + '">' +
+      g.chars.map(function (c) { return '<span class="tile" style="cursor:default">' + escapeHtml(c) + '</span>'; }).join('') +
+      '<span class="badge ' + (known ? 'badge-known' : 'badge-unknown') + '">' + (known ? '収録例' : '要承認') + (g.exposed ? '・鳴き' : '') + '</span></span>';
+  }).join('') || '<span class="badge-unknown">まだありません</span>';
+
+  /* 操作ボタン */
+  var lastByOther = room.lastDiscard && room.lastDiscard.by !== S.token;
+  E.drawBtn.disabled = !(isMember && myTurn() && !room.drawn && (room.deck || []).length);
+  E.pairBtn.disabled = !(isMember && myTurn() && S.sel.length === 2);
+  E.tripleBtn.disabled = !(isMember && myTurn() && S.sel.length === 3);
+  E.kanBtn.hidden = !(room.mode === 'tile' && opts.kan);
+  E.kanBtn.disabled = !(isMember && myTurn() && drawnByMe && S.sel.length >= 4);
+  E.discardBtn.disabled = !(isMember && myTurn() && drawnByMe && S.sel.length === 1);
+  E.ponBtn.hidden = !(room.mode === 'tile' && lastByOther);
+  E.ponBtn.disabled = !(isMember && lastByOther && S.sel.length === 2 && !room.claim);
+  E.ronBtn.hidden = !(room.mode === 'tile' && lastByOther);
+  E.ronBtn.disabled = !(isMember && lastByOther && S.sel.length === 2 && !room.claim);
+  E.agariBtn.disabled = !(isMember && myTurn() && drawnByMe && !myHand.length && winSplit(myGroups, mode, opts.pairs7) && !room.claim);
+  E.nextBtn.hidden = !(isHost && room.status === 'ended');
+  E.nextBtn.disabled = !isHost;
+  var hints = [];
+  if (!isMember) hints.push('参加すると遊べます');
+  else if (myTurn() && !room.drawn) hints.push('「引く」で1枚引いてください');
+  else if (myTurn()) hints.push('単語を作るか、1枚選んで「捨てる」');
+  if (room.mode === 'tile' && (room.called || {})[S.token]) hints.push('あなたは鳴き済み：ツモ上がりのみです');
+  if (!opts.scoring && !opts.kan && !opts.pairs7) hints.push('※点数・カン・七対子は未使用（開始時の任意ルール設定による）');
+  E.hint.textContent = hints.join('　');
+}
+function renderClaim(room) {
+  var c = room.claim;
+  if (!c || room.status !== 'playing') { E.claimCard.hidden = true; return; }
+  E.claimCard.hidden = false;
+  var mode = MODES[room.mode || 'card'];
+  E.claimBody.innerHTML = '<strong>' + escapeHtml(playerName(room, c.claimer)) + '</strong> が <strong>' + escapeHtml(c.type) + '</strong> を宣言しました（' + mode.label + '：2×' + mode.pairs + '＋3×' + mode.triples + '）。単語は実在する語か全員で確認してください。';
+  E.claimWords.innerHTML = c.words.map(function (w) {
+    var known = isKnown(w);
+    return '<span>' + escapeHtml(w) + ' <span class="' + (known ? 'badge-known' : 'badge-unknown') + '">' + (known ? '収録例' : '要承認') + '</span></span>';
+  }).join('');
+  var approved = Object.keys(c.approvals || {}).length;
+  var total = Object.keys(room.players).length - 1;
+  if (c.claimer === S.token) {
+    E.claimActions.innerHTML = '<span class="pill" style="background:#eef2ff">承認待ち ' + approved + '/' + total + '</span>';
+  } else {
+    E.claimActions.innerHTML = '<button class="success" id="okBtn" aria-label="上がりを承認">承認</button> <button class="danger" id="ngBtn" aria-label="上がりを却下">却下</button>';
+    document.getElementById('okBtn').addEventListener('click', approveClaim);
+    document.getElementById('ngBtn').addEventListener('click', denyClaim);
   }
-  if (el.id === 'leaveLocalBtn') {
-    if (!confirm('ローカル対戦を終了しますか？')) return;
-    S.local = false; S.room = null; S.roomId = ''; S.assign = {}; S.sel = []; S.ron = false; persistLocal(); render();
-  }
-});
+}
 
 /* ---- 初期化 ---- */
-function E_optChange() {
-  E.optBlock.addEventListener('change', function (event) {
-    var box = event.target.closest('input[data-opt]');
-    if (!box) return;
-    var room = S.room;
-    if (!room || room.hostToken !== S.token || room.status !== 'waiting') return;
-    var o = Object.assign({}, room.opts || optsFor(selectedMode()));
-    o[box.dataset.opt] = box.checked;
-    commit({ type: 'opts', token: S.token, opts: o });
-  });
-}
-document.querySelectorAll('input[name="modeSel"]').forEach(function (radio) {
-  radio.addEventListener('change', function () {
-    var room = S.room;
-    if (room && room.hostToken === S.token && room.status === 'waiting') commit({ type: 'opts', token: S.token, opts: optsFor(selectedMode()) });
+function bindCommon() {
+  E.createBtn.addEventListener('click', createRoom);
+  E.joinBtn.addEventListener('click', joinRoom);
+  E.startBtn.addEventListener('click', startGame);
+  E.resetBtn.addEventListener('click', resetRoom);
+  E.copyBtn.addEventListener('click', copyRoom);
+  E.nextBtn.addEventListener('click', nextRound);
+  E.drawBtn.addEventListener('click', drawTile);
+  E.pairBtn.addEventListener('click', function () { formGroup(2); });
+  E.tripleBtn.addEventListener('click', function () { formGroup(3); });
+  E.kanBtn.addEventListener('click', kanSel);
+  E.discardBtn.addEventListener('click', discardSel);
+  E.ponBtn.addEventListener('click', ponSel);
+  E.ronBtn.addEventListener('click', ronSel);
+  E.agariBtn.addEventListener('click', agari);
+  E.hand.addEventListener('click', function (ev) {
+    var b = ev.target.closest('button.tile');
+    if (!b) return;
+    var i = Number(b.getAttribute('data-i'));
+    var pos = S.sel.indexOf(i);
+    if (pos !== -1) S.sel.splice(pos, 1); else S.sel.push(i);
+    b.setAttribute('aria-pressed', S.sel.indexOf(i) !== -1 ? 'true' : 'false');
     render();
   });
-});
+  E.groups.addEventListener('click', function (ev) {
+    var g = ev.target.closest('[data-gi]');
+    if (g) ungroup(Number(g.getAttribute('data-gi')));
+  });
+  E.groups.addEventListener('keydown', function (ev) {
+    if (ev.key !== 'Enter' && ev.key !== ' ') return;
+    var g = ev.target.closest('[data-gi]');
+    if (g) { ev.preventDefault(); ungroup(Number(g.getAttribute('data-gi'))); }
+  });
+  window.addEventListener('beforeunload', unsubscribe);
+}
+function initDemo() {
+  S.token = 'p_demo';
+  S.roomId = 'DEMO0000';
+  var room = {
+    roomId: 'DEMO0000', status: 'playing', hostToken: S.token, mode: DEMO, createdAt: Date.now(),
+    players: { p_demo: { id: 'p_demo', name: 'あなた', seat: 0, joinedAt: Date.now() }, p_a: { id: 'p_a', name: 'とも', seat: 1, joinedAt: Date.now() } },
+    turnToken: 'p_demo', opts: { scoring: true, kan: true, pairs7: true },
+    scores: { p_demo: 2, p_a: 1 }, called: {}, drawn: null, claim: null,
+    lastDiscard: { char: 'す', by: 'p_a' }, logs: {}
+  };
+  var deck = shuffled(deckFor());
+  room.hands = { p_demo: [], p_a: [] };
+  room.hands.p_demo = deck.splice(0, MODES[DEMO].handSize);
+  room.hands.p_a = deck.splice(0, MODES[DEMO].handSize);
+  room.groups = { p_demo: [], p_a: [] };
+  /* 例として3文字語を1組作成済みにする */
+  var want = ['さ', 'く', 'ら'];
+  want.forEach(function (c) {
+    var i = room.hands.p_demo.indexOf(c);
+    if (i !== -1) room.hands.p_demo.splice(i, 1);
+  });
+  room.groups.p_demo.push({ chars: ['あ', 'い', 'う'], exposed: false });
+  room.deck = deck;
+  S.room = room;
+  E.name.value = 'あなた';
+  E.status.textContent = 'デモ表示（未接続）：?demo=card / ?demo=tile で切替。実際に遊ぶにはFIREBASE_CONFIGを設定してください。';
+  addLog(room, 'デモ部屋を表示しています');
+  render();
+}
 function initialize() {
   S.token = loadToken();
   E.name.value = localStorage.getItem(NAME_KEY) || '';
-  E.createBtn.addEventListener('click', createRoom);
-  E.joinBtn.addEventListener('click', joinRoom);
-  E.localBtn.addEventListener('click', startLocal);
+  var urlRoom = new URL(location.href).searchParams.get('room');
+  S.roomId = (urlRoom || localStorage.getItem(ROOM_KEY) || '').toUpperCase();
+  E.roomInput.value = S.roomId;
+  bindCommon();
   window.addEventListener('beforeunload', unsubscribe);
 
-  var urlRoom = new URL(location.href).searchParams.get('room');
-  var savedRoom = (urlRoom || localStorage.getItem(ROOM_KEY) || '').toUpperCase();
-  E.roomInput.value = savedRoom;
+  DEMO = new URL(location.href).searchParams.get('demo');
+  if (DEMO === 'card' || DEMO === 'tile') { initDemo(); return; }
+  DEMO = null;
 
-  var savedLocal = null;
-  try { savedLocal = JSON.parse(localStorage.getItem(LOCAL_KEY) || 'null'); } catch (error) { savedLocal = null; }
-
-  if (!ONLINE) {
-    E.createBtn.disabled = true; E.joinBtn.disabled = true;
-    E.status.textContent = 'オンライン未設定です。Firebase Console の値を FIREBASE_CONFIG に貼ると部屋を作成できます。今はこの端末だけで遊べます。';
-  } else {
-    try { firebase.initializeApp(FIREBASE_CONFIG); } catch (error) { showError(error); return; }
-    S.ready = true;
-    E.status.textContent = 'オンライン準備完了。あそび方を選んで部屋を作成するか、番号を入力して参加できます。';
+  if (configIsUnset()) {
+    E.status.textContent = 'FIREBASE_CONFIG を Firebase Console の値に置き換えてください。';
+    return;
   }
-  if (savedLocal && savedLocal.players) { S.local = true; S.room = savedLocal; S.roomId = 'LOCAL'; render(); toast('前回のローカル対戦を復元しました'); return; }
-  if (S.ready && savedRoom.length === ROOM_CODE_LENGTH) subscribe(savedRoom); else render();
+  try { firebase.initializeApp(FIREBASE_CONFIG); }
+  catch (error) { showError(error); return; }
+
+  setReady(true);
+  E.status.textContent = 'Firebase 接続準備が完了しました。';
+  if (S.roomId.length === ROOM_CODE_LENGTH) subscribe(S.roomId);
 }
 initialize();
 </script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495" integrity="sha512-iIg7k2xntmwu6/uSb5tpc/hySgZc4eoL31yB29W6tJFo2akwjPWcEqnCEdJvGexCL0KEQwVYv5BlowfhVz26hg==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","spa":2}' crossorigin="anonymous"></script>
 </body>
 </html>
