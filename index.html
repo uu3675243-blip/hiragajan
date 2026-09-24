@@ -609,7 +609,7 @@ function reduce(state, action) {
 var ONLINE = !(!FIREBASE_CONFIG.apiKey || /YOUR_/.test(JSON.stringify(FIREBASE_CONFIG)));
 var S = { token: '', roomId: '', room: null, local: false, ready: false, roomRef: null, handler: null,
           assign: {}, sel: [], pick: null, ron: false, peek: false,
-          pending: false, subscribedId: '', shownEnd: '' };
+          pending: false, subscribedId: '', shownEnd: '', spectator: false };
 var E = {};
 ['name','roomInput','count','createBtn','joinBtn','localBtn','status','optBlock','modePill','roomPill','turnPill','statePill','peekPill',
  'globalActions','piles','river','approve','approveBody','call','callBody','ctrl','ctrlBody','players','log','toast','setup','copyBtn','endOv','endT','endB','endClose'].forEach(function (id) { E[id] = document.getElementById(id); });
@@ -725,7 +725,7 @@ function createRoom() {
     return ref.once('value').then(function (snapshot) {
       if (snapshot.exists()) return attempt(remaining - 1);          /* 使用済み番号は取り直す */
       var initial = newRoom(roomId, S.token, name, mode);            /* ログキーもこの時点で確定 */
-      return ref.set(initial).then(function () { subscribe(roomId); toast('部屋を作成しました: ' + roomId); })
+      return ref.set(initial).then(function () { S.spectator = false; subscribe(roomId); toast('部屋を作成しました: ' + roomId); })
         .catch(function (error) { if (errorKind(error) === 'permission') { showError(error); return; } return attempt(remaining - 1); });
     });
   }
@@ -737,6 +737,7 @@ function joinRoom() {
   if (roomId.length !== ROOM_CODE_LENGTH) return toast(ROOM_CODE_LENGTH + '文字の部屋番号を入力してください');
   var name = sanitizeName(E.name.value); E.name.value = name; localStorage.setItem(NAME_KEY, name);
   var ref = roomRef(roomId);
+  S.spectator = false;
   /* ログのキーは書き込み直前に生成する */
   function logEntry(text) {
     var patch = {};
@@ -747,20 +748,24 @@ function joinRoom() {
     if (!snapshot.exists()) throw appError('部屋が見つかりません。番号を確認してください。');
     var room = snapshot.val(), patch = {}, note;
     if (room.players && room.players[S.token]) {                    /* 再入室：名前だけ更新 */
+      S.spectator = false;
       patch['players/' + S.token + '/name'] = name;
       patch = Object.assign(patch, logEntry(name + ' が再接続しました'));
       note = '再接続しました（席 ' + (room.players[S.token].seat + 1) + '）';
-    } else if (room.status !== 'waiting') {                          /* 対戦中は観戦 */
-      note = '対戦中のため観戦モードで接続しました。';
+    } else if (room.status !== 'waiting') {                          /* 開始後に明示的に参加を押した場合だけ観戦 */
+      S.spectator = true;
+      note = 'ゲーム開始済みのため観戦モードで接続しました。';
     } else {
       var used = sortedPlayers(room).map(function (p) { return p.seat; });
-      if (used.length >= MAX_PLAYERS) { note = '満員のため観戦モードで接続しました。'; }
-      else {
-        var seat = 0; while (used.indexOf(seat) !== -1) seat++;
-        patch['players/' + S.token] = newPlayer(S.token, name, seat);
-        patch = Object.assign(patch, logEntry(name + ' が入室しました'));
-        note = '参加しました（席 ' + (seat + 1) + '）';
+      if (used.length >= MAX_PLAYERS) {
+        /* 待機中の満員は観戦にせず、参加失敗として扱う */
+        throw appError('この部屋は満員です（' + MAX_PLAYERS + '人まで）。');
       }
+      S.spectator = false;
+      var seat = 0; while (used.indexOf(seat) !== -1) seat++;
+      patch['players/' + S.token] = newPlayer(S.token, name, seat);
+      patch = Object.assign(patch, logEntry(name + ' が入室しました'));
+      note = '参加しました（席 ' + (seat + 1) + '）';
     }
     var writing = Object.keys(patch).length
       ? ref.update(patch)
@@ -1024,8 +1029,12 @@ function renderLog(room) {
     : '<div class="log-item">ログなし</div>';
 }
 function renderStatus(room) {
-  if (!room) { E.status.textContent = ONLINE ? '6文字の部屋番号を入力して参加するか、部屋を作成してください。' : 'オンライン未設定です。「この端末だけで開始」で遊べます。'; return; }
+  if (!room) { E.status.textContent = ONLINE ? '6文字の部屋番号を入力して「参加」を押すか、部屋を作成してください。' : 'オンライン未設定です。「この端末だけで開始」で遊べます。'; return; }
   var c = cfg(room), turn = room.players[room.turnToken];
+  if (S.spectator) {
+    E.status.textContent = '観戦モード：ゲーム開始済みの部屋です。';
+    return;
+  }
   if (room.claim) {
     E.status.textContent = '上がり宣言の承認待ち：' + ((room.players[room.claim.claimer] || {}).name || '？') + ' の「' + room.claim.words.join(' ／ ') + '」を全員で確認してください。';
   } else if (room.status === 'waiting') {
@@ -1179,7 +1188,8 @@ function initialize() {
     E.status.textContent = 'オンライン準備完了。あそび方を選んで部屋を作成するか、番号を入力して参加できます。';
   }
   if (savedLocal && savedLocal.players) { S.local = true; S.room = savedLocal; S.roomId = 'LOCAL'; render(); toast('前回のローカル対戦を復元しました'); return; }
-  if (S.ready && savedRoom.length === ROOM_CODE_LENGTH) subscribe(savedRoom); else render();
+  /* 保存済みの部屋番号を表示するだけ。参加ボタンを押すまで部屋へ接続しない */
+  render();
 }
 initialize();
 </script>
