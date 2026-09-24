@@ -162,9 +162,9 @@ var FIREBASE_CONFIG = {
   messagingSenderId: "165006499616",
   appId: "1:165006499616:web:5bfe2e555a655c7e584145"
 };
-/* firebase-rules.json のトップキーと必ず一致させる。 */
-var ROOM_PATH = 'template_rooms';
-var ROOM_CODE_LENGTH = 8;
+/* firebase-rules.json のトップキーと必ず一致させる（rooms_br）。 */
+var ROOM_PATH = 'rooms_br';
+var ROOM_CODE_LENGTH = 6;
 var MAX_PLAYERS = 10;
 var MAX_LOGS = 100;
 var ROOM_KEY = 'battle_room_id';
@@ -281,11 +281,30 @@ function setReady(ready) {
   E.createBtn.disabled = !ready;
   E.joinBtn.disabled = !ready;
 }
+/* エラー種別を区別してユーザー通知を行う */
+function errorKind(error) {
+  var code = (error && error.code) || '';
+  var message = (error && error.message) || String(error);
+  if (code === 'APP_LOGIC') return 'app';
+  if (code === 'PERMISSION_DENIED' || /permission[_\s]?denied/i.test(message)) return 'permission';
+  if (code === 'NETWORK_ERROR' || /network|offline|unavailable/i.test(message)) return 'network';
+  return 'app';
+}
+function appError(message) { var e = new Error(message); e.code = 'APP_LOGIC'; return e; }
+
 function showError(error) {
   console.error(error);
-  var message = error && error.message ? error.message : String(error);
+  var kind = errorKind(error), message = (error && error.message) || String(error);
+  if (kind === 'permission') {
+    message = '権限エラー：セキュリティルールを確認してください（トップキー "' + ROOM_PATH + '" に .read: true / .write: true が必要です）。';
+    toast(message); E.status.textContent = message; return;
+  }
+  if (kind === 'network') {
+    message = '通信エラー：接続を確認してください。';
+    toast(message); E.status.textContent = message; return;
+  }
   toast('エラー: ' + message);
-  E.status.textContent = '接続エラー: ' + message;
+  E.status.textContent = 'エラー: ' + message;
 }
 function unsubscribe() {
   if (S.roomRef && S.roomHandler) S.roomRef.off('value', S.roomHandler);
@@ -309,14 +328,16 @@ function subscribe(roomId) {
     S.room = snapshot.val();
     S.sel = [];
     render();
-  }, showError);
+  }, function (err) { showError(err); });
 }
 function sortedPlayers(room) {
-  return Object.keys((room && room.players) || {}).map(function (id) { return room.players[id]; })
+  return Object.keys((room && room.players) || {})
+    .map(function (id) { return room.players[id]; })
+    .filter(function (p) { return p != null; })
     .sort(function (a, b) { return a.seat - b.seat; });
 }
 function playerName(room, id) {
-  return (room.players && room.players[id] && room.players[id].name) || '？';
+  return (room && room.players && room.players[id] && room.players[id].name) || '？';
 }
 function myTurn() { return S.room && S.room.turnToken === S.token && S.room.status === 'playing'; }
 function curMode() { return MODES[(S.room && S.room.mode) || 'card']; }
@@ -328,8 +349,8 @@ function gameTx(mutator, failMsg) {
     if (!cur || cur.status !== 'playing') return cur;
     mutator(cur);
     return cur;
-  }, null, false).then(function (res) {
-    if (!res.committed) toast(failMsg || '更新できませんでした');
+  }).then(function (res) {
+    if (!res || !res.committed) toast(failMsg || '更新できませんでした');
   }).catch(showError);
 }
 function advanceTurnFrom(cur, fromToken) {
@@ -370,19 +391,15 @@ function createRoom() {
     if (remaining <= 0) throw new Error('部屋番号を確保できませんでした。再度お試しください。');
     var roomId = randomRoomId();
     var ref = roomRef(roomId);
-    var logKey = ref.child('logs').push().key;
-    var players = {};
-    players[S.token] = { id: S.token, name: name, seat: 0, joinedAt: SERVER_TIME };
-    var initial = { roomId: roomId, status: 'waiting', createdAt: SERVER_TIME, hostToken: S.token, players: players, turnToken: S.token, logs: {} };
-    initial.logs[logKey] = makeLog(name + ' が部屋を作成しました');
-
-    return ref.transaction(function (current) {
-      if (current !== null) return; // 既存部屋なら中止
-      return initial;
-    }, null, false).then(function (result) {
-      if (!result.committed) return attempt(remaining - 1);
-      subscribe(roomId);
-      toast('部屋を作成しました: ' + roomId);
+    return ref.once('value').then(function (snapshot) {
+      if (snapshot.exists()) return attempt(remaining - 1); // ID衝突 → 取り直し
+      var logKey = ref.child('logs').push().key;
+      var players = {};
+      players[S.token] = { id: S.token, name: name, seat: 0, joinedAt: SERVER_TIME };
+      var initial = { roomId: roomId, status: 'waiting', createdAt: SERVER_TIME, hostToken: S.token, players: players, turnToken: S.token, logs: {} };
+      initial.logs[logKey] = makeLog(name + ' が部屋を作成しました');
+      return ref.set(initial).then(function () { subscribe(roomId); toast('部屋を作成しました: ' + roomId); })
+        .catch(function (err) { if (errorKind(err) === 'permission') { showError(err); return; } return attempt(remaining - 1); });
     });
   }
   attempt(6).catch(showError);
@@ -398,18 +415,25 @@ function joinRoom() {
   var logKey = ref.child('logs').push().key;
 
   ref.transaction(function (current) {
-    if (!current) {
-      // 部屋が存在しない → transaction を中止（committed=false）
-      return;
-    }
+    // 部屋が存在しない → abort（committed=false）
+    if (!current) return;
+    // 不正なデータ構造の部屋 → abort
+    if (!current.players || !current.status) return;
+
     current.players = current.players || {};
-    if (current.players[S.token]) {
+
+    // 既に参加済み → 名前だけ更新してコミット
+    if (current.players[S.token] != null) {
       current.players[S.token].name = name;
       return current;
     }
+
+    // 開始済み → abort
     if (current.status !== 'waiting') return;
+
     var seats = sortedPlayers(current).map(function (p) { return p.seat; });
     if (seats.length >= MAX_PLAYERS) return;
+
     var seat = 0;
     while (seats.indexOf(seat) !== -1) seat++;
     current.players[S.token] = { id: S.token, name: name, seat: seat, joinedAt: SERVER_TIME };
@@ -417,10 +441,15 @@ function joinRoom() {
     return current;
   }, null, false).then(function (result) {
     if (!result || !result.committed) {
-      // transaction がコミットされなかった場合、部屋の有無を確認してメッセージを分岐
+      // transaction がコミットされなかった原因を特定
       return ref.once('value').then(function(s){
         if (!s.exists()) throw new Error('部屋がありません');
-        throw new Error('参加できませんでした。開始済み・満員などを確認してください。');
+        var data = s.val();
+        if (!data.players || !data.status) throw new Error('部屋データが破損しています');
+        if (data.status !== 'waiting') throw new Error('ゲームが開始済みです');
+        var count = sortedPlayers(data).length;
+        if (count >= MAX_PLAYERS) throw new Error('部屋が満員です（最大' + MAX_PLAYERS + '人）');
+        throw new Error('参加できませんでした。部屋番号を確認するか、作成者に問い合わせてください。');
       });
     }
     subscribe(roomId);
@@ -446,8 +475,8 @@ function startGame() {
     startRoomGame(current, players[0].id);
     addLog(current, 'ゲームを開始しました（' + MODES[mode].label + '）', logKey);
     return current;
-  }, null, false).then(function (result) {
-    if (!result.committed) throw new Error('作成者のみ、2人以上の待機中ルームを開始できます。');
+  }).then(function (result) {
+    if (!result || !result.committed) throw new Error('作成者のみ、2人以上の待機中ルームを開始できます。');
   }).catch(showError);
 }
 function resetRoom() {
@@ -462,8 +491,8 @@ function resetRoom() {
     ['startedAt','endedAt','deck','hands','groups','drawn','lastDiscard','claim','called','winner'].forEach(function (k) { delete current[k]; });
     addLog(current, 'ルームを初期化しました', logKey);
     return current;
-  }, null, false).then(function (result) {
-    if (!result.committed) throw new Error('初期化できませんでした');
+  }).then(function (result) {
+    if (!result || !result.committed) throw new Error('初期化できませんでした');
     toast('ルームを初期化しました');
   }).catch(showError);
 }
