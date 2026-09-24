@@ -134,7 +134,8 @@ button{min-height:38px;padding:0 14px;border:0;border-radius:10px;font-weight:80
   </section>
 
   <section class="card note">
-   
+    <p>※このアプリは Firebase Realtime Database を利用しています。ルールは「実在する語」を全員の合意で判定します。</p>
+  </section>
 
   <section class="card">
     <h2>ログ</h2>
@@ -191,7 +192,7 @@ function shuffled(deck) {
   }
   return a;
 }
-/* 上がり判定：単語グループ配列が「2文字×pairs＋3文字×triples」を満たすか。
+/* 上がり判定：単語グループ配列が「2文字×pairs＋3文×triples」を満たすか。
    seven=true の場合は 2文字×7（七対子）も上がり。 */
 function winSplit(groups, mode, seven) {
   if (!groups || !groups.length) return false;
@@ -340,12 +341,12 @@ function advanceTurnFrom(cur, fromToken) {
 }
 function startRoomGame(cur, firstTurnToken) {
   var deck = shuffled(deckFor());
-  cur.deck = [];
   cur.hands = {};
   var ps = sortedPlayers(cur);
   ps.forEach(function (p) {
     cur.hands[p.id] = deck.splice(0, curModeHandSize(cur));
   });
+  cur.deck = deck;  /* 残りを山に代入 */
   cur.groups = {};
   cur.scores = cur.scores || {};
   ps.forEach(function (p) { if (typeof cur.scores[p.id] !== 'number') cur.scores[p.id] = 0; });
@@ -394,28 +395,34 @@ function joinRoom() {
   E.name.value = name;
   localStorage.setItem(NAME_KEY, name);
   var ref = roomRef(roomId);
+  var logKey = ref.child('logs').push().key;
 
-  ref.once('value').then(function (snapshot) {
-    if (!snapshot.exists()) throw new Error('部屋がありません');
-    var logKey = ref.child('logs').push().key;
-    return ref.transaction(function (current) {
-      if (!current) return;
-      current.players = current.players || {};
-      if (current.players[S.token]) {
-        current.players[S.token].name = name;
-        return current;
-      }
-      if (current.status !== 'waiting') return; // 開始後は参加不可
-      var seats = sortedPlayers(current).map(function (p) { return p.seat; });
-      if (seats.length >= MAX_PLAYERS) return; // 満員
-      var seat = 0;
-      while (seats.indexOf(seat) !== -1) seat++;
-      current.players[S.token] = { id: S.token, name: name, seat: seat, joinedAt: SERVER_TIME };
-      addLog(current, name + ' が参加しました', logKey);
+  ref.transaction(function (current) {
+    if (!current) {
+      // 部屋が存在しない → transaction を中止（committed=false）
+      return;
+    }
+    current.players = current.players || {};
+    if (current.players[S.token]) {
+      current.players[S.token].name = name;
       return current;
-    }, null, false);
-  }).then(function (result) {
-    if (!result || !result.committed) throw new Error('参加できませんでした。開始済み・満員などを確認してください。');
+    }
+    if (current.status !== 'waiting') return;
+    var seats = sortedPlayers(current).map(function (p) { return p.seat; });
+    if (seats.length >= MAX_PLAYERS) return;
+    var seat = 0;
+    while (seats.indexOf(seat) !== -1) seat++;
+    current.players[S.token] = { id: S.token, name: name, seat: seat, joinedAt: SERVER_TIME };
+    addLog(current, name + ' が参加しました', logKey);
+    return current;
+  }, null, false).then(function (result) {
+    if (!result || !result.committed) {
+      // transaction がコミットされなかった場合、部屋の有無を確認してメッセージを分岐
+      return ref.once('value').then(function(s){
+        if (!s.exists()) throw new Error('部屋がありません');
+        throw new Error('参加できませんでした。開始済み・満員などを確認してください。');
+      });
+    }
     subscribe(roomId);
     toast('参加しました');
   }).catch(showError);
@@ -655,7 +662,7 @@ function approveClaim() {
       addLog(cur, '全員が承認。' + playerName(cur, c.claimer) + ' が ' + c.type + ' で上がり！');
       cur.claim = null;
     } else {
-      addLog(cur, playerName(cur, S.token) + ' が承認しました');
+      addLog(cur, playerName(cur, S.token) + ' が承認ました');
     }
   }, '承認できませんでした');
 }
@@ -777,7 +784,6 @@ function renderGame(room, mode, isHost) {
   var drawnByMe = room.drawn === S.token;
 
   E.discardView.textContent = room.lastDiscard ? room.lastDiscard.char : '-';
-  E.openInfo.textContent = room.mode === 'card' ? 'カード版：手札は全員オープン' : '牌ばーじょん：他の手牌は見えません';
   E.handCount.textContent = '(' + myHand.length + '枚)';
 
   /* 手札（自分） */
@@ -785,7 +791,7 @@ function renderGame(room, mode, isHost) {
     return tileButton(c, i, S.sel.indexOf(i) !== -1, '手札');
   }).join('') || '<span class="badge-unknown">手牌は空です（すべて単語になっています）</span>';
 
-  /* 他のプレイヤー */
+  /* 他のプレイヤー情報を openInfo にまとめて描画（innerHTML += ではなく = で毎回置き換え） */
   var others = sortedPlayers(room).filter(function (p) { return p.id !== S.token; });
   var othersHtml = others.map(function (p) {
     var gs = (room.groups || {})[p.id] || [];
@@ -797,7 +803,9 @@ function renderGame(room, mode, isHost) {
       : '<div class="badge-unknown">手牌 ' + (((room.hands || {})[p.id] || []).length) + '枚</div>';
     return '<div style="margin-bottom:8px"><strong>' + escapeHtml(p.name) + '</strong>' + handInfo + (gHtml ? '<div class="groups">' + gHtml + '</div>' : '') + '</div>';
   }).join('');
-  E.openInfo.innerHTML += '<div style="flex-basis:100%">' + othersHtml + '</div>';
+  E.openInfo.innerHTML = '<span>捨て: <span class="discarded">' + (room.lastDiscard ? room.lastDiscard.char : '-') + '</span></span>' +
+    '<span>' + (room.mode === 'card' ? 'カード版：手札は全員オープン' : '牌ばーじょん：他の手牌は見えません') + '</span>' +
+    '<div style="flex-basis:100%">' + othersHtml + '</div>';
 
   /* 自分の単語 */
   E.groups.innerHTML = myGroups.map(function (g, gi) {
