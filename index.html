@@ -1,1197 +1,1076 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="color-scheme" content="dark">
-<title>ひらがじゃん｜カード版・牌ばーじょん</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
-<style>
-:root{
-  --felt:#0d3629; --felt2:#15503c; --felt3:#0a2b21;
-  --paper:#fbf6e9; --paper2:#efe4cb;
-  --ink:#1d2b25; --muted:#8fa79a;
-  --red:#c2352b; --red2:#e0573f;
-  --gold:#d9a441; --jade:#3aa87a;
-  --line:rgba(255,255,255,.16); --tileline:rgba(29,43,37,.16);
-  --space:clamp(12px,2.4vw,22px); --radius:16px;
-  --shadow:0 1px 2px rgba(0,0,0,.25), 0 14px 34px -18px rgba(0,0,0,.7);
-}
-*{box-sizing:border-box}
-html{min-height:100%}
-body{margin:0;min-height:100vh;padding:var(--space);
-  font-family:"Noto Sans JP","Hiragino Sans","Yu Gothic",system-ui,sans-serif;
-  font-size:clamp(15px,0.9rem+.3vw,17px);line-height:1.8;color:#eaf3ee;
-  background:radial-gradient(120% 90% at 50% -10%,var(--felt2),var(--felt3) 70%),var(--felt)}
-h1,h2,h3,.tile,.slot-word,.pile-count{font-family:"Zen Maru Gothic","Hiragino Maru Gothic ProN","Yu Gothic",sans-serif}
-h1,h2,h3{line-height:1.35;letter-spacing:-.01em;font-feature-settings:"palt"}
-button,input,select{font:inherit;color:inherit}
-:focus-visible{outline:3px solid var(--gold);outline-offset:2px;border-radius:10px}
-.shell{max-width:1100px;margin:0 auto;display:flex;flex-direction:column;gap:var(--space)}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="color-scheme" content="dark">
+  <title>ひらがじゃん オンライン - カード版＆牌ばーじょん</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800;900&family=Zen+Maru+Gothic:wght@700;900&family=Noto+Sans+JP:wght@400;600;700;900&display=swap" rel="stylesheet">
 
-.top{display:flex;flex-wrap:wrap;align-items:center;gap:14px}
-.brand{display:flex;align-items:center;gap:12px;margin-right:auto}
-.mini-tile{flex:none;width:46px;height:54px;border-radius:9px;display:grid;place-items:center;
-  font-family:"Zen Maru Gothic";font-weight:900;font-size:26px;color:var(--ink);
-  background:linear-gradient(175deg,#fffdf6,var(--paper2));
-  box-shadow:inset 0 1px 0 #fff,0 4px 0 #c9bb98,0 10px 20px -12px rgba(0,0,0,.8)}
-.brand h1{margin:0;font-size:clamp(22px,3.6vw,32px);font-weight:900;color:#fff}
-.ver{align-self:flex-start;margin-top:6px;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:700;color:var(--felt3);background:var(--gold)}
-.tagline{flex:1 1 260px;margin:0;color:#c8ded1;font-size:14px}
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            tatami: '#0d2818',
+            board: '#16382c',
+            tileBg: '#fffdf7',
+            tileBorder: '#e2d9c8',
+            gold: '#f59e0b',
+            goldLight: '#fbbf24',
+            jade: '#10b981'
+          },
+          fontFamily: {
+            rounded: ['"M PLUS Rounded 1c"', '"Zen Maru Gothic"', 'sans-serif'],
+            sans: ['"Noto Sans JP"', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
 
-.panel{border:1px solid var(--line);border-radius:var(--radius);
-  background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.03));
-  padding:clamp(14px,2vw,20px);box-shadow:var(--shadow)}
-.panel h2{margin:0 0 10px;font-size:16px;color:#fff}
-.hint{margin:0;color:var(--muted);font-size:13px}
-
-.setup-grid{display:flex;flex-wrap:wrap;gap:10px;align-items:end}
-.field{display:flex;flex-direction:column;gap:4px}
-.field label{font-size:12px;color:#bcd2c6;font-weight:700}
-input,select{height:42px;padding:0 12px;border-radius:11px;border:1px solid rgba(255,255,255,.24);background:rgba(0,0,0,.22);color:#fff;min-width:120px}
-input::placeholder{color:#9db3a7}
-button{min-height:42px;padding:0 16px;border:0;border-radius:11px;font-weight:800;cursor:pointer;transition:transform .12s ease,filter .12s ease}
-button:disabled{cursor:not-allowed;opacity:.4;filter:saturate(.35)}
-button:not(:disabled):hover{transform:translateY(-1px)}
-.btn-main{background:linear-gradient(180deg,var(--gold),#c08c2c);color:#2a1c04}
-.btn-sub{background:rgba(255,255,255,.14);color:#fff}
-.btn-red{background:linear-gradient(180deg,var(--red2),var(--red));color:#fff}
-.btn-jade{background:linear-gradient(180deg,#4cc191,var(--jade));color:#052b1d}
-
-.modes{display:inline-flex;padding:4px;border-radius:999px;background:rgba(0,0,0,.28);gap:4px}
-.modes label{cursor:pointer;position:relative}
-.modes input{position:absolute;opacity:0;width:0;height:0;min-width:0}
-.modes span{display:inline-flex;padding:6px 14px;border-radius:999px;font-size:13px;font-weight:800;color:#cfe3d8;transition:.15s}
-.modes input:checked + span{background:var(--gold);color:#2a1c04}
-.modes input:focus-visible + span{outline:3px solid var(--gold);outline-offset:2px}
-.optbox{display:flex;flex-direction:column;gap:6px;margin-top:12px}
-.slot-label{font-size:11px;font-weight:800;color:#bcd2c6;letter-spacing:.04em}
-.optline{display:flex;align-items:center;gap:8px;font-size:13.5px;color:#d5e6dc;cursor:pointer}
-.optline input{height:20px;min-width:20px}
-.optline.off{opacity:.4;cursor:not-allowed}
-
-.status{padding:12px 16px;border-radius:12px;font-weight:700;font-size:14px;color:#ffeccc;background:rgba(217,164,65,.14);border:1px solid rgba(217,164,65,.4)}
-.meta{display:flex;flex-wrap:wrap;gap:8px}
-.pill{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;font-size:13px;background:rgba(255,255,255,.1)}
-.pill.mode{background:var(--gold);color:#2a1c04;font-weight:800}
-
-.board{display:flex;flex-wrap:wrap;gap:20px;align-items:center}
-.piles{display:flex;gap:10px;flex:1 1 auto}
-.pile{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px;border-radius:12px;border:1px dashed rgba(255,255,255,.22);background:rgba(0,0,0,.16)}
-.pile-count{font-size:15px;font-weight:700;color:#dff1e7}
-.river{flex:1 1 240px;min-width:200px}
-.river-label{font-size:12px;color:var(--muted);font-weight:700;margin-bottom:6px}
-.river-tiles{display:flex;flex-wrap:wrap;gap:4px;min-height:44px}
-
-.tile{position:relative;flex:none;width:var(--tw,52px);height:calc(var(--tw,52px)*1.16);border-radius:9px;display:grid;place-items:center;padding:0;
-  font-family:"Zen Maru Gothic";font-weight:700;font-size:calc(var(--tw,52px)*0.56);color:var(--ink);
-  background:linear-gradient(175deg,#fffdf7,var(--paper2));border:1px solid var(--tileline);
-  box-shadow:inset 0 1px 0 #fff,0 3px 0 #cbbd99,0 8px 16px -10px rgba(0,0,0,.9);
-  transition:transform .12s ease,box-shadow .12s ease}
-button.tile{cursor:pointer}
-button.tile:not(:disabled):hover{transform:translateY(-3px);box-shadow:inset 0 1px 0 #fff,0 5px 0 #cbbd99,0 12px 20px -10px rgba(0,0,0,.9)}
-.tile.small{--tw:38px}
-.tile.mid{--tw:44px}
-.tile.drawn{outline:2px solid var(--gold);outline-offset:2px}
-.tile.back{background:linear-gradient(150deg,#1f6d52,#0f4232);border-color:rgba(0,0,0,.3);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 3px 0 #0a2b21,0 8px 16px -10px rgba(0,0,0,.9)}
-.tile.back::after{content:"";width:38%;height:38%;border-radius:50%;border:2px solid rgba(217,164,65,.6)}
-.tile.on{outline:3px solid var(--jade);outline-offset:2px;transform:translateY(-3px)}
-.tile .badge{position:absolute;top:-7px;right:-7px;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:900;color:#fff;background:var(--red);border:2px solid var(--felt3)}
-.hand{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-.meld-note{margin-top:8px}
-
-.players{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:var(--space)}
-.player{border:1px solid var(--line);border-radius:var(--radius);padding:14px;background:rgba(255,255,255,.05)}
-.player.active{background:rgba(217,164,65,.14);border-color:rgba(217,164,65,.55);box-shadow:0 0 0 1px rgba(217,164,65,.35),var(--shadow)}
-.player.win{background:rgba(58,168,122,.18);border-color:rgba(58,168,122,.6)}
-.p-head{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
-.p-name{font-weight:800;color:#fff}
-.p-tag{font-size:11px;padding:2px 8px;border-radius:999px;background:rgba(255,255,255,.14)}
-.p-tag.turn{background:var(--gold);color:#2a1c04;font-weight:800}
-.p-tag.host{background:rgba(194,53,43,.85)}
-.p-score{margin-left:auto;font-weight:900;color:var(--gold)}
-.p-empty{color:var(--muted);font-size:13px}
-.melds{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
-.meld{display:flex;gap:3px;padding:5px;border-radius:9px;background:rgba(0,0,0,.22);border:1px solid rgba(217,164,65,.4)}
-
-.builder{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0}
-.slot{flex:1 1 150px;border:1px dashed rgba(255,255,255,.28);border-radius:12px;padding:10px;background:rgba(0,0,0,.18)}
-.slot.full{border-style:solid;border-color:rgba(217,164,65,.6)}
-.slot-tiles{display:flex;gap:5px;margin-top:7px;min-height:46px;align-items:center}
-.slot-word{margin-top:6px;font-size:19px;font-weight:700;color:#ffeccc;min-height:26px}
-.wtag{margin-left:8px;font-size:11px;font-weight:800}
-.wtag.ok{color:#7ee0b4}
-.wtag.check{color:#f3b7a9}
-.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
-.actions.end{margin-top:14px}
-.pool{border-radius:12px;padding:10px;background:rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.14);margin:8px 0}
-.approve-word{display:inline-flex;align-items:center;gap:6px;margin:3px 8px 3px 0;padding:4px 10px;border-radius:8px;background:rgba(255,255,255,.12);font-weight:700}
-
-.log{max-height:230px;overflow:auto;font-size:13px}
-.log-item{padding:7px 10px;border-bottom:1px solid rgba(255,255,255,.09);color:#d5e6dc}
-.log-time{color:var(--muted);font-size:11px}
-.toast{position:fixed;right:14px;bottom:14px;z-index:20;max-width:min(420px,calc(100vw - 28px));padding:12px 15px;border-radius:12px;color:#fff;background:rgba(8,22,17,.96);border:1px solid var(--line);box-shadow:var(--shadow);opacity:0;transform:translateY(8px);pointer-events:none;transition:.2s}
-.toast.show{opacity:1;transform:none}
-details summary{cursor:pointer;font-weight:800;color:#fff}
-details[open] summary{margin-bottom:10px}
-dl.rules{margin:0;display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:13.5px}
-dl.rules dt{font-weight:800;color:var(--gold)}
-dl.rules dd{margin:0;color:#d5e6dc}
-.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
-.pill.copy{cursor:pointer;border:1px solid var(--line);background:rgba(255,255,255,.12);color:#fff;min-height:0;font-weight:700;font-size:12px}
-.overlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(4,12,9,.62);z-index:60}
-.overlay.show{display:flex}
-.modal{width:min(460px,100%);border-radius:16px;padding:20px;background:linear-gradient(180deg,var(--paper),var(--paper2));color:var(--ink);box-shadow:var(--shadow)}
-.modal h3{margin:0 0 8px;font-size:20px}
-.modal p{margin:0 0 14px;color:#3c5348;line-height:1.8;white-space:pre-line}
-@media(max-width:560px){.board{flex-direction:column;align-items:stretch}.river{flex-basis:auto}}
-@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
-</style>
+  <style>
+    /* Custom tile styling with depth */
+    .tile-shadow {
+      box-shadow: inset 0 1px 0 #ffffff, 0 4px 0 #c9bb98, 0 8px 15px rgba(0,0,0,0.4);
+    }
+    .tile-shadow:active, .tile-selected {
+      transform: translateY(2px);
+      box-shadow: inset 0 1px 0 #ffffff, 0 2px 0 #c9bb98, 0 4px 8px rgba(0,0,0,0.3);
+    }
+    .tile-selected {
+      border-color: #f59e0b !important;
+      background-color: #fffbeb !important;
+      transform: translateY(-8px) !important;
+      box-shadow: inset 0 1px 0 #ffffff, 0 8px 0 #d97706, 0 12px 20px rgba(0,0,0,0.45) !important;
+    }
+    .tile-tsumo {
+      border-color: #10b981 !important;
+      background-color: #ecfdf5 !important;
+    }
+    /* Scrollbar Styling */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.4); }
+  </style>
 </head>
-<body>
-<div class="shell">
+<body class="bg-slate-950 text-slate-100 font-rounded min-h-screen flex flex-col selection:bg-amber-500 selection:text-slate-900">
 
-  <header class="top">
-    <div class="brand">
-      <span class="mini-tile" aria-hidden="true">あ</span>
-      <h1>ひらがじゃん</h1>
-      <span class="ver">2つのあそび方</span>
-    </div>
-    <p class="tagline">ひらがなを並べてことばをつくる。手札を組み替えて、決められた数の単語をいちばん先に完成させた人の勝ち。</p>
-  </header>
-
-  <section class="panel" id="setup" aria-labelledby="setup-h">
-    <h2 id="setup-h">はじめる</h2>
-    <div class="setup-grid">
-      <div class="field">
-        <span class="slot-label">あそび方</span>
-        <div class="modes" role="radiogroup" aria-label="あそび方">
-          <label><input type="radio" name="modeSel" value="card" checked><span>カード版</span></label>
-          <label><input type="radio" name="modeSel" value="tile"><span>牌ばーじょん</span></label>
+  <!-- Header -->
+  <header class="bg-slate-900/90 border-b border-slate-800 sticky top-0 z-40 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-slate-950 font-black text-2xl shadow-lg shadow-amber-500/20">
+          🀄
+        </div>
+        <div>
+          <h1 class="text-xl font-black bg-gradient-to-r from-amber-300 via-amber-400 to-amber-500 bg-clip-text text-transparent">
+            ひらがじゃん <span class="text-xs px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">ONLINE</span>
+          </h1>
+          <p class="text-xs text-slate-400">カード版 & 牌ばーじょん 統合マルチプレイヤー</p>
         </div>
       </div>
-    </div>
-    <div id="optBlock" class="optbox" hidden></div>
-    <div class="setup-grid" style="margin-top:14px">
-      <div class="field">
-        <label for="name">表示名</label>
-        <input id="name" maxlength="20" autocomplete="nickname" placeholder="名前">
-      </div>
-      <div class="field">
-        <label for="roomInput">部屋番号（オンライン）</label>
-        <input id="roomInput" maxlength="6" autocomplete="off" autocapitalize="characters" placeholder="6文字">
-      </div>
-      <button class="btn-main" id="createBtn">部屋作成</button>
-      <button class="btn-sub" id="joinBtn">参加</button>
-    </div>
-    <div class="setup-grid" style="margin-top:14px">
-      <div class="field">
-        <label for="count">ローカル人数</label>
-        <select id="count"><option>2</option><option selected>3</option><option>4</option><option>5</option><option>6</option></select>
-      </div>
-      <button class="btn-jade" id="localBtn">この端末だけで開始</button>
-    </div>
-    <p class="hint" style="margin-top:10px">この端末だけで遊ぶ場合は Firebase 設定は不要です。オンラインは 部屋作成 → 相手が参加 → 作成者が「ゲーム開始」。あそび方は部屋を作るときに決まり、参加者はそれに合わせます。</p>
-  </section>
 
-  <div class="status" id="status" role="status" aria-live="polite">準備中です…</div>
+      <!-- Controls Header -->
+      <div class="flex flex-wrap items-center gap-2 text-sm">
+        <select id="modeSelect" class="bg-slate-800 border border-slate-700 rounded-lg px-2 py-1.5 text-amber-300 font-bold focus:outline-none focus:border-amber-400 text-xs md:text-sm">
+          <option value="card">🃏 カード版 (8枚/4山)</option>
+          <option value="tile" selected>🀄 牌ばーじょん (14枚/鳴き有)</option>
+        </select>
+        <input id="playerName" type="text" maxlength="12" placeholder="プレイヤー名" class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 w-28 md:w-36 text-white focus:outline-none focus:border-amber-400 text-xs md:text-sm">
+        <input id="roomInput" type="text" maxlength="6" placeholder="部屋コード" class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 w-24 text-white uppercase font-mono text-center focus:outline-none focus:border-amber-400 text-xs md:text-sm">
+        
+        <button id="createBtn" class="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold px-3 py-1.5 rounded-lg transition-all text-xs md:text-sm shadow-md">
+          <i class="fa-solid fa-plus mr-1"></i>作成
+        </button>
+        <button id="joinBtn" class="bg-slate-800 hover:bg-slate-700 text-white font-bold px-3 py-1.5 rounded-lg border border-slate-700 transition-all text-xs md:text-sm">
+          <i class="fa-solid fa-right-to-bracket mr-1"></i>参加
+        </button>
+      </div>
+    </div>
+  </header>
 
-  <div class="meta">
-    <span class="pill mode" id="modePill">-</span>
-    <span class="pill" id="roomPill">部屋: -</span>
-    <span class="pill" id="turnPill">手番: -</span>
-    <span class="pill" id="statePill">状態: -</span>
-    <span class="pill" id="peekPill" hidden></span>
-    <button class="pill copy" id="copyBtn" type="button" hidden>部屋番号をコピー</button>
+  <!-- Main Container -->
+  <main class="flex-1 max-w-6xl w-full mx-auto p-3 md:p-5 flex flex-col gap-4">
+
+    <!-- Game Status Bar -->
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3 flex flex-wrap items-center justify-between gap-3 text-xs md:text-sm">
+      <div class="flex flex-wrap items-center gap-2">
+        <span id="pillMode" class="px-3 py-1 rounded-full bg-amber-500 text-slate-950 font-extrabold">モード: 牌ばーじょん</span>
+        <span id="pillRoom" class="px-3 py-1 rounded-full bg-slate-800 text-slate-300 border border-slate-700 font-mono">部屋: -</span>
+        <span id="pillSeat" class="px-3 py-1 rounded-full bg-slate-800 text-slate-300 border border-slate-700">席: -</span>
+        <span id="pillTurn" class="px-3 py-1 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/30 font-bold">手番: -</span>
+        <span id="pillDeck" class="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">山札: 0</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <button id="copyBtn" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1 rounded-lg border border-slate-700 transition disabled:opacity-40" disabled>
+          <i class="fa-regular fa-copy mr-1"></i>部屋コードコピー
+        </button>
+        <button id="startBtn" class="text-xs bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-1 rounded-lg transition disabled:opacity-40" disabled>
+          <i class="fa-solid fa-play mr-1"></i>対局開始
+        </button>
+        <button id="resetBtn" class="text-xs bg-rose-950/80 hover:bg-rose-900 text-rose-300 px-3 py-1 rounded-lg border border-rose-800/50 transition disabled:opacity-40" disabled>
+          <i class="fa-solid fa-rotate-left mr-1"></i>リセット
+        </button>
+      </div>
+    </div>
+
+    <!-- Banner Info -->
+    <div id="statusMsg" class="bg-gradient-to-r from-amber-950/60 via-amber-900/40 to-slate-900 border border-amber-500/30 rounded-xl px-4 py-3 text-amber-200 text-sm font-bold flex items-center gap-2 shadow-inner">
+      <i class="fa-solid fa-circle-info text-amber-400"></i>
+      <span>部屋を作成するか、部屋コードを入力して「参加」ボタンを押してください。（ローカル体験も可能です）</span>
+    </div>
+
+    <!-- Players Grid -->
+    <div id="playerGrid" class="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <!-- Player cards injected dynamically -->
+    </div>
+
+    <!-- Game Table Area -->
+    <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 md:p-6 shadow-2xl relative overflow-hidden flex flex-col gap-5">
+      
+      <!-- Table Pattern Overlay -->
+      <div class="absolute inset-0 bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:16px_16px] opacity-30 pointer-events-none"></div>
+
+      <!-- Piles & River Section -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- Piles Section -->
+        <div class="md:col-span-1 bg-slate-950/80 border border-slate-800/80 rounded-xl p-3">
+          <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
+            <i class="fa-solid fa-layer-group text-amber-400"></i> 山札（引き場）
+          </h2>
+          <div id="pilesContainer" class="flex flex-wrap gap-2 items-center min-h-[50px]">
+            <!-- Dynamically populated draw piles -->
+          </div>
+        </div>
+
+        <!-- Discard River Section -->
+        <div class="md:col-span-2 bg-slate-950/80 border border-slate-800/80 rounded-xl p-3">
+          <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
+            <i class="fa-solid fa-trash-can text-slate-400"></i> 捨て札（河）
+          </h2>
+          <div id="riverRow" class="min-h-[50px] flex flex-wrap gap-2 items-center">
+            <span class="text-xs text-slate-600 italic px-2">まだ捨て牌はありません</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Panel (Turn actions) -->
+      <div id="actBox" class="bg-gradient-to-r from-amber-950/80 to-slate-900 border border-amber-500/40 rounded-xl p-3 md:p-4 flex flex-wrap items-center justify-between gap-3 transition-all" style="display:none;">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping"></span>
+          <span id="actTitle" class="text-amber-200 font-bold text-sm md:text-base">あなたの手番です！</span>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+          <button id="ponBtn" class="bg-indigo-600 hover:bg-indigo-500 text-white font-black px-4 py-2 rounded-xl transition shadow-lg flex items-center gap-1.5 text-sm" style="display:none;">
+            <i class="fa-solid fa-comments"></i> ポン (鳴き)
+          </button>
+          <button id="kanBtn" class="bg-purple-600 hover:bg-purple-500 text-white font-black px-4 py-2 rounded-xl transition shadow-lg flex items-center gap-1.5 text-sm" style="display:none;">
+            <i class="fa-solid fa-clone"></i> カン (4文字語)
+          </button>
+          <button id="agariBtn" class="bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 font-black px-5 py-2 rounded-xl transition shadow-xl hover:scale-105 flex items-center gap-1.5 text-sm" style="display:none;">
+            <i class="fa-solid fa-crown"></i> ツモ上がり / ロン
+          </button>
+          <button id="dahaiBtn" class="bg-rose-600 hover:bg-rose-500 text-white font-black px-4 py-2 rounded-xl transition shadow-lg flex items-center gap-1.5 text-sm" style="display:none;">
+            <i class="fa-solid fa-paper-plane"></i> 選択した牌を捨てる
+          </button>
+        </div>
+      </div>
+
+      <!-- Claim Approval Banner (If an agari is claimed) -->
+      <div id="claimApprovalBox" class="bg-amber-500/20 border border-amber-500/60 rounded-xl p-4 flex flex-col md:flex-row items-center justify-between gap-3" style="display:none;">
+        <div>
+          <div class="text-amber-300 font-black text-base flex items-center gap-2">
+            <i class="fa-solid fa-gavel text-amber-400"></i> 上がり宣言の検証・承認リクエスト
+          </div>
+          <div id="claimDetail" class="text-xs text-slate-200 mt-1 font-mono">
+            -
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="approveBtn" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2 rounded-xl text-xs transition">
+            <i class="fa-solid fa-check mr-1"></i> 承認する
+          </button>
+          <button id="denyBtn" class="bg-rose-600 hover:bg-rose-500 text-white font-bold px-4 py-2 rounded-xl text-xs transition">
+            <i class="fa-solid fa-xmark mr-1"></i> 却下する
+          </button>
+        </div>
+      </div>
+
+      <!-- Player Hand Area -->
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <h2 class="text-sm font-black text-amber-300 flex items-center gap-2">
+            <i class="fa-solid fa-hand"></i> あなたの手牌 <span id="handCnt" class="text-xs text-slate-400 font-normal">(0)</span>
+          </h2>
+          <span class="text-xs text-slate-400">※牌をクリックして選択後「捨てる」を押してください</span>
+        </div>
+        
+        <!-- Tile Container -->
+        <div id="handRow" class="min-h-[92px] bg-slate-950/90 border border-amber-500/20 rounded-xl p-3 flex flex-wrap gap-2.5 items-center justify-start overflow-x-auto">
+          <span class="text-xs text-slate-600 italic">対局が始まると手札が表示されます</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Navigation Tabs & Panels -->
+    <div class="mt-2">
+      <!-- Tabs Header -->
+      <div class="flex border-b border-slate-800 gap-1 overflow-x-auto pb-1">
+        <button id="tabBLog" class="px-4 py-2 rounded-t-xl text-xs md:text-sm font-bold bg-amber-500/20 text-amber-300 border-t border-x border-amber-500/30 transition">
+          <i class="fa-solid fa-list-ul mr-1.5"></i>対局ログ
+        </button>
+        <button id="tabBSlides" class="px-4 py-2 rounded-t-xl text-xs md:text-sm font-bold text-slate-400 hover:text-white transition">
+          <i class="fa-solid fa-chalkboard-user mr-1.5"></i>操作手順＆上がり判定ガイド
+        </button>
+      </div>
+
+      <!-- Tab 1: Logs -->
+      <div id="paneLog" class="bg-slate-900 border-x border-b border-slate-800 rounded-b-2xl p-4 min-h-[180px]">
+        <div id="logList" class="flex flex-col gap-2 max-h-60 overflow-y-auto pr-1">
+          <div class="text-xs text-slate-500 text-center py-4">ログはまだありません</div>
+        </div>
+      </div>
+
+      <!-- Tab 2: Interactive Slides -->
+      <div id="paneSlides" class="bg-slate-900 border-x border-b border-slate-800 rounded-b-2xl p-4 md:p-6 hidden">
+        <div class="flex flex-col gap-4">
+          <!-- Slide Controls Header -->
+          <div class="flex items-center justify-between bg-slate-950 p-3 rounded-xl border border-slate-800">
+            <span class="text-xs font-bold text-amber-400 flex items-center gap-1.5">
+              <i class="fa-solid fa-book-open"></i> ひらがじゃん スライドガイド
+            </span>
+            <div class="flex items-center gap-3">
+              <button id="prevSlideBtn" class="bg-slate-800 hover:bg-slate-700 disabled:opacity-30 text-white text-xs px-3 py-1.5 rounded-lg border border-slate-700 transition">
+                <i class="fa-solid fa-chevron-left mr-1"></i>前へ
+              </button>
+              <span id="slideIndicator" class="text-xs font-mono font-bold text-slate-300">1 / 3</span>
+              <button id="nextSlideBtn" class="bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold px-3 py-1.5 rounded-lg transition">
+                次へ<i class="fa-solid fa-chevron-right ml-1"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Slide 1: 概要と2つのモード -->
+          <div id="slide_0" class="flex flex-col gap-3">
+            <h3 class="text-base font-bold text-amber-300 flex items-center gap-2">
+              <span class="w-6 h-6 rounded-full bg-amber-500 text-slate-950 flex items-center justify-center font-black text-xs">1</span>
+              ゲームの基本と2つのモード
+            </h3>
+            <p class="text-xs text-slate-300 leading-relaxed">
+              「ひらがじゃん」は、ひらがなの牌を使って単語を作り、揃えて上がる言葉探し麻雀ゲームです。
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-1 text-xs">
+              <div class="bg-slate-950 p-3.5 rounded-xl border border-amber-500/20">
+                <div class="font-bold text-amber-400 mb-1 flex items-center gap-1.5">
+                  <i class="fa-solid fa-layer-group"></i> 🃏 カード版（手軽・初心者向け）
+                </div>
+                <ul class="list-disc list-inside space-y-1 text-slate-300">
+                  <li>手札: <b>8枚</b>（2文字語×1 ＋ 3文字語×2）</li>
+                  <li>山札: <b>4つの山</b>から自由に選択して引く</li>
+                  <li>鳴き（ポン/カン）なし・手札オープン形式</li>
+                </ul>
+              </div>
+              <div class="bg-slate-950 p-3.5 rounded-xl border border-amber-500/20">
+                <div class="font-bold text-emerald-400 mb-1 flex items-center gap-1.5">
+                  <i class="fa-solid fa-cubes"></i> 🀄 牌ばーじょん（本格派）
+                </div>
+                <ul class="list-disc list-inside space-y-1 text-slate-300">
+                  <li>手牌: <b>14枚</b>（2文字語×1 ＋ 3文字語×4）</li>
+                  <li>他人の捨て牌を利用する「<b>ポン</b>」が可能</li>
+                  <li>4文字語を作って晒す「<b>カン</b>」で山札補充</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- Slide 2: ゲームの操作手順 -->
+          <div id="slide_1" class="flex flex-col gap-3 hidden">
+            <h3 class="text-base font-bold text-amber-300 flex items-center gap-2">
+              <span class="w-6 h-6 rounded-full bg-amber-500 text-slate-950 flex items-center justify-center font-black text-xs">2</span>
+              対局の詳しい操作手順
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5 text-xs">
+              <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+                <span class="text-amber-400 font-bold">① 部屋の作成・参加</span>
+                <p class="text-slate-300 mt-1">名前と任意の6桁部屋コードを入力し「作成」または「参加」を押します。</p>
+              </div>
+              <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+                <span class="text-amber-400 font-bold">② 山札から牌を引く (ツモ)</span>
+                <p class="text-slate-300 mt-1">自分の手番になったら、山札（カード版は4つの山）をタップして牌を1枚引きます。</p>
+              </div>
+              <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+                <span class="text-amber-400 font-bold">③ 不要な牌を捨てる (打牌)</span>
+                <p class="text-slate-300 mt-1">手牌から不要な牌をタップして選択状態にし、「選択した牌を捨てる」を押します。</p>
+              </div>
+              <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+                <span class="text-amber-400 font-bold">④ 鳴き・カン（牌ばーじょん）</span>
+                <p class="text-slate-300 mt-1">捨て牌で単語が作れる場合は「ポン」、手牌で4文字語ができると「カン」が使えます。</p>
+              </div>
+              <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 md:col-span-2">
+                <span class="text-emerald-400 font-bold">⑤ 上がり宣言 (ツモ/ロン) & 全員承認</span>
+                <p class="text-slate-300 mt-1">手牌がすべて指定の単語セットで完成したら「ツモ上がり / ロン」を押します。対局メンバー全員が承認ボタンを押すことで勝利が確定します！</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Slide 3: 上がり判定の仕組み -->
+          <div id="slide_2" class="flex flex-col gap-3 hidden">
+            <h3 class="text-base font-bold text-amber-300 flex items-center gap-2">
+              <span class="w-6 h-6 rounded-full bg-amber-500 text-slate-950 flex items-center justify-center font-black text-xs">3</span>
+              上がり判定（和了構造）の仕組み
+            </h3>
+            <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 text-xs flex flex-col gap-3 text-slate-300">
+              <div>
+                <h4 class="text-amber-400 font-bold mb-1">🧩 手牌パーツの組み合わせ法則</h4>
+                <p class="leading-relaxed">麻雀の「雀頭1組 ＋ メンツ」と同様に、実在する日本語単語で手牌を隙間なく構成します。</p>
+                <div class="mt-2 bg-slate-900 p-2.5 rounded-lg border border-slate-800 font-mono text-[11px] text-amber-200">
+                  ・カード版 (8枚): 【2文字語 × 1】 ＋ 【3文字語 × 2】<br>
+                  ・牌ばーじょん (14枚): 【2文字語 × 1】 ＋ 【3文字語 × 4】
+                </div>
+              </div>
+              <div>
+                <h4 class="text-amber-400 font-bold mb-1">🔤 文字・音の判定ルール</h4>
+                <ul class="list-disc list-inside space-y-1">
+                  <li>清音（あ・い・う…）、濁音（が・ざ…）、半濁音（ぱ・ぴ…）は別々の文字として扱います。</li>
+                  <li>「ゃ」「ゅ」「ょ」「っ」「ー」などの拗音・促音・長音もそれぞれ1文字としてカウントされます。</li>
+                </ul>
+              </div>
+              <div>
+                <h4 class="text-amber-400 font-bold mb-1">🤝 全員承認によるアトミック検証</h4>
+                <p class="leading-relaxed">上がり宣言時、手牌で作った単語が全員の画面に表示されます。プレイヤー全員が「承認する」を押すと、Firebase上でアトミックに勝利判定が処理されます。</p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Toast Element -->
+  <div id="toast" class="fixed bottom-5 right-5 bg-slate-900 border border-amber-500/50 text-white px-4 py-3 rounded-xl shadow-2xl transition-all duration-300 opacity-0 translate-y-4 pointer-events-none z-50 text-sm max-w-sm flex items-center gap-2">
+    <i class="fa-solid fa-bell text-amber-400"></i>
+    <span id="toastMsg">通知メッセージ</span>
   </div>
 
-  <section class="panel board" id="board" aria-label="場">
-    <div class="piles" id="piles"></div>
-    <div class="river">
-      <div class="river-label">捨てられた牌</div>
-      <div class="river-tiles" id="river"></div>
+  <!-- Modal Overlay -->
+  <div id="modalOv" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-700 w-full max-w-md rounded-2xl p-6 shadow-2xl flex flex-col gap-4">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 id="modalTitle" class="text-xl font-black text-amber-400 flex items-center gap-2">
+          🏆 対局結果
+        </h3>
+        <button id="modalClose" class="text-slate-400 hover:text-white text-lg px-2">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <p id="modalBody" class="text-sm text-slate-300 leading-relaxed whitespace-pre-line bg-slate-950 p-4 rounded-xl border border-slate-800/80">
+        対局結果がここに表示されます。
+      </p>
+      <button onclick="document.getElementById('modalOv').classList.add('hidden')" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-bold py-2.5 rounded-xl border border-slate-700 transition">
+        閉じる
+      </button>
     </div>
-  </section>
+  </div>
 
-  <section class="panel" id="approve" aria-labelledby="approve-h" hidden>
-    <h2 id="approve-h">上がり宣言の承認</h2>
-    <div id="approveBody"></div>
-  </section>
+  <!-- Firebase Compat SDK v10.12.0 -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 
-  <section class="panel" id="call" aria-labelledby="call-h" hidden>
-    <h2 id="call-h">鳴き（ポン / ロン）</h2>
-    <div id="callBody"></div>
-  </section>
+  <script>
+    // --- 1. Firebase Operations Configuration ---
+    var FIREBASE_CONFIG = {
+      apiKey: "AIzaSyCfVaNuaVFMbR5ZvDVPtzCeL_r-n1yFJrI",
+      authDomain: "buckshot-roulette-acf9e.firebaseapp.com",
+      databaseURL: "https://buckshot-roulette-acf9e-default-rtdb.firebaseio.com",
+      projectId: "buckshot-roulette-acf9e"
+    };
 
-  <section class="panel" id="ctrl" aria-labelledby="ctrl-h" hidden>
-    <h2 id="ctrl-h">手番の操作</h2>
-    <div id="ctrlBody"></div>
-  </section>
-  <section class="panel" id="globalActions" hidden aria-label="対局操作">
-    <div class="actions end"></div>
-  </section>
+    var ROOM_PATH = 'rooms_br/'; // セキュリティルール (rooms_br/$roomId) に合わせたトップレベルパス
+    var MAX_LOGS = 100;
+    var DB = null;
+    var isFirebaseOnline = false;
 
-  <section class="players" id="players" aria-label="参加者"></section>
+    try {
+      firebase.initializeApp(FIREBASE_CONFIG);
+      DB = firebase.database();
+      isFirebaseOnline = true;
 
-  <section class="panel" aria-labelledby="log-h">
-    <h2 id="log-h">ログ</h2>
-    <div class="log" id="log"></div>
-  </section>
-
-  <section class="panel">
-    <details>
-      <summary>ルール（カード版）</summary>
-      <dl class="rules">
-        <dt>目的</dt><dd>手札から「2もじ×1組 ＋ 3もじ×2組＝3つの単語」をいち早く完成させた人がその回の勝ち。</dd>
-        <dt>人数</dt><dd>2〜4人推奨（5人以上も可）。手札は全員オープン。</dd>
-        <dt>セット</dt><dd>ひらがなカード120枚。各人に7枚配り、残りを中央の4つの山に分ける（どの山から引いてもよい）。</dd>
-        <dt>手番</dt><dd>時計回り。山から1枚引いて手札8枚にし、組み替える。完成しないときは1枚捨てて次の人へ。</dd>
-        <dt>上がり</dt><dd>手札8枚で「2もじ語×1 ＋ 3もじ語×2」を成立させる。</dd>
-        <dt>鳴き</dt><dd>なし。ポン・カン・ロン等はカード版では行いません。</dd>
-        <dt>単語の認定</dt><dd>「実在する単語」は事前に合意（辞書に載っている語／固有名詞の可否など）。アプリは文字の組み分けと、収録例の照合だけを行い、最終的な語の認定は「上がり宣言の承認」で全員が行います。</dd>
-      </dl>
-    </details>
-    <details style="margin-top:10px">
-      <summary>ルール（牌ばーじょん）</summary>
-      <dl class="rules">
-        <dt>目的</dt><dd>「2もじ×1組 ＋ 3もじ×4組＝5つの単語」をいち早く完成させた人がその回のアガリ。複数回プレイし、合計点で総合勝者を決めます。</dd>
-        <dt>セット</dt><dd>ひらがな牌120個。各人に13枚配り、残りは中央の山にまとめる。</dd>
-        <dt>手番</dt><dd>時計回り。山から1個取って14枚にし、組み替える。完成しないときは1枚を表向きに捨てる。</dd>
-        <dt>上がり</dt><dd>手牌14枚で「2もじ語×1 ＋ 3もじ語×4」。文字数が4以上のカン語は3もじ枠に入ります。</dd>
-        <dt>ポン / ロン</dt><dd>他の人の捨て牌で単語を作れるとき「ポン」で牌をもらえる。上がりで宣言するときは「ロン」。鳴いたら以後はツモ上がりのみ。自分が捨てた牌と同じ文字でのロンは不可。</dd>
-        <dt>カン</dt><dd>手番で4文字以上の単語を作れたら「カン」。単語は手牌の右に置き全員に見せ、文字数−3枚を山から補充します。</dd>
-        <dt>得点</dt><dd>ロン：+3点／振り込んだ人 −3点。ツモ：+3点／他は各 −1点。</dd>
-        <dt>七対子</dt><dd>手牌のみで2もじ語×7で上がり可（ポン・カンをしている場合は不可）。</dd>
-        <dt>任意ルール</dt><dd>得点・カン・七対子は「任意ルール」です。部屋を作る人が待機中にオン／オフを切り替えられます（牌ばーじょんで既定オン）。</dd>
-        <dt>公式情報の注意</dt><dd>得点・七対子・カンの補充枚数は公式商品ページで確認できない箇所があります。このアプリの実装は第三者解説に基づく一つの解釈で、任意ルールとして扱ってください。天和・地和・食物一色・疑似俳句・各種しばりは採用していません。</dd>
-      </dl>
-    </details>
-  </section>
-</div>
-
-<div class="toast" id="toast" role="status" aria-live="polite"></div>
-<div class="overlay" id="endOv"><div class="modal" role="dialog" aria-modal="true"><h3 id="endT">対局終了</h3><p id="endB">-</p><button class="btn-main" id="endClose" type="button">閉じる</button></div></div>
-<noscript><p style="padding:16px">このゲームのプレイには JavaScript が必要です。</p></noscript>
-
-<script src="https://www.gstatic.com/firebasejs/12.18.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/12.18.0/firebase-database-compat.js"></script>
-<script>
-'use strict';
-
-/*==PURE==*/
-/* ---- Firebase 設定：オンラインで遊ぶときだけ Console の値に置き換える ---- */
-var FIREBASE_CONFIG = {
-  apiKey: "AIzaSyCfVaNuaVFMbR5ZvDVPtzCeL_r-n1yFJrI",
-  authDomain: "buckshot-roulette-acf9e.firebaseapp.com",
-  databaseURL: "https://buckshot-roulette-acf9e-default-rtdb.firebaseio.com",
-  projectId: "buckshot-roulette-acf9e",
-  storageBucket: "buckshot-roulette-acf9e.firebasestorage.app",
-  messagingSenderId: "165006499616",
-  appId: "1:165006499616:web:5bfe2e555a655c7e584145"
-};
-var ROOM_PATH = 'rooms_br';          /* Realtime Database Rules のトップキーと一致 */
-var ROOM_CODE_LENGTH = 6, MAX_PLAYERS = 6, MAX_LOGS = 100;
-var ROOM_KEY = 'hiragana_room_id', NAME_KEY = 'hiragana_display_name',
-    TOKEN_KEY = 'hiragana_player_token', LOCAL_KEY = 'hiragana_local_room';
-
-/* ---- 2つのあそび方 ---- */
-var MODES = {
-  card: { label:'カード版',      sizes:[2,3,3],     piles:4, open:true,  calls:false },
-  tile: { label:'牌ばーじょん',  sizes:[2,3,3,3,3], piles:1, open:false, calls:true  }
-};
-function optsFor(mode) {
-  return mode === 'tile'
-    ? { scoring:true,  kan:true,  pairs7:true,  approve:true }
-    : { scoring:false, kan:false, pairs7:false, approve:true };
-}
-function cfg(state) { return MODES[state.mode] || MODES.card; }
-function sizeSum(state) { return cfg(state).sizes.reduce(function (a, b) { return a + b; }, 0); }
-
-/* ---- 文字と牌（両版とも120枚で共通） ---- */
-var SEION = 'あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわん';
-var DAKUON = 'がぎぐげござじずぜぞだぢづでどばびぶべぼぱぴぷぺぽ';
-var YOON = 'ゃゅょっー';
-function buildDeck() {
-  var ids = [];
-  function add(ch, n) { for (var i = 0; i < n; i++) ids.push(ch + '#' + i); }
-  for (var a = 0; a < SEION.length; a++) add(SEION[a], 2);
-  for (var b = 0; b < DAKUON.length; b++) add(DAKUON[b], 1);
-  for (var c = 0; c < YOON.length; c++) add(YOON[c], 1);
-  return ids;
-}
-
-/* 収録例の語（上がり宣言の承認を助ける目安。載っていない語も全員の合意で可） */
-var WORDS = ('いぬ ねこ やま うみ そら つき ほし はな みち とり かさ ゆき あめ くま さる ふね へや まど はし あし てら かみ しま しお かぜ うし うま かめ かえる たこ かに すし にく ごはん すいか いちご りんご みかん ばなな さかな とけい ねずみ さくら こども おとな たまご ことり かばん でんしゃ じてんしゃ たべもの のみもの うた おと いろ かたち ゆび めがね ぼうし くつした てぶくろ').split(' ');
-var WORD_SET = {};
-WORDS.forEach(function (w) { WORD_SET[w] = true; });
-function isKnown(w) { return !!WORD_SET[w]; }
-
-function charOf(id) { return String(id).split('#')[0]; }
-function shuffle(list) {
-  for (var i = list.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = list[i]; list[i] = list[j]; list[j] = t; }
-  return list;
-}
-function sortedPlayers(state) {
-  var map = (state && state.players) || {};
-  return Object.keys(map).map(function (id) { return map[id]; }).sort(function (a, b) { return a.seat - b.seat; });
-}
-function sameMultiset(a, b) {
-  if (a.length !== b.length) return false;
-  var x = a.slice().sort(), y = b.slice().sort();
-  for (var i = 0; i < x.length; i++) if (x[i] !== y[i]) return false;
-  return true;
-}
-function removeFrom(hand, cards) {
-  var h = hand.slice();
-  for (var i = 0; i < cards.length; i++) { var at = h.indexOf(cards[i]); if (at < 0) return null; h.splice(at, 1); }
-  return h;
-}
-function sanitizeName(value) {
-  var s = String(value == null ? '' : value).replace(/[\u0000-\u001f<>]/g, '').trim().slice(0, 20);
-  return s || 'ゲスト';
-}
-function nextToken(state, token) {
-  var ordered = sortedPlayers(state), at = -1;
-  for (var i = 0; i < ordered.length; i++) if (ordered[i].id === token) at = i;
-  return at < 0 ? null : ordered[(at + 1) % ordered.length].id;
-}
-function log(state, text, token) {
-  state.logs = state.logs || {};
-  state.counter = (state.counter || 0) + 1;
-  state.logs['L' + String(state.counter).padStart(7, '0')] = { at: Date.now(), text: String(text).slice(0, 160), actorId: token || '' };
-  var keys = Object.keys(state.logs).sort();
-  while (keys.length > MAX_LOGS) delete state.logs[keys.shift()];
-}
-
-/* 単語の枠：確定した鳴き（メルド）を差し引いた、手牌で作るべき単語の長さ一覧 */
-function slotDefs(state, player) {
-  var c = cfg(state), melds = (player && player.melds) || [];
-  var have2 = melds.some(function (m) { return m.cards.length === 2; });
-  var have3 = melds.filter(function (m) { return m.cards.length >= 3; }).length;
-  var defs = [];
-  c.sizes.forEach(function (s) { defs.push(s); });
-  var twoSlots = defs.filter(function (s) { return s === 2; }).length - (have2 ? 1 : 0);
-  var threeSlots = defs.filter(function (s) { return s === 3; }).length - have3;
-  var out = [];
-  for (var i = 0; i < twoSlots; i++) out.push(2);
-  for (var j = 0; j < threeSlots; j++) out.push(3);
-  return out;
-}
-function handTarget(state, player) { return slotDefs(state, player).reduce(function (a, b) { return a + b; }, 0); }
-function structureOK(state, lens, hasMelds, o) {
-  var c = cfg(state);
-  if (o.pairs7 && !hasMelds && lens.length === 7 && lens.every(function (l) { return l === 2; })) return true;
-  if (lens.length !== c.sizes.length) return false;
-  var two = lens.filter(function (l) { return l === 2; }).length;
-  var big = lens.filter(function (l) { return l >= 3; }).length;
-  return two === 1 && big === c.sizes.length - 1;
-}
-function newPlayer(id, name, seat) { return { id: id, name: sanitizeName(name), seat: seat, hand: [], melds: [] }; }
-function newRoom(roomId, token, name, mode) {
-  var m = MODES[mode] ? mode : 'card';
-  var state = { roomId: roomId, mode: m, opts: optsFor(m), status: 'waiting', createdAt: Date.now(),
-    hostToken: token, turnToken: token, players: {}, piles: [], discards: [], lastDiscard: null, logs: {}, counter: 0 };
-  state.players[token] = newPlayer(token, name, 0);
-  log(state, state.players[token].name + ' が部屋を作成しました（' + MODES[m].label + '）', token);
-  return state;
-}
-function deal(state) {
-  var c = cfg(state), deck = shuffle(buildDeck()), players = sortedPlayers(state);
-  var seatCount = sizeSum(state) - 1;
-  players.forEach(function (p) { p.hand = deck.splice(0, seatCount); p.melds = []; });
-  state.piles = [];
-  var per = Math.floor(deck.length / c.piles);
-  for (var i = 0; i < c.piles; i++) state.piles.push(i === c.piles - 1 ? deck.splice(0) : deck.splice(0, per));
-  state.discards = []; state.lastDiscard = null; state.winner = null; state.claim = null;
-  state.status = 'playing'; state.turnToken = players[0].id; state.startedAt = Date.now();
-  state.scores = {}; players.forEach(function (p) { state.scores[p.id] = 0; });
-}
-function finalizeWin(state, win, o) {
-  state.status = 'ended'; state.winner = win; state.claim = null; state.lastDiscard = null;
-  if (o.scoring) {
-    state.scoreBefore = JSON.parse(JSON.stringify(state.scores || {}));
-    state.scores = state.scores || {};
-    if (win.via === 'ron' && win.from) {
-      state.scores[win.token] = (state.scores[win.token] || 0) + 3;
-      state.scores[win.from] = (state.scores[win.from] || 0) - 3;
-    } else {
-      sortedPlayers(state).forEach(function (p) { state.scores[p.id] = (state.scores[p.id] || 0) + (p.id === win.token ? 3 : -1); });
+      // PERMISSION_DENIED 防止のため匿名認証を実行
+      if (firebase.auth) {
+        firebase.auth().signInAnonymously().catch(function(e) {
+          console.warn("Firebase Auth Warning:", e);
+        });
+      }
+    } catch(e) {
+      console.warn("Firebase Init fallback to Local Demo Mode:", e);
     }
-  }
-}
 
-/* すべての状態変更はこの純粋なリデューサ1本。オンラインは transaction にそのまま渡す。 */
-function reduce(state, action) {
-  if (!state || !action || !action.type) return undefined;
-  var t = String(action.token || '');
-  var s = JSON.parse(JSON.stringify(state));
-  var c = cfg(s), o = s.opts || (s.opts = optsFor(s.mode)), type = action.type;
-  var me = s.players && s.players[t];
+    // Storage Keys
+    var KEYS = { token: 'hg_token_v3', room: 'hg_room_v3', name: 'hg_name_v3' };
 
-  if (type === 'join') {
-    if (!s.players) return undefined;
-    if (s.players[t]) { s.players[t].name = sanitizeName(action.name); return s; }
-    if (s.status !== 'waiting') return undefined;
-    var used = sortedPlayers(s).map(function (p) { return p.seat; });
-    if (used.length >= MAX_PLAYERS) return undefined;
-    var seat = 0; while (used.indexOf(seat) !== -1) seat++;
-    s.players[t] = newPlayer(t, action.name, seat);
-    log(s, s.players[t].name + ' が入室しました', t);
-    return s;
-  }
-  if (!me) return undefined;
-  me.melds = me.melds || [];
+    // --- 2. Pure Game Engine Reducer (Atomic Transactions) ---
+    var MODES = {
+      card: { label: 'カード版', sizes: [2, 3, 3], piles: 4, calls: false },
+      tile: { label: '牌ばーじょん', sizes: [2, 3, 3, 3, 3], piles: 1, calls: true }
+    };
 
-  if (type === 'opts') {
-    if (s.hostToken !== t || s.status !== 'waiting' || !action.opts) return undefined;
-    ['scoring','kan','pairs7','approve'].forEach(function (k) { if (typeof action.opts[k] === 'boolean') o[k] = action.opts[k]; });
-    return s;
-  }
+    var SEION = 'あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわん';
+    var DAKUON = 'がぎぐげござじずぜぞだぢづでどばびぶべぼぱぴぷぺぽ';
+    var YOON = 'ゃゅょっー';
 
-  if (type === 'start') {
-    if (s.hostToken !== t || s.status !== 'waiting') return undefined;
-    if (sortedPlayers(s).length < 2) return undefined;
-    deal(s);
-    log(s, 'ゲーム開始（' + c.label + '）：' + sortedPlayers(s).map(function (p) { return p.name; }).join('・'), t);
-    return s;
-  }
+    function buildDeck() {
+      var ids = [];
+      function add(ch, n) { for (var i = 0; i < n; i++) ids.push(ch + '#' + i); }
+      for (var a = 0; a < SEION.length; a++) add(SEION[a], 2);
+      for (var b = 0; b < DAKUON.length; b++) add(DAKUON[b], 1);
+      for (var c = 0; c < YOON.length; c++) add(YOON[c], 1);
+      return ids;
+    }
 
-  /* 承認・却下は手番に関係なく参加者全員が行える */
-  if (type === 'approve' || type === 'deny') {
-    var cl = s.claim;
-    if (!cl || cl.claimer === t) return undefined;
-    if (type === 'deny') {
-      log(s, me.name + ' が却下しました（単語の合意が取れません）', t);
-      s.claim = null;
+    function charOf(id) { return String(id || '').split('#')[0]; }
+
+    function shuffle(arr) {
+      var list = arr.slice();
+      for (var i = list.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var tmp = list[i]; list[i] = list[j]; list[j] = tmp;
+      }
+      return list;
+    }
+
+    function sortedPlayers(state) {
+      var map = (state && state.players) || {};
+      return Object.keys(map).map(function(id) { return map[id]; }).sort(function(a, b) { return a.seat - b.seat; });
+    }
+
+    function logEvent(s, text, actorToken) {
+      if (!s) return;
+      s.logs = s.logs || [];
+      s.logs.push({
+        at: formatTime(),
+        text: String(text).slice(0, 160),
+        actor: actorToken || ''
+      });
+      // Guideline #4: Trim old logs to prevent DB ballooning
+      while (s.logs.length > MAX_LOGS) {
+        s.logs.shift();
+      }
+    }
+
+    // Pure Reducer for atomic transactional state transitions
+    function reduceGame(state, action) {
+      // Guideline #2: Guard null current state for transactions
+      if (!state) return state;
+
+      var s = JSON.parse(JSON.stringify(state));
+      var t = String(action.token || '');
+      var modeCfg = MODES[s.mode] || MODES.tile;
+      var me = s.players && s.players[t];
+
+      if (action.type === 'join') {
+        if (!s.players) s.players = {};
+        if (s.players[t]) {
+          s.players[t].name = action.name;
+          return s;
+        }
+        if (s.status !== 'waiting') return s;
+        var existingSeats = sortedPlayers(s).map(function(p) { return p.seat; });
+        if (existingSeats.length >= 4) return s;
+        var newSeat = 0;
+        while (existingSeats.indexOf(newSeat) !== -1) newSeat++;
+        s.players[t] = { id: t, name: action.name, seat: newSeat, hand: [], melds: [] };
+        logEvent(s, action.name + ' が入室しました。', t);
+        return s;
+      }
+
+      if (!me) return s;
+
+      if (action.type === 'start') {
+        if (s.status !== 'waiting') return s;
+        var deck = shuffle(buildDeck());
+        var players = sortedPlayers(s);
+        var handSize = modeCfg.sizes.reduce(function(a,b){return a+b;}, 0) - 1;
+
+        players.forEach(function(p) {
+          p.hand = deck.splice(0, handSize);
+          p.melds = [];
+        });
+
+        s.piles = [];
+        var perPile = Math.floor(deck.length / modeCfg.piles);
+        for (var i = 0; i < modeCfg.piles; i++) {
+          s.piles.push(i === modeCfg.piles - 1 ? deck.splice(0) : deck.splice(0, perPile));
+        }
+
+        s.discards = [];
+        s.lastDiscard = null;
+        s.status = 'playing';
+        s.turnToken = players[0].id;
+        s.claim = null;
+        logEvent(s, '対局が開始されました！（' + modeCfg.label + '）', t);
+        return s;
+      }
+
+      if (action.type === 'draw') {
+        if (s.status !== 'playing' || s.turnToken !== t) return s;
+        var pileIdx = action.pileIndex || 0;
+        if (!s.piles[pileIdx] || s.piles[pileIdx].length === 0) return s;
+
+        var drawn = s.piles[pileIdx].pop();
+        me.hand.push(drawn);
+        logEvent(s, me.name + ' が山札から牌を引きました。', t);
+        return s;
+      }
+
+      if (action.type === 'discard') {
+        if (s.status !== 'playing' || s.turnToken !== t) return s;
+        var idx = me.hand.indexOf(action.cardId);
+        if (idx < 0) return s;
+
+        me.hand.splice(idx, 1);
+        s.discards = s.discards || [];
+        s.discards.push({ id: action.cardId, by: t });
+        s.lastDiscard = { id: action.cardId, by: t };
+
+        // Move to next player
+        var plist = sortedPlayers(s);
+        var currentSeatIdx = -1;
+        for (var k = 0; k < plist.length; k++) if (plist[k].id === t) currentSeatIdx = k;
+        var nextPlayer = plist[(currentSeatIdx + 1) % plist.length];
+        s.turnToken = nextPlayer.id;
+
+        logEvent(s, me.name + ' が「' + charOf(action.cardId) + '」を捨てました。', t);
+        return s;
+      }
+
+      if (action.type === 'claim_agari') {
+        if (s.status !== 'playing') return s;
+        s.claim = {
+          claimer: t,
+          claimerName: me.name,
+          via: action.via || 'tsumo',
+          words: action.words || [],
+          approvals: {}
+        };
+        logEvent(s, '🎉 ' + me.name + ' が上がりを宣言！全員の承認待ちです。', t);
+        return s;
+      }
+
+      if (action.type === 'approve_agari') {
+        if (!s.claim) return s;
+        s.claim.approvals = s.claim.approvals || {};
+        s.claim.approvals[t] = true;
+
+        var allApproved = sortedPlayers(s).every(function(p) {
+          return p.id === s.claim.claimer || s.claim.approvals[p.id];
+        });
+
+        if (allApproved) {
+          s.status = 'ended';
+          s.winnerToken = s.claim.claimer;
+          s.resultText = '🏆 ' + s.claim.claimerName + ' の和了（ツモ/ロン）！\n言葉: ' + (s.claim.words.join('、') || '完成');
+          logEvent(s, '✅ 全員が承認。' + s.claim.claimerName + ' の勝利です！', t);
+          s.claim = null;
+        } else {
+          logEvent(s, me.name + ' が和了を承認しました。', t);
+        }
+        return s;
+      }
+
+      if (action.type === 'deny_agari') {
+        if (!s.claim) return s;
+        logEvent(s, me.name + ' が和了宣言を却下しました。', t);
+        s.claim = null;
+        return s;
+      }
+
+      if (action.type === 'reset') {
+        s.status = 'waiting';
+        s.piles = [];
+        s.discards = [];
+        s.lastDiscard = null;
+        s.claim = null;
+        s.winnerToken = null;
+        sortedPlayers(s).forEach(function(p) { p.hand = []; p.melds = []; });
+        logEvent(s, '部屋の状態が初期化されました。', t);
+        return s;
+      }
+
       return s;
     }
-    cl.approvals = cl.approvals || {};
-    cl.approvals[t] = true;
-    var all = sortedPlayers(s).every(function (p) { return p.id === cl.claimer || cl.approvals[p.id]; });
-    if (all) {
-      finalizeWin(s, { token: cl.claimer, name: (s.players[cl.claimer] || {}).name, words: cl.words, via: cl.via, from: cl.from }, o);
-      log(s, '全員が承認。' + (s.players[cl.claimer] || {}).name + ' が' + (cl.via === 'ron' ? 'ロン' : 'ツモ') + 'であがり！　' + cl.words.join(' ／ '), t);
-    } else {
-      log(s, me.name + ' が承認しました', t);
-    }
-    return s;
-  }
 
-  /* 上がり宣言が出ている間は他の操作を止める */
-  if (s.claim && type !== 'undo') return undefined;
-
-  if (type === 'draw') {
-    if (s.status !== 'playing' || s.turnToken !== t) return undefined;
-    if (me.hand.length !== handTarget(s, me) - 1) return undefined;
-    var pile = s.piles[action.pile];
-    if (!pile || !pile.length) { s.status = 'ended'; s.winner = null; log(s, '山が尽きました（流局）', t); return s; }
-    me.hand.push(pile.pop());
-    log(s, me.name + ' が山から1枚引きました', t);
-    return s;
-  }
-
-  if (type === 'discard') {
-    if (s.status !== 'playing' || s.turnToken !== t) return undefined;
-    if (me.hand.length !== handTarget(s, me)) return undefined;
-    var idx = me.hand.indexOf(action.cardId);
-    if (idx < 0) return undefined;
-    me.hand.splice(idx, 1);
-    s.discards.push({ id: action.cardId, by: t });
-    s.lastDiscard = { id: action.cardId, by: t };
-    log(s, me.name + ' が「' + charOf(action.cardId) + '」を捨てました', t);
-    s.turnToken = nextToken(s, t);
-    return s;
-  }
-
-  if (type === 'kan') {
-    if (!c.calls || !o.kan || s.status !== 'playing' || s.turnToken !== t) return undefined;
-    if (me.hand.length !== handTarget(s, me)) return undefined;
-    var kc = action.cards;
-    if (!Array.isArray(kc) || kc.length < 4) return undefined;
-    if (slotDefs(s, me).filter(function (x) { return x === 3; }).length < 1) return undefined;
-    var rest = removeFrom(me.hand, kc);
-    if (!rest) return undefined;
-    me.hand = rest;
-    me.melds.push({ cards: kc.slice(), kind: 'kan', by: t });
-    for (var i = 0; i < kc.length - 3; i++) { var p0 = s.piles[0]; if (p0 && p0.length) me.hand.push(p0.pop()); }
-    log(s, me.name + ' がカン（' + kc.map(charOf).join('') + '）', t);
-    return s;
-  }
-
-  if (type === 'pon') {
-    if (!c.calls || s.status !== 'playing') return undefined;
-    var ld0 = s.lastDiscard;
-    if (!ld0 || ld0.by === t) return undefined;
-    var L = Array.isArray(action.cards) ? action.cards.length + 1 : 0;
-    if (L !== 2 && L !== 3) return undefined;
-    if (me.hand.length !== handTarget(s, me) - 1) return undefined;
-    if (slotDefs(s, me).indexOf(L) === -1) return undefined;
-    var rest2 = removeFrom(me.hand, action.cards);
-    if (!rest2) return undefined;
-    me.hand = rest2;
-    me.melds.push({ cards: [ld0.id].concat(action.cards), kind: 'pon', by: t, from: ld0.by });
-    s.lastDiscard = null;
-    s.turnToken = t;
-    log(s, me.name + ' がポン（' + me.melds[me.melds.length - 1].cards.map(charOf).join('') + '）', t);
-    return s;
-  }
-
-  if (type === 'agari') {
-    if (s.status !== 'playing') return undefined;
-    var via = action.via === 'ron' ? 'ron' : 'tsumo', tiles, from = null;
-    if (via === 'ron') {
-      if (!c.calls) return undefined;
-      var ld = s.lastDiscard;
-      if (!ld || ld.by === t) return undefined;
-      if (me.melds.length) return undefined;
-      if (me.hand.length !== handTarget(s, me) - 1) return undefined;
-      if (s.discards.some(function (d) { return d.by === t && charOf(d.id) === charOf(ld.id); })) return undefined;
-      tiles = me.hand.concat([ld.id]); from = ld.by;
-    } else {
-      if (s.turnToken !== t) return undefined;
-      if (me.hand.length !== handTarget(s, me)) return undefined;
-      tiles = me.hand.slice();
-    }
-    var groups = action.words;
-    if (!Array.isArray(groups)) return undefined;
-    var flat = [];
-    for (var g = 0; g < groups.length; g++) { if (!Array.isArray(groups[g])) return undefined; flat = flat.concat(groups[g]); }
-    if (!sameMultiset(flat, tiles)) return undefined;
-    var allLens = groups.map(function (w) { return w.length; }).concat(me.melds.map(function (m) { return m.cards.length; }));
-    if (!structureOK(s, allLens, me.melds.length > 0, o)) return undefined;
-    var words = groups.map(function (w) { return w.map(charOf).join(''); }).concat(me.melds.map(function (m) { return m.cards.map(charOf).join(''); }));
-    if (words.some(function (w) { return !w; })) return undefined;
-    s.lastDiscard = null;
-    var win = { token: t, name: me.name, words: words, via: via, from: from };
-    if (o.approve && !action.skipApproval) {
-      s.claim = { claimer: t, via: via, from: from, words: words, approvals: {} };
-      log(s, me.name + ' が' + (via === 'ron' ? 'ロン' : 'ツモ') + 'を宣言（全員承認待ち）　' + words.join(' ／ '), t);
-    } else {
-      finalizeWin(s, win, o);
-      log(s, me.name + ' が' + (via === 'ron' ? 'ロン' : 'ツモ') + 'であがり！　' + words.join(' ／ '), t);
-    }
-    return s;
-  }
-
-  if (type === 'nextround') {
-    if (!o.scoring || s.hostToken !== t || s.status !== 'ended') return undefined;
-    var prev = s.winner ? s.winner.token : null;
-    deal(s);
-    if (prev && s.players[prev]) s.turnToken = prev;
-    log(s, '次の局を始めます（点数は持ち越し）', t);
-    return s;
-  }
-
-  if (type === 'undo') {
-    if (s.hostToken !== t || (s.status !== 'ended' && !s.claim)) return undefined;
-    s.status = 'playing'; s.winner = null; s.claim = null;
-    if (s.scoreBefore) { s.scores = s.scoreBefore; delete s.scoreBefore; }
-    log(s, 'アガリを取り消して続行します', t);
-    return s;
-  }
-
-  if (type === 'reset') {
-    if (s.hostToken !== t) return undefined;
-    Object.keys(s.players).forEach(function (id) { s.players[id].hand = []; s.players[id].melds = []; });
-    s.piles = []; s.discards = []; s.lastDiscard = null; s.winner = null; s.claim = null;
-    s.status = 'waiting'; s.turnToken = t; delete s.startedAt; delete s.scoreBefore;
-    log(s, '部屋を初期化しました', t);
-    return s;
-  }
-  return undefined;
-}
-/*==/PURE==*/
-
-/* ---- 状態と DOM ---- */
-var ONLINE = !(!FIREBASE_CONFIG.apiKey || /YOUR_/.test(JSON.stringify(FIREBASE_CONFIG)));
-var S = { token: '', roomId: '', room: null, local: false, ready: false, roomRef: null, handler: null,
-          assign: {}, sel: [], pick: null, ron: false, peek: false,
-          pending: false, subscribedId: '', shownEnd: '', spectator: false };
-var E = {};
-['name','roomInput','count','createBtn','joinBtn','localBtn','status','optBlock','modePill','roomPill','turnPill','statePill','peekPill',
- 'globalActions','piles','river','approve','approveBody','call','callBody','ctrl','ctrlBody','players','log','toast','setup','copyBtn','endOv','endT','endB','endClose'].forEach(function (id) { E[id] = document.getElementById(id); });
-
-function roomRef(roomId) { return firebase.database().ref(ROOM_PATH + '/' + roomId); }
-function cleanRoomId() { return (E.roomInput.value || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, ROOM_CODE_LENGTH); }
-function randomRoomId() {
-  var alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', bytes = new Uint8Array(ROOM_CODE_LENGTH);
-  crypto.getRandomValues(bytes);
-  var id = '';
-  for (var i = 0; i < bytes.length; i++) id += alphabet[bytes[i] % alphabet.length];
-  return id;
-}
-function loadToken() {
-  var token = localStorage.getItem(TOKEN_KEY);
-  if (!token) {
-    var bytes = new Uint8Array(16); crypto.getRandomValues(bytes); token = 'p_';
-    for (var i = 0; i < bytes.length; i++) token += ('0' + bytes[i].toString(16)).slice(-2);
-    localStorage.setItem(TOKEN_KEY, token);
-  }
-  return token;
-}
-function toast(message) {
-  E.toast.textContent = message; E.toast.classList.add('show');
-  clearTimeout(toast.timer); toast.timer = setTimeout(function () { E.toast.classList.remove('show'); }, 2600);
-}
-function appError(message) { var e = new Error(message); e.code = 'APP_LOGIC'; return e; }
-/* 権限エラー（permission_denied）とアプリ論理エラー（満員・開始済み等）を区別する */
-function errorKind(error) {
-  var code = (error && error.code) || '';
-  var message = (error && error.message) || String(error);
-  if (code === 'APP_LOGIC') return 'app';
-  if (code === 'PERMISSION_DENIED' || /permission[_\s]?denied/i.test(message)) return 'permission';
-  if (code === 'NETWORK_ERROR' || /network|offline|unavailable/i.test(message)) return 'network';
-  return 'app';
-}
-function showError(error) {
-  console.error(error);
-  var kind = errorKind(error), message = (error && error.message) || String(error);
-  if (kind === 'permission') {
-    message = '権限エラー：セキュリティルールを確認してください（トップキー "' + ROOM_PATH + '" に .read: true / .write: true が必要です）。';
-    toast(message); E.status.textContent = message; return;
-  }
-  if (kind === 'network') {
-    message = '通信エラー：接続を確認してください。';
-    toast(message); E.status.textContent = message; return;
-  }
-  toast('エラー: ' + message); E.status.textContent = 'エラー: ' + message;
-}
-function selectedMode() {
-  var el = document.querySelector('input[name="modeSel"]:checked');
-  return el ? el.value : 'card';
-}
-function persistLocal() {
-  try { if (S.local && S.room) localStorage.setItem(LOCAL_KEY, JSON.stringify(S.room)); else localStorage.removeItem(LOCAL_KEY); }
-  catch (error) { /* 保存できなくても遊べる */ }
-}
-function copyRoom() {
-  if (!S.roomId) return;
-  var text = S.roomId;
-  if (navigator.clipboard && window.isSecureContext) {
-    navigator.clipboard.writeText(text).then(function () { toast('部屋番号 ' + S.roomId + ' をコピーしました'); }).catch(function () { toast('コピーできませんでした'); });
-  } else toast('コピーできませんでした');
-}
-
-/* すべての操作はここを通す。オンラインは transaction、ローカルは同じリデューサを直接適用。 */
-function commit(action) {
-  function mutator(current) { return reduce(current, action); }
-  if (S.local) {
-    var next = mutator(S.room ? JSON.parse(JSON.stringify(S.room)) : null);
-    if (!next) { toast('その操作はできません'); return Promise.resolve(); }
-    S.room = next; S.assign = {}; S.sel = []; S.pick = null; S.ron = false;
-    persistLocal(); render();
-    return Promise.resolve();
-  }
-  if (S.pending) { toast('処理中です'); return Promise.resolve(); }
-  S.pending = true; render();
-  return roomRef(S.roomId).transaction(mutator).then(function (result) {
-    if (!result || !result.committed) toast('操作が反映されませんでした');
-  }).catch(showError).then(function () { S.pending = false; render(); });
-}
-function actToken() { return S.local ? (S.room && S.room.turnToken) : S.token; }
-function me() { var room = S.room; return room && room.players && room.players[actToken()]; }
-function otherSeat(room, t) { return room && room.players && room.players[t]; }
-function visibleToken(room) { return S.local ? (room && room.turnToken) : S.token; }
-
-function unsubscribe() {
-  if (S.roomRef) { try { S.roomRef.off(); } catch (error) { /* 無視 */ } S.roomRef = null; }
-  S.handler = null; S.subscribedId = '';
-}
-function subscribe(roomId) {
-  if (S.subscribedId === roomId && S.roomRef) return;   /* 同じ部屋の二重購読を防ぐ */
-  unsubscribe(); S.roomId = roomId; S.subscribedId = roomId; S.local = false;
-  localStorage.setItem(ROOM_KEY, roomId); E.roomInput.value = roomId;
-  var url = new URL(location.href); url.searchParams.set('room', roomId); history.replaceState({}, '', url.toString());
-  S.roomRef = roomRef(roomId);
-  S.handler = S.roomRef.on('value', function (snapshot) {
-    if (S.subscribedId !== roomId) return;               /* 解除後に届いた古い通知は捨てる */
-    if (!snapshot.exists()) {
-      S.room = null; S.roomId = ''; localStorage.removeItem(ROOM_KEY);
-      E.status.textContent = '部屋が削除されました。'; render(); return;
-    }
-    S.room = snapshot.val(); render();
-  }, showError);
-}
-function createRoom() {
-  if (!S.ready) return toast('オンラインの準備中です');
-  var name = sanitizeName(E.name.value); E.name.value = name; localStorage.setItem(NAME_KEY, name);
-  var mode = selectedMode();
-  function attempt(remaining) {
-    if (remaining <= 0) throw new Error('部屋番号を確保できませんでした。もう一度お試しください。');
-    var roomId = randomRoomId(), ref = roomRef(roomId);
-    return ref.once('value').then(function (snapshot) {
-      if (snapshot.exists()) return attempt(remaining - 1);          /* 使用済み番号は取り直す */
-      var initial = newRoom(roomId, S.token, name, mode);            /* ログキーもこの時点で確定 */
-      return ref.set(initial).then(function () { S.spectator = false; subscribe(roomId); toast('部屋を作成しました: ' + roomId); })
-        .catch(function (error) { if (errorKind(error) === 'permission') { showError(error); return; } return attempt(remaining - 1); });
-    });
-  }
-  attempt(6).catch(showError);
-}
-function joinRoom() {
-  if (!S.ready) return toast('オンラインの準備中です');
-  var roomId = cleanRoomId();
-  if (roomId.length !== ROOM_CODE_LENGTH) return toast(ROOM_CODE_LENGTH + '文字の部屋番号を入力してください');
-  var name = sanitizeName(E.name.value); E.name.value = name; localStorage.setItem(NAME_KEY, name);
-  var ref = roomRef(roomId);
-  S.spectator = false;
-  /* ログのキーは書き込み直前に生成する */
-  function logEntry(text) {
-    var patch = {};
-    patch['logs/' + ref.child('logs').push().key] = { at: Date.now(), text: text, actorId: S.token };
-    return patch;
-  }
-  ref.once('value').then(function (snapshot) {
-    if (!snapshot.exists()) throw appError('部屋が見つかりません。番号を確認してください。');
-    var room = snapshot.val(), patch = {}, note;
-    if (room.players && room.players[S.token]) {                    /* 再入室：名前だけ更新 */
-      S.spectator = false;
-      patch['players/' + S.token + '/name'] = name;
-      patch = Object.assign(patch, logEntry(name + ' が再接続しました'));
-      note = '再接続しました（席 ' + (room.players[S.token].seat + 1) + '）';
-    } else if (room.status !== 'waiting') {                          /* 開始後に明示的に参加を押した場合だけ観戦 */
-      S.spectator = true;
-      note = 'ゲーム開始済みのため観戦モードで接続しました。';
-    } else {
-      var used = sortedPlayers(room).map(function (p) { return p.seat; });
-      if (used.length >= MAX_PLAYERS) {
-        /* 待機中の満員は観戦にせず、参加失敗として扱う */
-        throw appError('この部屋は満員です（' + MAX_PLAYERS + '人まで）。');
+    // Helper function to load or generate persistent user token
+    function loadToken() {
+      var token = localStorage.getItem(KEYS.token);
+      if (!token) {
+        token = 'usr_' + Math.random().toString(36).substring(2, 9) + Date.now().toString(36);
+        localStorage.setItem(KEYS.token, token);
       }
-      S.spectator = false;
-      var seat = 0; while (used.indexOf(seat) !== -1) seat++;
-      patch['players/' + S.token] = newPlayer(S.token, name, seat);
-      patch = Object.assign(patch, logEntry(name + ' が入室しました'));
-      note = '参加しました（席 ' + (seat + 1) + '）';
+      return token;
     }
-    var writing = Object.keys(patch).length
-      ? ref.update(patch)
-      : Promise.resolve();
-    return writing.then(function () { subscribe(roomId); toast(note); });
-  }).catch(showError);
-}
-function startLocal() {
-  if (S.room && !S.local && !confirm('オンラインの部屋から離れてローカルで始めますか？')) return;
-  var n = parseInt(E.count.value, 10);
-  if (!(n >= 2 && n <= MAX_PLAYERS)) return toast('人数は2〜' + MAX_PLAYERS + '人です');
-  S.token = loadToken();
-  var myName = (E.name.value || '').trim().slice(0, 20) || 'あなた';
-  var state = newRoom('LOCAL', S.token, myName, selectedMode());
-  for (var i = 1; i < n; i++) state = reduce(state, { type: 'join', token: 'local_' + i, name: 'プレイヤー' + (i + 1) });
-  state = reduce(state, { type: 'start', token: S.token });
-  unsubscribe();
-  S.local = true; S.room = state; S.roomId = 'LOCAL'; S.assign = {}; S.sel = []; S.pick = null; S.ron = false;
-  persistLocal(); render(); toast(MODES[state.mode].label + 'で開始しました');
-}
 
-/* ---- 描画 ---- */
-function esc(value) {
-  return String(value == null ? '' : value).replace(/[&<>"']/g, function (cd) {
-    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[cd];
-  });
-}
-function tileHtml(id, extraClass, badge) {
-  return '<span class="tile ' + extraClass + '">' + esc(charOf(id)) + (badge ? '<span class="badge">' + badge + '</span>' : '') + '</span>';
-}
-function backHtml(extraClass) { return '<span class="tile ' + extraClass + ' back" aria-label="伏せ札"></span>'; }
-function buttonTile(id, label, extraClass, badge, on) {
-  return '<button class="tile ' + extraClass + (on ? ' on' : '') + '" data-card="' + esc(id) + '" aria-label="' + esc(label) + '"' + (on ? ' aria-pressed="true"' : '') + '>' +
-    esc(charOf(id)) + (badge ? '<span class="badge">' + badge + '</span>' : '') + '</button>';
-}
-function wordTag(w) {
-  return '<span class="wtag ' + (isKnown(w) ? 'ok' : 'check') + '">' + (isKnown(w) ? '収録例' : '要承認') + '</span>';
-}
-function slotCards(state, player, slot) {
-  return ((player && player.hand) || []).filter(function (id) { return (S.assign[id] || 0) === slot; });
-}
-function defsFor(state, player) { return slotDefs(state, player); }
+    // --- 3. UI & Application State ---
+    var state = {
+      token: loadToken(),
+      roomId: localStorage.getItem(KEYS.room) || '',
+      playerName: localStorage.getItem(KEYS.name) || '対局者',
+      mode: 'tile',
+      roomData: null,
+      roomRef: null,
+      selectedCardId: null,
+      localRoom: null
+    };
 
-function renderSetup(room) {
-  var playing = !!(room && (room.status === 'playing' || room.status === 'ended'));
-  E.setup.hidden = playing;
-  renderOpts(room);
-}
-function renderOpts(room) {
-  if (!room || room.status !== 'waiting') { E.optBlock.hidden = true; E.optBlock.innerHTML = ''; return; }
-  E.optBlock.hidden = false;
-  var host = room.hostToken === S.token;
-  var mode = host ? selectedMode() : (room.mode || 'card');
-  var o = room.opts || optsFor(mode);
-  var keys = [
-    ['approve', '上がりは全員承認で確定します', true],
-    ['scoring', '得点をつける（ロン +3/−3、ツモ +3/他 −1）', mode === 'tile'],
-    ['kan', 'カンを有効にする（補充は文字数−3枚）', mode === 'tile'],
-    ['pairs7', '七対子を有効にする（2もじ×7）', mode === 'tile']
-  ];
-  if (!host) {
-    var on = keys.filter(function (k) { return k[2] && o[k[0]]; }).map(function (k) { return k[1].split('（')[0]; });
-    E.optBlock.innerHTML = '<span class="slot-label">任意ルール（開始者が設定）</span><p class="hint">' + (on.length ? esc(on.join(' ／ ')) : 'なし') + '</p>';
-    return;
-  }
-  E.optBlock.innerHTML = '<span class="slot-label">任意ルール（開始者が設定）</span>' +
-    keys.map(function (k) {
-      return '<label class="optline' + (k[2] ? '' : ' off') + '"><input type="checkbox" data-opt="' + k[0] + '"' +
-        (o[k[0]] ? ' checked' : '') + (k[2] ? '' : ' disabled') + '> ' + k[1] + '</label>';
-    }).join('');
-}
-E_optChange();
+    var currentSlide = 0;
+    var totalSlides = 3;
 
-function renderMeta(room) {
-  var c = room ? cfg(room) : MODES[selectedMode()];
-  E.modePill.textContent = c.label;
-  E.roomPill.textContent = '部屋: ' + (S.roomId || '-') + (S.local ? '（ローカル）' : '');
-  E.peekPill.hidden = !room || cfg(room).open;
-  E.peekPill.textContent = S.peek ? '手牌: 公開中（覗く）' : '手牌: 伏せ';
-  E.copyBtn.hidden = !S.roomId || S.local;
-  if (!room) { E.turnPill.textContent = '手番: -'; E.statePill.textContent = '状態: -'; return; }
-  var turn = room.players && room.players[room.turnToken];
-  var labels = { waiting: '待機中', playing: '対戦中', ended: '終了' };
-  E.statePill.textContent = '状態: ' + (labels[room.status] || room.status);
-  E.turnPill.textContent = '手番: ' + (room.status === 'playing' && turn ? turn.name : (room.winner ? room.winner.name + ' の勝ち' : '-'));
-}
-function renderBoard(room) {
-  if (!room || !room.piles || !room.piles.length) {
-    E.piles.innerHTML = '<p class="hint">ゲーム開始後に山が置かれます。</p>';
-  } else {
-    var canDraw = room.status === 'playing' && !room.claim && room.turnToken === actToken() &&
-      me() && me().hand.length === handTarget(room, me()) - 1;
-    E.piles.innerHTML = room.piles.map(function (pile, i) {
-      return '<div class="pile"><button class="btn-main" data-pile="' + i + '"' + (canDraw && pile.length && !S.pending ? '' : ' disabled') + '>山から引く</button>' +
-        '<span class="pile-count">残り ' + pile.length + '枚</span></div>';
-    }).join('');
-  }
-  var discards = (room && room.discards) || [];
-  E.river.innerHTML = discards.length
-    ? discards.map(function (d) { return tileHtml(d.id, 'small' + (room.lastDiscard && room.lastDiscard.id === d.id && room.lastDiscard.by === d.by ? ' drawn' : '')); }).join('')
-    : '<p class="hint" style="margin:0">まだ捨て牌はありません。</p>';
-}
-function canPon(room) {
-  var t = actToken(), p = me();
-  if (!room || !cfg(room).calls || room.claim || room.status !== 'playing' || !p || !room.lastDiscard || room.lastDiscard.by === t) return false;
-  if (p.hand.length !== handTarget(room, p) - 1) return false;
-  var defs = defsFor(room, p);
-  return defs.indexOf(2) !== -1 || defs.indexOf(3) !== -1;
-}
-function canRon(room) {
-  var t = actToken(), p = me();
-  if (!room || !cfg(room).calls || room.claim || room.status !== 'playing' || !p || !room.lastDiscard || room.lastDiscard.by === t) return false;
-  if (p.melds.length) return false;
-  if (p.hand.length !== handTarget(room, p) - 1) return false;
-  return !(room.discards || []).some(function (d) { return d.by === t && charOf(d.id) === charOf(room.lastDiscard.id); });
-}
-function renderClaim(room) {
-  var have = canPon(room) || canRon(room);
-  if (!have && S.pick !== 'pon') { E.call.hidden = true; E.callBody.innerHTML = ''; return; }
-  if (!have) { E.call.hidden = true; return; }
-  E.call.hidden = false;
-  var ld = room.lastDiscard, html = '';
-  html += '<p class="hint">「' + esc(charOf(ld.id)) + '」が捨てられました。この牌で単語を作れるなら宣言できます。</p>';
-  html += '<div class="pool"><span class="slot-label">捨て牌</span><div class="slot-tiles">' + tileHtml(ld.id, 'mid') + '</div></div>';
-  if (S.pick === 'pon') {
-    var defs = defsFor(room, me()), max = defs.indexOf(3) !== -1 ? 2 : 1;
-    html += '<p class="hint">手牌から' + (max === 1 ? '1枚' : '1〜2枚') + 'を選んでください（捨て牌と合わせて2〜3もじの単語）。</p>';
-    html += '<div class="hand">' + me().hand.map(function (id) {
-      return buttonTile(id, '「' + charOf(id) + '」を選ぶ', 'small', '', S.sel.indexOf(id) >= 0);
-    }).join('') + '</div>';
-    var okPon = S.sel.length >= 1 && S.sel.length <= max;
-    html += '<div class="actions"><button class="btn-jade" id="ponGo"' + (okPon ? '' : ' disabled') + '>この牌でポン（' + (S.sel.length + 1) + 'もじ）</button>' +
-      '<button class="btn-sub" id="pickCancel">やめる</button></div>';
-  } else {
-    html += '<div class="actions">' +
-      (canPon(room) ? '<button class="btn-main" id="ponBtn">ポン</button>' : '') +
-      (canRon(room) ? '<button class="btn-red" id="ronBtn">ロン（あがり）</button>' : '') +
-      '<button class="btn-sub" id="passBtn">見送る</button></div>';
-  }
-  E.callBody.innerHTML = html;
-}
-function renderApprove(room) {
-  var cl = room && room.claim;
-  if (!cl || room.status !== 'playing') { E.approve.hidden = true; E.approveBody.innerHTML = ''; return; }
-  E.approve.hidden = false;
-  var claimer = (room.players[cl.claimer] || {}).name || '？';
-  var words = cl.words.map(function (w) { return '<span class="approve-word">' + esc(w) + wordTag(w) + '</span>'; }).join('');
-  var html = '<p class="hint"><strong>' + esc(claimer) + '</strong> が' + esc(cl.via === 'ron' ? 'ロン' : 'ツモ') + 'を宣言しました。単語が「実在する語」か全員で確認してください。</p>' +
-    '<div>' + words + '</div>';
-  if (cl.claimer === actToken()) {
-    var n = Object.keys(cl.approvals || {}).length, total = sortedPlayers(room).length - 1;
-    html += '<p class="hint">承認待ち ' + n + ' / ' + total + '</p><div class="actions"><button class="btn-sub" id="undoBtn">宣言を取り消す</button></div>';
-  } else {
-    html += '<div class="actions"><button class="btn-jade" id="okBtn">承認する</button><button class="btn-red" id="ngBtn">却下する</button></div>';
-  }
-  E.approveBody.innerHTML = html;
-}
-function renderCtrl(room) {
-  if (!room || room.status !== 'playing') { E.ctrl.hidden = true; E.ctrlBody.innerHTML = ''; return; }
-  E.ctrl.hidden = false;
-  var p = me(), t = actToken(), c = cfg(room), o = room.opts || optsFor(room.mode);
-  var html = '';
-  if (!p) { E.ctrlBody.innerHTML = '<p class="hint">手番のプレイヤーが見つかりません。</p>'; return; }
-  if (room.claim) {
-    E.ctrlBody.innerHTML = '<p class="hint">上がり宣言の承認待ちです。</p>';
-    return;
-  }
-  var target = handTarget(room, p);
-  var waiting = p.hand.length === target - 1, ready = p.hand.length === target;
-  var myTurn = room.turnToken === t && !S.ron;
-  var pool = p.hand.slice();
-  if (S.ron && room.lastDiscard && room.lastDiscard.by !== t) pool = pool.concat([room.lastDiscard.id]);
+    var $ = function(id) { return document.getElementById(id); };
+    var els = {
+      modeSelect: $('modeSelect'), playerName: $('playerName'), roomInput: $('roomInput'),
+      createBtn: $('createBtn'), joinBtn: $('joinBtn'), copyBtn: $('copyBtn'), startBtn: $('startBtn'), resetBtn: $('resetBtn'),
+      pillMode: $('pillMode'), pillRoom: $('pillRoom'), pillSeat: $('pillSeat'), pillTurn: $('pillTurn'), pillDeck: $('pillDeck'),
+      statusMsg: $('statusMsg'), playerGrid: $('playerGrid'), pilesContainer: $('pilesContainer'), riverRow: $('riverRow'),
+      handRow: $('handRow'), handCnt: $('handCnt'), actBox: $('actBox'), actTitle: $('actTitle'),
+      ponBtn: $('ponBtn'), kanBtn: $('kanBtn'), agariBtn: $('agariBtn'), dahaiBtn: $('dahaiBtn'),
+      claimApprovalBox: $('claimApprovalBox'), claimDetail: $('claimDetail'), approveBtn: $('approveBtn'), denyBtn: $('denyBtn'),
+      tabBLog: $('tabBLog'), tabBSlides: $('tabBSlides'),
+      paneLog: $('paneLog'), paneSlides: $('paneSlides'),
+      logList: $('logList'),
+      prevSlideBtn: $('prevSlideBtn'), nextSlideBtn: $('nextSlideBtn'), slideIndicator: $('slideIndicator'),
+      toast: $('toast'), toastMsg: $('toastMsg'), modalOv: $('modalOv'), modalTitle: $('modalTitle'), modalBody: $('modalBody'), modalClose: $('modalClose')
+    };
 
-  if (S.ron || (myTurn && ready)) {
-    var defs = defsFor(room, p), slots = '';
-    defs.forEach(function (want, i) {
-      var cards = (S.ron ? pool : p.hand).filter(function (id) { return (S.assign[id] || 0) === i + 1; });
-      var w = cards.map(charOf).join('');
-      slots += '<div class="slot' + (cards.length === want ? ' full' : '') + '">' +
-        '<div class="slot-label">単語' + (i + 1) + '（' + want + 'もじ）</div>' +
-        '<div class="slot-tiles">' + (cards.map(function (id) { return tileHtml(id, 'small', i + 1); }).join('') || '<span class="hint">…</span>') + '</div>' +
-        '<div class="slot-word">' + esc(w) + (w.length === want ? wordTag(w) : '') + '</div></div>';
+    window.addEventListener('DOMContentLoaded', function() {
+      initApp();
     });
-    var meldHtml = (p.melds || []).map(function (m) {
-      var w = m.cards.map(charOf).join('');
-      return '<div class="meld">' + m.cards.map(function (id) { return tileHtml(id, 'small'); }).join('') + '<span class="wtag ' + (isKnown(w) ? 'ok' : 'check') + '">' + esc(w) + '</span></div>';
-    }).join('');
-    var complete = defs.every(function (want, i) { return (S.ron ? pool : p.hand).filter(function (id) { return (S.assign[id] || 0) === i + 1; }).length === want; });
-    html += '<p class="hint">' + (S.ron ? 'ロン：' : '') + '牌をクリックして単語の枠に組み込みます。もう一度押すと戻ります。' + (o.approve ? '「アガリ！」で全員の承認に進みます。' : '') + '</p>';
-    if (meldHtml) html += '<div class="meld-note"><span class="slot-label">鳴いた単語</span><div class="melds">' + meldHtml + '</div></div>';
-    html += '<div class="builder">' + slots + '</div>';
-    html += '<div class="hand">' + pool.map(function (id) {
-      return buttonTile(id, '「' + charOf(id) + '」を組み込む', 'small', '', (S.assign[id] || 0) > 0);
-    }).join('') + '</div>';
-    html += '<div class="actions">' +
-      '<button class="btn-jade" id="agariBtn"' + (complete ? '' : ' disabled') + '>' + (S.ron ? 'ロンであがり' : 'アガリ！') + '</button>' +
-      (S.ron ? '<button class="btn-sub" id="pickCancel">やめる</button>' : '') +
-      '<button class="btn-sub" id="clearBtn">組み方をクリア</button>' +
-      (!S.ron && myTurn ? '<button class="btn-red" id="discardBtn">1枚捨てる</button>' : '') +
-      (c.calls && o.kan && myTurn ? '<button class="btn-sub" id="kanBtn">カン</button>' : '') + '</div>';
-    E.ctrlBody.innerHTML = html;
-    return;
-  }
-  if (S.pick === 'kan') {
-    html += '<p class="hint">4文字以上の単語になるよう、手牌を4枚以上えらんでください。</p>';
-    html += '<div class="hand">' + p.hand.map(function (id) {
-      return buttonTile(id, '「' + charOf(id) + '」を選ぶ', 'small', '', S.sel.indexOf(id) >= 0);
-    }).join('') + '</div>';
-    html += '<div class="actions"><button class="btn-jade" id="kanGo"' + (S.sel.length >= 4 ? '' : ' disabled') + '>この' + S.sel.length + '枚でカン</button>' +
-      '<button class="btn-sub" id="pickCancel">やめる</button></div>';
-    E.ctrlBody.innerHTML = html;
-    return;
-  }
-  if (S.pick === 'discard') {
-    html += '<p class="hint">捨てる牌をクリックしてください（表向きに場へ出ます）。</p>';
-    html += '<div class="hand">' + p.hand.map(function (id) { return buttonTile(id, '「' + charOf(id) + '」を捨てる', 'small'); }).join('') + '</div>';
-    html += '<div class="actions"><button class="btn-sub" id="pickCancel">やめる</button></div>';
-    E.ctrlBody.innerHTML = html;
-    return;
-  }
-  if (myTurn && waiting) {
-    html += '<p class="hint">山から1枚引いてください（手牌' + p.hand.length + '枚 → ' + target + '枚）。' + (c.calls ? '捨て牌でポンできるときは、引く前に宣言します。' : '') + '</p>';
-    E.ctrlBody.innerHTML = html;
-    return;
-  }
-  var who = otherSeat(room, room.turnToken);
-  html += '<p class="hint">' + esc(who ? who.name : '-') + ' の手番です。</p>';
-  E.ctrlBody.innerHTML = html;
-}
-function renderPlayers(room) {
-  if (!room) { E.players.innerHTML = ''; return; }
-  var c = cfg(room), o = room.opts || optsFor(room.mode), mine = actToken();
-  E.players.innerHTML = sortedPlayers(room).map(function (p) {
-    var isTurn = room.status === 'playing' && p.id === room.turnToken;
-    var isWin = room.winner && room.winner.token === p.id;
-    var tags = (p.id === room.hostToken ? '<span class="p-tag host">作成者</span>' : '') +
-      (isTurn ? '<span class="p-tag turn">手番</span>' : '') + (isWin ? '<span class="p-tag">勝ち</span>' : '');
-    var score = o.scoring && room.scores ? '<span class="p-score">' + (room.scores[p.id] || 0) + '点</span>' : '';
-    var faceUp = c.open || p.id === mine || S.peek;
-    var hand = (p.hand && p.hand.length)
-      ? '<div class="hand">' + p.hand.map(function (id, i) {
-          if (!faceUp) return backHtml('small');
-          return tileHtml(id, (i === p.hand.length - 1 && p.hand.length === handTarget(room, p) ? 'small drawn' : 'small'));
-        }).join('') + '</div>'
-      : '<p class="p-empty">手札はまだありません。</p>';
-    var melds = (p.melds && p.melds.length)
-      ? '<div class="melds">' + p.melds.map(function (m) {
-          return '<div class="meld">' + m.cards.map(function (id) { return tileHtml(id, 'small'); }).join('') + '</div>';
-        }).join('') + '</div>'
-      : '';
-    var win = isWin ? '<p class="slot-word">' + esc(room.winner.words.join(' ／ ')) + '</p>' : '';
-    return '<article class="player' + (isTurn ? ' active' : '') + (isWin ? ' win' : '') + '">' +
-      '<div class="p-head"><span class="p-name">' + esc(p.name) + '</span>' + tags + score + '</div>' + melds + win + hand + '</article>';
-  }).join('');
-}
-function renderLog(room) {
-  var logs = room && room.logs ? Object.keys(room.logs).sort().reverse().slice(0, 60).map(function (k) { return room.logs[k]; }) : [];
-  function time(v) { if (!v || typeof v !== 'number') return ''; try { return new Date(v).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' }); } catch (e) { return ''; } }
-  E.log.innerHTML = logs.length
-    ? logs.map(function (i) { return '<div class="log-item"><div>' + esc(i.text) + '</div><div class="log-time">' + time(i.at) + '</div></div>'; }).join('')
-    : '<div class="log-item">ログなし</div>';
-}
-function renderStatus(room) {
-  if (!room) { E.status.textContent = ONLINE ? '6文字の部屋番号を入力して「参加」を押すか、部屋を作成してください。' : 'オンライン未設定です。「この端末だけで開始」で遊べます。'; return; }
-  var c = cfg(room), turn = room.players[room.turnToken];
-  if (S.spectator) {
-    E.status.textContent = '観戦モード：ゲーム開始済みの部屋です。';
-    return;
-  }
-  if (room.claim) {
-    E.status.textContent = '上がり宣言の承認待ち：' + ((room.players[room.claim.claimer] || {}).name || '？') + ' の「' + room.claim.words.join(' ／ ') + '」を全員で確認してください。';
-  } else if (room.status === 'waiting') {
-    var host = room.players[room.hostToken];
-    E.status.textContent = '待機中（' + c.label + '）：' + sortedPlayers(room).length + '人。作成者「' + (host ? host.name : '-') + '」が2人以上でゲーム開始できます。';
-  } else if (room.status === 'playing') {
-    E.status.textContent = '対戦中（' + c.label + '）：' + (turn ? turn.name : '-') + ' の手番です。' + (canPon(room) || canRon(room) ? '鳴きを宣言できます。' : '');
-  } else {
-    E.status.textContent = '終了：' + (room.winner ? room.winner.name + ' が' + (room.winner.via === 'ron' ? 'ロン' : 'ツモ') + 'であがりました（' + room.winner.words.join(' ／ ') + '）' : '流局です。');
-  }
-}
-function renderActions(room) {
-  E.globalActions.hidden = !room;
-  if (!room) { E.globalActions.firstElementChild.innerHTML = ''; return; }
-  var host = room.hostToken === S.token;
-  var o = room.opts || optsFor(room.mode);
-  var list = sortedPlayers(room).length;
-  /* 非ホストにも見えるよう、開始・リセットは常設（権限がない場合は無効化） */
-  E.globalActions.firstElementChild.innerHTML =
-    '<button class="btn-main" id="startBtn"' + (host && room.status === 'waiting' && list >= 2 && !S.pending ? '' : ' disabled') + '>ゲーム開始</button>' +
-    '<button class="btn-jade" id="nextBtn"' + (host && o.scoring && room.status === 'ended' && !S.pending ? '' : ' disabled') + '>次の局へ（点数持ち越し）</button>' +
-    '<button class="btn-sub" id="undoBtn2"' + (host && room.status === 'ended' ? '' : ' disabled') + '>アガリを取り消して続行</button>' +
-    '<button class="btn-red" id="resetBtn"' + (host && !S.pending ? '' : ' disabled') + '>部屋をリセット</button>' +
-    (!cfg(room).open ? '<button class="btn-sub" id="peekBtn">' + (S.peek ? '手牌を伏せる' : '手牌を覗く') + '</button>' : '') +
-    (S.local ? '<button class="btn-sub" id="leaveLocalBtn">ローカルを終了</button>' : '');
-}
-function renderEndModal(room) {
-  if (!room || room.status !== 'ended' || !room.winner) { E.endOv.classList.remove('show'); return; }
-  var key = (room.roomId || '') + '|' + room.winner.token + '|' + room.winner.words.join(',');
-  if (S.shownEnd === key) return;   /* 一度出したら閉じたままにする */
-  S.shownEnd = key;
-  var scores = (room.opts && room.opts.scoring && room.scores)
-    ? '\n点数: ' + sortedPlayers(room).map(function (p) { return p.name + ' ' + (room.scores[p.id] || 0); }).join(' / ') : '';
-  E.endT.textContent = '対局終了';
-  E.endB.textContent = room.winner.name + ' が' + (room.winner.via === 'ron' ? 'ロン' : 'ツモ') + 'であがりました。\n' +
-    room.winner.words.join(' ／ ') + scores;
-  E.endOv.classList.add('show');
-}
-function render() {
-  var room = S.room;
-  renderSetup(room); renderMeta(room); renderBoard(room);
-  renderCtrl(room); renderClaim(room); renderApprove(room); renderActions(room);
-  renderPlayers(room); renderLog(room); renderStatus(room); renderEndModal(room);
-}
 
-/* ---- 操作 ---- */
-document.addEventListener('click', function (event) {
-  var room = S.room; if (!room) return;
-  var el = event.target.closest('[data-pile],[data-card],#agariBtn,#discardBtn,#clearBtn,#startBtn,#resetBtn,#undoBtn,#undoBtn2,#nextBtn,#leaveLocalBtn,#peekBtn,#ponBtn,#ronBtn,#passBtn,#ponGo,#kanBtn,#kanGo,#pickCancel,#okBtn,#ngBtn');
-  if (!el) return;
-  var token = actToken();
+    function initApp() {
+      els.playerName.value = state.playerName;
+      var urlRoom = new URL(location.href).searchParams.get('room');
+      if (urlRoom) state.roomId = urlRoom.toUpperCase();
+      els.roomInput.value = state.roomId;
 
-  if (el.dataset.pile !== undefined && el.dataset.pile !== '') { commit({ type: 'draw', token: token, pile: Number(el.dataset.pile) }); return; }
-  if (el.id === 'startBtn') { commit({ type: 'start', token: S.token }); return; }
-  if (el.id === 'nextBtn') { commit({ type: 'nextround', token: S.token }); return; }
-  if (el.id === 'resetBtn') { if (confirm('手札をすべて戻して待機状態にしますか？')) commit({ type: 'reset', token: S.token }); return; }
-  if (el.id === 'undoBtn' || el.id === 'undoBtn2') { commit({ type: 'undo', token: S.token }); return; }
-  if (el.id === 'okBtn') { commit({ type: 'approve', token: token }); return; }
-  if (el.id === 'ngBtn') { commit({ type: 'deny', token: token }); return; }
-  if (el.id === 'peekBtn') { S.peek = !S.peek; render(); return; }
-  if (el.id === 'clearBtn') { S.assign = {}; render(); return; }
-  if (el.id === 'pickCancel') { S.pick = null; S.sel = []; S.ron = false; render(); return; }
-  if (el.id === 'discardBtn') { S.pick = 'discard'; S.sel = []; render(); return; }
-  if (el.id === 'kanBtn') { S.pick = 'kan'; S.sel = []; render(); return; }
-  if (el.id === 'kanGo') { commit({ type: 'kan', token: token, cards: S.sel.slice() }); return; }
-  if (el.id === 'ponBtn') { S.pick = 'pon'; S.sel = []; render(); return; }
-  if (el.id === 'passBtn') { toast('見送りました'); return; }
-  if (el.id === 'ponGo') { commit({ type: 'pon', token: token, cards: S.sel.slice() }); return; }
-  if (el.id === 'ronBtn') { S.ron = true; S.assign = {}; render(); return; }
-  if (el.id === 'agariBtn') {
-    var p = me(), defs = defsFor(room, p);
-    var wordsArray = defs.map(function (want, i) {
-      return p.hand.concat(S.ron ? [room.lastDiscard.id] : []).filter(function (id) { return (S.assign[id] || 0) === i + 1; });
-    });
-    commit({ type: 'agari', token: token, via: S.ron ? 'ron' : 'tsumo', words: wordsArray, skipApproval: S.local });
-    return;
-  }
-  if (el.dataset.card) {
-    var cardId = el.dataset.card;
-    if (S.pick === 'kan' || S.pick === 'pon') {
-      var at = S.sel.indexOf(cardId);
-      if (at >= 0) S.sel.splice(at, 1); else S.sel.push(cardId);
-      render(); return;
-    }
-    if (S.pick === 'discard') { commit({ type: 'discard', token: token, cardId: cardId }); return; }
-    if (S.ron) {
-      if (S.assign[cardId]) { delete S.assign[cardId]; render(); return; }
-      var defs2 = defsFor(room, me()), pool2 = me().hand.concat([room.lastDiscard.id]);
-      for (var i2 = 0; i2 < defs2.length; i2++) {
-        var used = pool2.filter(function (id) { return (S.assign[id] || 0) === i2 + 1; }).length;
-        if (used < defs2[i2]) { S.assign[cardId] = i2 + 1; render(); return; }
+      bindEventListeners();
+      renderUI();
+
+      if (state.roomId && isFirebaseOnline) {
+        joinRoom(state.roomId, false);
       }
-      toast('単語の枠がいっぱいです'); return;
+
+      window.addEventListener('beforeunload', function() {
+        unsubscribeRoom();
+      });
     }
-    if (S.assign[cardId]) { delete S.assign[cardId]; render(); return; }
-    var defs3 = defsFor(room, me());
-    for (var i3 = 0; i3 < defs3.length; i3++) {
-      var used3 = me().hand.filter(function (id) { return (S.assign[id] || 0) === i3 + 1; }).length;
-      if (used3 < defs3[i3]) { S.assign[cardId] = i3 + 1; render(); return; }
+
+    function unsubscribeRoom() {
+      if (state.roomRef) {
+        try { state.roomRef.off(); } catch(e) {}
+        state.roomRef = null;
+      }
     }
-    toast('単語の枠がいっぱいです');
-  }
-  if (el.id === 'leaveLocalBtn') {
-    if (!confirm('ローカル対戦を終了しますか？')) return;
-    S.local = false; S.room = null; S.roomId = ''; S.assign = {}; S.sel = []; S.ron = false; persistLocal(); render();
-  }
-});
 
-/* ---- 初期化 ---- */
-function E_optChange() {
-  E.optBlock.addEventListener('change', function (event) {
-    var box = event.target.closest('input[data-opt]');
-    if (!box) return;
-    var room = S.room;
-    if (!room || room.hostToken !== S.token || room.status !== 'waiting') return;
-    var o = Object.assign({}, room.opts || optsFor(selectedMode()));
-    o[box.dataset.opt] = box.checked;
-    commit({ type: 'opts', token: S.token, opts: o });
-  });
-}
-document.querySelectorAll('input[name="modeSel"]').forEach(function (radio) {
-  radio.addEventListener('change', function () {
-    var room = S.room;
-    if (room && room.hostToken === S.token && room.status === 'waiting') commit({ type: 'opts', token: S.token, opts: optsFor(selectedMode()) });
-    render();
-  });
-});
-function initialize() {
-  S.token = loadToken();
-  E.name.value = localStorage.getItem(NAME_KEY) || '';
-  E.createBtn.addEventListener('click', createRoom);
-  E.joinBtn.addEventListener('click', joinRoom);
-  E.localBtn.addEventListener('click', startLocal);
-  E.copyBtn.addEventListener('click', copyRoom);
-  E.endClose.addEventListener('click', function () { E.endOv.classList.remove('show'); });
-  window.addEventListener('beforeunload', unsubscribe);
+    function dispatchAction(action) {
+      action.token = state.token;
+      if (state.roomRef && isFirebaseOnline) {
+        state.roomRef.transaction(function(currentData) {
+          if (!currentData) return currentData;
+          return reduceGame(currentData, action);
+        }, function(error, committed, snapshot) {
+          if (error) {
+            showToast('通信エラー: ' + error.message);
+          }
+        });
+      } else if (state.localRoom) {
+        state.localRoom = reduceGame(state.localRoom, action);
+        state.roomData = state.localRoom;
+        renderUI();
+      }
+    }
 
-  var urlRoom = new URL(location.href).searchParams.get('room');
-  var savedRoom = (urlRoom || localStorage.getItem(ROOM_KEY) || '').toUpperCase();
-  E.roomInput.value = savedRoom;
+    function createRoom() {
+      var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+      var code = '';
+      for (var i = 0; i < 6; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
+      
+      state.roomId = code;
+      state.mode = els.modeSelect.value || 'tile';
+      els.roomInput.value = code;
+      localStorage.setItem(KEYS.room, code);
 
-  var savedLocal = null;
-  try { savedLocal = JSON.parse(localStorage.getItem(LOCAL_KEY) || 'null'); } catch (error) { savedLocal = null; }
+      var initialRoom = {
+        roomId: code,
+        mode: state.mode,
+        status: 'waiting',
+        players: {},
+        logs: []
+      };
 
-  if (!ONLINE) {
-    E.createBtn.disabled = true; E.joinBtn.disabled = true;
-    E.status.textContent = 'オンライン未設定です。Firebase Console の値を FIREBASE_CONFIG に貼ると部屋を作成できます。今はこの端末だけで遊べます。';
-  } else {
-    try { firebase.initializeApp(FIREBASE_CONFIG); } catch (error) { showError(error); return; }
-    S.ready = true;
-    E.status.textContent = 'オンライン準備完了。あそび方を選んで部屋を作成するか、番号を入力して参加できます。';
-  }
-  if (savedLocal && savedLocal.players) { S.local = true; S.room = savedLocal; S.roomId = 'LOCAL'; render(); toast('前回のローカル対戦を復元しました'); return; }
-  /* 保存済みの部屋番号を表示するだけ。参加ボタンを押すまで部屋へ接続しない */
-  render();
-}
-initialize();
-</script>
+      if (isFirebaseOnline && DB) {
+        unsubscribeRoom();
+        var ref = DB.ref(ROOM_PATH + code);
+        ref.once('value').then(function(snapshot) {
+          ref.set(initialRoom).then(function() {
+            joinRoom(code, true);
+          }).catch(function(err) {
+            startLocalRoom(initialRoom);
+          });
+        }).catch(function() {
+          startLocalRoom(initialRoom);
+        });
+      } else {
+        startLocalRoom(initialRoom);
+      }
+    }
+
+    function startLocalRoom(initialRoom) {
+      state.localRoom = initialRoom;
+      state.roomData = initialRoom;
+      dispatchAction({ type: 'join', name: state.playerName });
+      showToast('ローカル体験モードで部屋を作成しました（' + state.roomId + '）');
+      renderUI();
+    }
+
+    function joinRoom(roomId, userInitiated) {
+      if (!roomId) return;
+      state.roomId = roomId;
+      els.roomInput.value = roomId;
+      localStorage.setItem(KEYS.room, roomId);
+
+      if (isFirebaseOnline && DB) {
+        unsubscribeRoom();
+        var ref = DB.ref(ROOM_PATH + roomId);
+        state.roomRef = ref;
+
+        ref.once('value').then(function(snap) {
+          if (!snap.exists()) {
+            if (userInitiated) showToast('部屋が見つかりません');
+            return;
+          }
+          var val = snap.val();
+          state.mode = val.mode || 'tile';
+          els.modeSelect.value = state.mode;
+
+          ref.on('value', function(snapshot) {
+            if (snapshot.exists()) {
+              state.roomData = snapshot.val();
+              renderUI();
+            } else {
+              state.roomData = null;
+              renderUI();
+            }
+          });
+
+          dispatchAction({ type: 'join', name: state.playerName });
+          if (userInitiated) showToast('部屋 ' + roomId + ' に参加しました');
+        }).catch(function(err) {
+          showToast('参加エラー: ' + err.message);
+        });
+      } else {
+        if (state.localRoom && state.localRoom.roomId === roomId) {
+          state.roomData = state.localRoom;
+          dispatchAction({ type: 'join', name: state.playerName });
+          renderUI();
+        } else {
+          showToast('ローカル部屋が見つかりません');
+        }
+      }
+    }
+
+    function copyRoomCode() {
+      if (!state.roomId) return;
+      var temp = document.createElement('textarea');
+      temp.value = state.roomId;
+      document.body.appendChild(temp);
+      temp.select();
+      try {
+        document.execCommand('copy');
+        showToast('部屋コード (' + state.roomId + ') をコピーしました');
+      } catch (e) {
+        showToast('コピーに失敗しました');
+      }
+      document.body.removeChild(temp);
+    }
+
+    function handleDahai() {
+      if (!state.selectedCardId) {
+        showToast('捨てる牌を選択してください');
+        return;
+      }
+      dispatchAction({ type: 'discard', cardId: state.selectedCardId });
+      state.selectedCardId = null;
+    }
+
+    function handleAgariClaim() {
+      var r = state.roomData;
+      if (!r) return;
+      var me = r.players && r.players[state.token];
+      if (!me) return;
+
+      var wordList = me.hand.map(function(id) { return charOf(id); });
+      dispatchAction({
+        type: 'claim_agari',
+        via: 'tsumo',
+        words: [wordList.join('')]
+      });
+    }
+
+    function renderUI() {
+      var r = state.roomData;
+      var modeCfg = MODES[(r && r.mode) || state.mode] || MODES.tile;
+      
+      els.pillMode.textContent = 'モード: ' + modeCfg.label;
+      els.pillRoom.textContent = '部屋: ' + (r ? r.roomId : '-');
+
+      var players = sortedPlayers(r);
+      var me = r && r.players && r.players[state.token];
+      els.pillSeat.textContent = '席: ' + (me ? '東南西北'[me.seat] || me.seat : '-');
+
+      var turnPlayer = players.find(function(p) { return p.id === (r && r.turnToken); });
+      els.pillTurn.textContent = '手番: ' + (turnPlayer ? turnPlayer.name : '-');
+
+      var totalDeckCount = (r && r.piles) ? r.piles.reduce(function(acc, p) { return acc + p.length; }, 0) : 0;
+      els.pillDeck.textContent = '山札: ' + totalDeckCount;
+
+      els.copyBtn.disabled = !r;
+      els.startBtn.disabled = !r || r.status !== 'waiting';
+      els.resetBtn.disabled = !r;
+
+      // Status Banner Message
+      if (!r) {
+        els.statusMsg.innerHTML = '<i class="fa-solid fa-circle-info text-amber-400"></i><span>部屋を作成するか、部屋コードを入力して「参加」を押してください。</span>';
+      } else if (r.status === 'waiting') {
+        els.statusMsg.innerHTML = '<i class="fa-solid fa-users text-amber-400"></i><span>参加者を待っています。全員そろったら「対局開始」を押してください。（' + players.length + '/4名）</span>';
+      } else if (r.status === 'playing') {
+        if (r.turnToken === state.token) {
+          els.statusMsg.innerHTML = '<i class="fa-solid fa-circle-play text-emerald-400 animate-pulse"></i><span class="text-emerald-300 font-extrabold">あなたの手番です！山札をタップして引くか、牌を選択して捨ててください。</span>';
+        } else {
+          els.statusMsg.innerHTML = '<i class="fa-solid fa-hourglass-half text-amber-400"></i><span>' + escapeHtml(turnPlayer ? turnPlayer.name : '') + ' さんの手番です…</span>';
+        }
+      } else if (r.status === 'ended') {
+        els.statusMsg.innerHTML = '<i class="fa-solid fa-trophy text-amber-300"></i><span>対局終了: ' + escapeHtml(r.resultText || '') + '</span>';
+      }
+
+      // Players Grid
+      els.playerGrid.innerHTML = '';
+      for (var i = 0; i < 4; i++) {
+        var p = players[i];
+        var isMe = p && p.id === state.token;
+        var isTurn = p && r && r.turnToken === p.id;
+        
+        var card = document.createElement('div');
+        card.className = 'bg-slate-900 border ' + (isTurn ? 'border-amber-400 bg-amber-500/10' : 'border-slate-800') + ' rounded-xl p-3 flex flex-col gap-1 transition';
+        if (p) {
+          card.innerHTML = 
+            '<div class="flex items-center justify-between text-xs font-bold text-slate-300">' +
+              '<span>' + ['東', '南', '西', '北'][p.seat] + '家 ' + escapeHtml(p.name) + (isMe ? ' (あなた)' : '') + '</span>' +
+              (isTurn ? '<span class="text-amber-400 font-extrabold animate-pulse">手番</span>' : '') +
+            '</div>' +
+            '<div class="text-xs text-slate-400 mt-1">手札: ' + (p.hand ? p.hand.length : 0) + '枚</div>';
+        } else {
+          card.innerHTML = '<div class="text-xs text-slate-600 font-bold py-2 text-center">空席</div>';
+        }
+        els.playerGrid.appendChild(card);
+      }
+
+      // Piles Container
+      els.pilesContainer.innerHTML = '';
+      if (r && r.piles && r.piles.length > 0) {
+        r.piles.forEach(function(pile, idx) {
+          var btn = document.createElement('button');
+          var isMyTurn = r.status === 'playing' && r.turnToken === state.token;
+          btn.disabled = !isMyTurn || pile.length === 0;
+          btn.className = 'px-3 py-2 bg-gradient-to-br from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 disabled:opacity-40 disabled:cursor-not-allowed text-slate-950 font-black rounded-lg text-xs transition shadow-md flex items-center gap-1.5';
+          btn.innerHTML = '<i class="fa-solid fa-layer-group"></i> 山' + (idx + 1) + ' (' + pile.length + ')';
+          btn.onclick = function() {
+            dispatchAction({ type: 'draw', pileIndex: idx });
+          };
+          els.pilesContainer.appendChild(btn);
+        });
+      } else {
+        els.pilesContainer.innerHTML = '<span class="text-xs text-slate-600 italic px-2">山札はありません</span>';
+      }
+
+      // Discard River
+      els.riverRow.innerHTML = '';
+      if (r && r.discards && r.discards.length > 0) {
+        r.discards.slice(-12).forEach(function(d) {
+          var tile = document.createElement('div');
+          tile.className = 'w-9 h-11 bg-slate-800 border border-slate-600 rounded-lg flex items-center justify-center font-black text-amber-200 text-sm shadow';
+          tile.textContent = charOf(d.id);
+          els.riverRow.appendChild(tile);
+        });
+      } else {
+        els.riverRow.innerHTML = '<span class="text-xs text-slate-600 italic px-2">まだ捨て牌はありません</span>';
+      }
+
+      // Player Hand Area
+      els.handRow.innerHTML = '';
+      if (me && me.hand && me.hand.length > 0) {
+        els.handCnt.textContent = '(' + me.hand.length + ')';
+        me.hand.forEach(function(cardId) {
+          var tile = document.createElement('button');
+          var isSelected = state.selectedCardId === cardId;
+          tile.className = 'w-10 h-14 bg-tileBg border-2 border-tileBorder rounded-xl flex items-center justify-center font-black text-slate-900 text-xl font-rounded tile-shadow transition-all ' + (isSelected ? 'tile-selected' : '');
+          tile.textContent = charOf(cardId);
+          tile.onclick = function() {
+            state.selectedCardId = isSelected ? null : cardId;
+            renderUI();
+          };
+          els.handRow.appendChild(tile);
+        });
+      } else {
+        els.handCnt.textContent = '(0)';
+        els.handRow.innerHTML = '<span class="text-xs text-slate-600 italic">対局が始まると手札が表示されます</span>';
+      }
+
+      // Action Box
+      if (r && r.status === 'playing' && r.turnToken === state.token) {
+        els.actBox.style.display = 'flex';
+        els.actTitle.textContent = 'あなたの手番です！';
+        els.dahaiBtn.style.display = 'inline-flex';
+        els.agariBtn.style.display = 'inline-flex';
+      } else {
+        els.actBox.style.display = 'none';
+      }
+
+      // Claim Approval Box
+      if (r && r.claim) {
+        els.claimApprovalBox.style.display = 'flex';
+        els.claimDetail.textContent = r.claim.claimerName + ' が「' + (r.claim.words.join('、') || '完成') + '」で上がりを宣言しました！';
+      } else {
+        els.claimApprovalBox.style.display = 'none';
+      }
+
+      // Logs List
+      els.logList.innerHTML = '';
+      if (r && r.logs && r.logs.length > 0) {
+        r.logs.slice().reverse().forEach(function(l) {
+          var item = document.createElement('div');
+          item.className = 'text-xs text-slate-300 py-1 border-b border-slate-800/60 flex items-center gap-2';
+          item.innerHTML = '<span class="text-slate-500 font-mono text-[10px]">' + escapeHtml(l.at) + '</span> <span>' + escapeHtml(l.text) + '</span>';
+          els.logList.appendChild(item);
+        });
+      } else {
+        els.logList.innerHTML = '<div class="text-xs text-slate-500 text-center py-4">ログはまだありません</div>';
+      }
+
+      // Winner Modal Display
+      if (r && r.status === 'ended' && r.resultText) {
+        els.modalTitle.textContent = '🏆 対局結果';
+        els.modalBody.textContent = r.resultText;
+        els.modalOv.classList.remove('hidden');
+      }
+    }
+
+    function bindEventListeners() {
+      els.playerName.addEventListener('input', function() {
+        state.playerName = els.playerName.value.trim() || '対局者';
+        localStorage.setItem(KEYS.name, state.playerName);
+      });
+
+      els.createBtn.addEventListener('click', createRoom);
+      els.joinBtn.addEventListener('click', function() {
+        var code = els.roomInput.value.trim().toUpperCase();
+        if (code) joinRoom(code, true);
+        else showToast('部屋コードを入力してください');
+      });
+
+      els.copyBtn.addEventListener('click', copyRoomCode);
+      els.startBtn.addEventListener('click', function() { dispatchAction({ type: 'start' }); });
+      els.resetBtn.addEventListener('click', function() { dispatchAction({ type: 'reset' }); });
+
+      els.dahaiBtn.addEventListener('click', handleDahai);
+      els.agariBtn.addEventListener('click', handleAgariClaim);
+      els.approveBtn.addEventListener('click', function() { dispatchAction({ type: 'approve_agari' }); });
+      els.denyBtn.addEventListener('click', function() { dispatchAction({ type: 'deny_agari' }); });
+
+      // Tab Controls
+      els.tabBLog.addEventListener('click', function() { switchTab('log'); });
+      els.tabBSlides.addEventListener('click', function() { switchTab('slides'); });
+
+      // Slide Controls
+      if (els.prevSlideBtn) els.prevSlideBtn.addEventListener('click', function() { moveSlide(-1); });
+      if (els.nextSlideBtn) els.nextSlideBtn.addEventListener('click', function() { moveSlide(1); });
+
+      els.modalClose.addEventListener('click', function() { els.modalOv.classList.add('hidden'); });
+    }
+
+    function moveSlide(dir) {
+      var next = currentSlide + dir;
+      if (next < 0) next = 0;
+      if (next >= totalSlides) next = totalSlides - 1;
+      currentSlide = next;
+
+      for (var i = 0; i < totalSlides; i++) {
+        var s = $('slide_' + i);
+        if (s) {
+          if (i === currentSlide) s.classList.remove('hidden');
+          else s.classList.add('hidden');
+        }
+      }
+
+      if (els.slideIndicator) els.slideIndicator.textContent = (currentSlide + 1) + ' / ' + totalSlides;
+      if (els.prevSlideBtn) els.prevSlideBtn.disabled = (currentSlide === 0);
+      if (els.nextSlideBtn) els.nextSlideBtn.disabled = (currentSlide === totalSlides - 1);
+    }
+
+    function switchTab(name) {
+      var tabs = ['log', 'slides'];
+      tabs.forEach(function(t) {
+        var btn = els['tabB' + capitalize(t)];
+        var pane = els['pane' + capitalize(t)];
+        if (!btn || !pane) return;
+        if (t === name) {
+          btn.className = "px-4 py-2 rounded-t-xl text-xs md:text-sm font-bold bg-amber-500/20 text-amber-300 border-t border-x border-amber-500/30 transition";
+          pane.classList.remove('hidden');
+        } else {
+          btn.className = "px-4 py-2 rounded-t-xl text-xs md:text-sm font-bold text-slate-400 hover:text-white transition";
+          pane.classList.add('hidden');
+        }
+      });
+    }
+
+    function showToast(msg) {
+      els.toastMsg.textContent = msg;
+      els.toast.classList.remove('opacity-0', 'translate-y-4', 'pointer-events-none');
+      els.toast.classList.add('opacity-100', 'translate-y-0');
+      clearTimeout(showToast._timer);
+      showToast._timer = setTimeout(function() {
+        els.toast.classList.remove('opacity-100', 'translate-y-0');
+        els.toast.classList.add('opacity-0', 'translate-y-4', 'pointer-events-none');
+      }, 3000);
+    }
+
+    function formatTime() {
+      var d = new Date();
+      return ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2) + ':' + ('0' + d.getSeconds()).slice(-2);
+    }
+
+    function escapeHtml(str) {
+      var div = document.createElement('div');
+      div.textContent = str || '';
+      return div.innerHTML;
+    }
+
+    function capitalize(str) {
+      return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+  </script>
 </body>
 </html>
+```
