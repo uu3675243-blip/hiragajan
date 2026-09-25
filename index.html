@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="color-scheme" content="dark">
-  <title>ひらがじゃん オンライン - カード版＆牌ばーじょん</title>
+  <title>ひらがじゃん オンライン - カード版＆パイ版</title>
   
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -76,7 +76,7 @@
           <h1 class="text-xl font-black bg-gradient-to-r from-amber-300 via-amber-400 to-amber-500 bg-clip-text text-transparent">
             ひらがじゃん <span class="text-xs px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">ONLINE</span>
           </h1>
-          <p class="text-xs text-slate-400">カード版 & 牌ばーじょん 統合マルチプレイヤー</p>
+          <p class="text-xs text-slate-400">カード版 & パイ版 統合マルチプレイヤー</p>
         </div>
       </div>
 
@@ -84,7 +84,7 @@
       <div class="flex flex-wrap items-center gap-2 text-sm">
         <select id="modeSelect" class="bg-slate-800 border border-slate-700 rounded-lg px-2 py-1.5 text-amber-300 font-bold focus:outline-none focus:border-amber-400 text-xs md:text-sm">
           <option value="card">🃏 カード版 (8枚/4山)</option>
-          <option value="tile" selected>🀄 牌ばーじょん (14枚/鳴き有)</option>
+          <option value="tile" selected>🀄 パイ版 (14枚/鳴き有)</option>
         </select>
         <input id="playerName" type="text" maxlength="12" placeholder="プレイヤー名" class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 w-28 md:w-36 text-white focus:outline-none focus:border-amber-400 text-xs md:text-sm">
         <input id="roomInput" type="text" maxlength="6" placeholder="部屋コード" class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 w-24 text-white uppercase font-mono text-center focus:outline-none focus:border-amber-400 text-xs md:text-sm">
@@ -105,13 +105,14 @@
     <!-- Game Status Bar -->
     <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3 flex flex-wrap items-center justify-between gap-3 text-xs md:text-sm">
       <div class="flex flex-wrap items-center gap-2">
-        <span id="pillMode" class="px-3 py-1 rounded-full bg-amber-500 text-slate-950 font-extrabold">モード: 牌ばーじょん</span>
+        <span id="pillMode" class="px-3 py-1 rounded-full bg-amber-500 text-slate-950 font-extrabold">モード: パイ版</span>
         <span id="pillRoom" class="px-3 py-1 rounded-full bg-slate-800 text-slate-300 border border-slate-700 font-mono">部屋: -</span>
         <span id="pillSeat" class="px-3 py-1 rounded-full bg-slate-800 text-slate-300 border border-slate-700">席: -</span>
         <span id="pillTurn" class="px-3 py-1 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/30 font-bold">手番: -</span>
         <span id="pillDeck" class="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">山札: 0</span>
       </div>
       <div class="flex items-center gap-2">
+        <label id="chiitoiWrap" class="text-xs text-slate-300 flex items-center gap-1.5" style="display:none"><input type="checkbox" id="chiitoiSet" class="accent-amber-500">七対子ルール</label>
         <button id="copyBtn" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1 rounded-lg border border-slate-700 transition disabled:opacity-40" disabled>
           <i class="fa-regular fa-copy mr-1"></i>部屋コードコピー
         </button>
@@ -177,6 +178,8 @@
           <button id="kanBtn" class="bg-purple-600 hover:bg-purple-500 text-white font-black px-4 py-2 rounded-xl transition shadow-lg flex items-center gap-1.5 text-sm" style="display:none;">
             <i class="fa-solid fa-clone"></i> カン (4文字語)
           </button>
+          <input id="wordInput" type="text" maxlength="60" placeholder="例: ねこ いす とり…" class="bg-slate-800 border border-amber-500/40 rounded-lg px-3 py-2 text-white text-xs md:text-sm w-44 md:w-56 focus:outline-none focus:border-amber-400" style="display:none">
+          <label id="chiitoiClaimWrap" class="text-[10px] text-amber-200 flex items-center gap-1" style="display:none"><input type="checkbox" id="chiitoiClaim" class="accent-amber-500">七対子</label>
           <button id="agariBtn" class="bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 font-black px-5 py-2 rounded-xl transition shadow-xl hover:scale-105 flex items-center gap-1.5 text-sm" style="display:none;">
             <i class="fa-solid fa-crown"></i> ツモ上がり / ロン
           </button>
@@ -231,7 +234,13 @@
           <i class="fa-solid fa-list-ul mr-1.5"></i>対局ログ
         </button>
         <button id="tabBSlides" class="px-4 py-2 rounded-t-xl text-xs md:text-sm font-bold text-slate-400 hover:text-white transition">
-          <i class="fa-solid fa-chalkboard-user mr-1.5"></i>操作手順＆上がり判定ガイド
+          <i class="fa-solid fa-chalkboard-user mr-1.5"></i>操作手順&上がり判定ガイド
+        </button>
+        <button id="tabBCard" title="カード版 — ルール・操作方法・勝利条件" class="px-4 py-2 rounded-t-xl text-xs md:text-sm font-bold text-slate-400 hover:text-white transition">
+          <i class="fa-solid fa-layer-group mr-1.5"></i>カード版
+        </button>
+        <button id="tabBTile" title="パイ版 — ルール・操作方法・勝利条件" class="px-4 py-2 rounded-t-xl text-xs md:text-sm font-bold text-slate-400 hover:text-white transition">
+          <i class="fa-solid fa-cubes mr-1.5"></i>パイ版
         </button>
       </div>
 
@@ -278,12 +287,12 @@
                 <ul class="list-disc list-inside space-y-1 text-slate-300">
                   <li>手札: <b>8枚</b>（2文字語×1 ＋ 3文字語×2）</li>
                   <li>山札: <b>4つの山</b>から自由に選択して引く</li>
-                  <li>鳴き（ポン/カン）なし・手札オープン形式</li>
+                  <li>鳴き（ポン/カン/ロン）なし・手札オープン形式</li>
                 </ul>
               </div>
               <div class="bg-slate-950 p-3.5 rounded-xl border border-amber-500/20">
                 <div class="font-bold text-emerald-400 mb-1 flex items-center gap-1.5">
-                  <i class="fa-solid fa-cubes"></i> 🀄 牌ばーじょん（本格派）
+                  <i class="fa-solid fa-cubes"></i> 🀄 パイ版（本格派）
                 </div>
                 <ul class="list-disc list-inside space-y-1 text-slate-300">
                   <li>手牌: <b>14枚</b>（2文字語×1 ＋ 3文字語×4）</li>
@@ -306,20 +315,24 @@
                 <p class="text-slate-300 mt-1">名前と任意の6桁部屋コードを入力し「作成」または「参加」を押します。</p>
               </div>
               <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
-                <span class="text-amber-400 font-bold">② 山札から牌を引く (ツモ)</span>
-                <p class="text-slate-300 mt-1">自分の手番になったら、山札（カード版は4つの山）をタップして牌を1枚引きます。</p>
+                <span class="text-amber-400 font-bold">② モードを選ぶ</span>
+                <p class="text-slate-300 mt-1">ヘッダーのセレクトで「カード版」か「パイ版」を選択（待機中なら全員の部屋に同期されます）。</p>
               </div>
               <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
-                <span class="text-amber-400 font-bold">③ 不要な牌を捨てる (打牌)</span>
-                <p class="text-slate-300 mt-1">手牌から不要な牌をタップして選択状態にし、「選択した牌を捨てる」を押します。</p>
+                <span class="text-amber-400 font-bold">③ 山札から牌を引く (ツモ)</span>
+                <p class="text-slate-300 mt-1">自分の手番になったら、まず山札（カード版は4つの山）をタップして1枚引きます。<b>引く前には捨てられません</b>。</p>
               </div>
               <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
-                <span class="text-amber-400 font-bold">④ 鳴き・カン（牌ばーじょん）</span>
-                <p class="text-slate-300 mt-1">捨て牌で単語が作れる場合は「ポン」、手牌で4文字語ができると「カン」が使えます。</p>
+                <span class="text-amber-400 font-bold">④ 不要な牌を捨てる (打牌)</span>
+                <p class="text-slate-300 mt-1">手牌から牌をタップで選択し、「選択した牌を捨てる」を押します。捨てると手番終了です。</p>
+              </div>
+              <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+                <span class="text-amber-400 font-bold">⑤ 鳴き・カン（パイ版のみ）</span>
+                <p class="text-slate-300 mt-1">他人の捨て牌で3文字語を作れるなら「ポン」（手札2枚選択）。自分の手番で4文字以上の語が作れるなら「カン」（4枚以上選択、補充＝文字数−3）。</p>
               </div>
               <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 md:col-span-2">
-                <span class="text-emerald-400 font-bold">⑤ 上がり宣言 (ツモ/ロン) & 全員承認</span>
-                <p class="text-slate-300 mt-1">手牌がすべて指定の単語セットで完成したら「ツモ上がり / ロン」を押します。対局メンバー全員が承認ボタンを押すことで勝利が確定します！</p>
+                <span class="text-emerald-400 font-bold">⑥ 上がり宣言 (ツモ/ロン) & 全員承認</span>
+                <p class="text-slate-300 mt-1">完成した単語を<b>空白区切りで入力欄に入力</b>してから「ツモ上がり / ロン」を押します（相手の捨て牌直後ならロン）。宣言は全員の承認で確定します。</p>
               </div>
             </div>
           </div>
@@ -336,8 +349,17 @@
                 <p class="leading-relaxed">麻雀の「雀頭1組 ＋ メンツ」と同様に、実在する日本語単語で手牌を隙間なく構成します。</p>
                 <div class="mt-2 bg-slate-900 p-2.5 rounded-lg border border-slate-800 font-mono text-[11px] text-amber-200">
                   ・カード版 (8枚): 【2文字語 × 1】 ＋ 【3文字語 × 2】<br>
-                  ・牌ばーじょん (14枚): 【2文字語 × 1】 ＋ 【3文字語 × 4】
+                  ・パイ版 (14枚): 【2文字語 × 1】 ＋ 【3文字語 × 4】
                 </div>
+              </div>
+              <div>
+                <h4 class="text-amber-400 font-bold mb-1">🚦 判定ゲート（宣言時に自動チェック）</h4>
+                <ul class="list-disc list-inside space-y-1">
+                  <li><b>枚数ゲート:</b> カード版は8枚・牌版は14枚でのみ宣言可（ロン時は捨て牌を含めてカウント）。</li>
+                  <li><b>構成ゲート:</b> 入力した単語の文字数構成が【2＋3＋3】（カード版）／【2＋3×4】（牌版）／七対子【2×7】と一致すること。</li>
+                  <li><b>文字一致ゲート:</b> 宣言した単語の文字集合と手牌（＋ロン牌）が完全に一致すること。</li>
+                  <li><b>ロン条件:</b> 相手の捨て牌直後のみ。自分が捨てた文字でのロン不可・鳴き経験者はロン不可（ツモのみ）。</li>
+                </ul>
               </div>
               <div>
                 <h4 class="text-amber-400 font-bold mb-1">🔤 文字・音の判定ルール</h4>
@@ -347,12 +369,430 @@
                 </ul>
               </div>
               <div>
-                <h4 class="text-amber-400 font-bold mb-1">🤝 全員承認によるアトミック検証</h4>
-                <p class="leading-relaxed">上がり宣言時、手牌で作った単語が全員の画面に表示されます。プレイヤー全員が「承認する」を押すと、Firebase上でアトミックに勝利判定が処理されます。</p>
+                <h4 class="text-amber-400 font-bold mb-1">🤝 全員承認による最終判定</h4>
+                <p class="leading-relaxed">単語の実在判定は自動辞書ではなく<b>全員の承認</b>で行います。上がり宣言時、入力された単語が全員の画面に表示され、プレイヤー全員が「承認する」を押すとFirebase上でアトミックに勝利・点数処理が確定します（牌版: ロン +3/−3、ツモ +3/各−1）。</p>
               </div>
             </div>
           </div>
 
+        </div>
+      </div>
+
+      <!-- Tab 3: カード版 ルール&操作 -->
+      <div id="paneCard" class="bg-slate-900 border-x border-b border-slate-800 rounded-b-2xl p-4 md:p-6 hidden">
+        <div class="flex flex-col gap-4 text-xs leading-relaxed">
+          <h3 class="text-base font-bold text-amber-300 flex items-center gap-2">
+            <i class="fa-solid fa-layer-group"></i> 🃏 カード版 — ルールブック
+          </h3>
+          <p class="text-slate-300">ひらがなのみで言葉を作る「言葉づくり麻雀」。麻雀の役や点数計算は不要で、手札は<b>全員オープン</b>です。公式案内の基本形に、オンライン対戦用の承認・操作ルールを加えています。</p>
+
+          <!-- ルール・操作方法・勝利条件の要約 -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div class="bg-slate-950 p-3.5 rounded-xl border border-amber-500/20">
+              <div class="font-bold text-amber-400 mb-1 text-sm"><i class="fa-solid fa-book mr-1"></i>ルール</div>
+              <ul class="list-disc list-inside space-y-1 text-slate-300">
+                <li>ひらがなの手札を並べ替えて<b>実在する単語</b>を作る</li>
+                <li>手札は<b>全員オープン</b>（隠さない）</li>
+                <li>役・点数計算はなし。<b>鳴き（ポン/カン/ロン）もなし</b></li>
+              </ul>
+            </div>
+            <div class="bg-slate-950 p-3.5 rounded-xl border border-emerald-500/20">
+              <div class="font-bold text-emerald-400 mb-1 text-sm"><i class="fa-solid fa-hand-pointer mr-1"></i>操作方法</div>
+              <ol class="list-decimal list-inside space-y-1 text-slate-300">
+                <li>手番で<b>山（4つのうちどれか）</b>をタップして1枚引く</li>
+                <li>揃わなければ牌を選び<b>「選択した牌を捨てる」</b></li>
+                <li>揃ったら単語を<b>空白区切り</b>で入力し<b>「ツモ上がり」</b></li>
+              </ol>
+            </div>
+            <div class="bg-slate-950 p-3.5 rounded-xl border border-amber-500/20">
+              <div class="font-bold text-amber-400 mb-1 text-sm"><i class="fa-solid fa-trophy mr-1"></i>勝利条件</div>
+              <ul class="list-disc list-inside space-y-1 text-slate-300">
+                <li>手札7枚＋引いた1枚＝<b>8枚</b>で<b>【2＋3＋3】</b>の3単語を完成</li>
+                <li>最初に揃えた人の勝ち（1回勝負・点数なし）</li>
+                <li>上がりは<b>ツモのみ</b>。宣言は全員承認で確定</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="bg-slate-950 p-3 rounded-xl border border-amber-500/30 text-slate-300">
+            <div class="font-bold text-amber-300 mb-1"><i class="fa-solid fa-book-open mr-1"></i>公式情報で確認できる基本ルール</div>
+            <ul class="list-disc list-inside space-y-1">
+              <li>プレイ人数は<b>2人以上</b>（推奨は2〜4人）。</li>
+              <li>7枚を配り、自分の番に1枚引いて、合計8枚にします。</li>
+              <li><b>2文字・3文字・3文字</b>の3単語が揃えば勝ちです。</li>
+              <li>手札はオープンで遊びます。固有名詞・造語・辞書の使用など、言葉の認定基準は開始前に全員で決めます。</li>
+            </ul>
+            <a class="inline-block mt-2 text-amber-300 hover:text-amber-200 underline" href="https://hiragajong.com/products/hiraganamajon_hiragajancard" target="_blank" rel="noopener noreferrer">公式カード版商品ページを開く</a>
+          </div>
+
+          <!-- 基本情報カード -->
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+            <div class="bg-slate-950 p-2.5 rounded-xl border border-amber-500/20">
+              <div class="text-amber-400 font-bold"><i class="fa-solid fa-user-group mr-1"></i>人数</div>
+              <div class="text-slate-300">2〜4人（公式）</div>
+            </div>
+            <div class="bg-slate-950 p-2.5 rounded-xl border border-amber-500/20">
+              <div class="text-amber-400 font-bold"><i class="fa-solid fa-clock mr-1"></i>時間</div>
+              <div class="text-slate-300">約5分〜（ロング戦も可）</div>
+            </div>
+            <div class="bg-slate-950 p-2.5 rounded-xl border border-amber-500/20">
+              <div class="text-amber-400 font-bold"><i class="fa-solid fa-children mr-1"></i>対象</div>
+              <div class="text-slate-300">7歳以上 (読めるなら4歳から)</div>
+            </div>
+            <div class="bg-slate-950 p-2.5 rounded-xl border border-amber-500/20">
+              <div class="text-amber-400 font-bold"><i class="fa-solid fa-trophy mr-1"></i>勝敗</div>
+              <div class="text-slate-300">1回勝負 (点数なし)</div>
+            </div>
+          </div>
+
+          <!-- 1. セット内容 -->
+          <section>
+            <h4 class="text-amber-400 font-bold mb-1.5"><i class="fa-solid fa-box mr-1"></i>① セット内容</h4>
+            <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+              <p class="text-slate-300 mb-1">ひらがなカード <b>計120枚</b>:</p>
+              <ul class="list-disc list-inside space-y-1 text-slate-300 ml-1">
+                <li>「を」を除く<b>清音 全45音</b>: 各<b>2枚</b>（合計90枚）</li>
+                <li><b>濁音・半濁音 全25音</b>: 各<b>1枚</b>（合計25枚）</li>
+                <li><b>拗音・長音 全5音</b>（「っ」「ゃ」「ゅ」「ょ」「ー」）: 各<b>1枚</b></li>
+              </ul>
+            </div>
+          </section>
+
+          <!-- 2. セットアップ -->
+          <section>
+            <h4 class="text-amber-400 font-bold mb-1.5"><i class="fa-solid fa-dice mr-1"></i>② セットアップ</h4>
+            <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 text-slate-300">
+              <ol class="list-decimal list-inside space-y-1">
+                <li>カードをよく混ぜる</li>
+                <li>各プレイヤーに<b>7枚ずつ</b>配る</li>
+                <li>残りは中央に<b>4つの山</b>に分けて置く（どの山から引いてもよい）</li>
+                <li>配られたカードは<b>全員に見えるよう表向き</b>に並べる</li>
+                <li>じゃんけん等でスタートプレイヤーを決める</li>
+              </ol>
+            </div>
+          </section>
+
+          <!-- 3. ルール + 操作手順 -->
+          <section class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div class="bg-slate-950 p-3.5 rounded-xl border border-amber-500/20">
+              <div class="font-bold text-amber-400 mb-1 text-sm"><i class="fa-solid fa-book mr-1"></i>ルール</div>
+              <ul class="list-disc list-inside space-y-1 text-slate-300">
+                <li>手番で山札から1枚引き、<b>手札7枚+引いた1枚=8枚</b>で判定</li>
+                <li>上がり形: <b>【2文字語×1 ＋ 3文字語×2】</b> = 3つの単語</li>
+                <li>並べ替えはいつでも自由</li>
+                <li>【2＋3＋3】が完成しない場合、手札から<b>1枚を捨てる</b></li>
+                <li><b>鳴き（ポン/カン/ロン）なし</b></li>
+                <li><b>リーチ・ツモ・チー等の発声なし</b></li>
+                <li>単語の認定基準は開始前に合意（辞書掲載語のみ・固有名詞可など）。オンラインでは全員承認で確定</li>
+              </ul>
+            </div>
+            <div class="bg-slate-950 p-3.5 rounded-xl border border-amber-500/20">
+              <div class="font-bold text-emerald-400 mb-1 text-sm"><i class="fa-solid fa-hand-pointer mr-1"></i>操作手順</div>
+              <ol class="list-decimal list-inside space-y-1 text-slate-300">
+                <li>ヘッダーで<i class="fa-solid fa-layer-group text-amber-400"></i>「カード版」を選び、部屋を作成/参加</li>
+                <li>「対局開始」を押すと7枚ずつ配牌・時計回りに手番開始</li>
+                <li>手番:<b>山(1〜4)をタップ</b>して1枚引く（ツモ）</li>
+                <li>完成できない時は牌をタップ選択→<b>「選択した牌を捨てる」</b></li>
+                <li>完成したら入力欄に<b>「ねこ いす とり」</b>のように<b>空白区切り</b>で入力</li>
+                <li><b>「ツモ上がり」</b>タップで宣言 → 全員承認で勝ち確定</li>
+              </ol>
+            </div>
+          </section>
+
+          <!-- 4. 上がり判定の厳格ルール -->
+          <section>
+            <h4 class="text-amber-400 font-bold mb-1.5"><i class="fa-solid fa-circle-check mr-1"></i>④ 上がり判定の厳格ルール</h4>
+            <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1 text-slate-300">
+              <p>宣言が通るには次の<b>4つのゲート</b>をすべて満たす必要があります（自動チェック）:</p>
+              <ul class="list-disc list-inside space-y-0.5 ml-1">
+                <li><b class="text-amber-300">枚数ゲート:</b> 手札 ＋ 引いた1枚 ＝ <b>ちょうど8枚</b>（カード版で牌版14枚では宣言不可）</li>
+                <li><b class="text-amber-300">構成ゲート:</b> 入力した単語が【2文字×1】と【3文字×2】で構成</li>
+                <li><b class="text-amber-300">文字一致ゲート:</b> 入力した単語を結合した文字集合と手牌の文字集合が<b>完全一致</b></li>
+                <li><b class="text-amber-300">実在ゲート:</b> 単語が実在の言葉。自動判定はないため<b>他プレイヤーが全員承認</b>して初めて成立</li>
+              </ul>
+            </div>
+          </section>
+
+          <!-- 5. 文字の扱い -->
+          <section>
+            <h4 class="text-amber-400 font-bold mb-1.5"><i class="fa-solid fa-font mr-1"></i>⑤ 文字の扱い</h4>
+            <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 text-slate-300 space-y-1">
+              <p>清音・<b>濁音・半濁音</b>はそれぞれ別物として数えます。「が」と「か」、「ぱ」と「は」は別々の牌扱い。</p>
+              <p>拗音（ゃ ゅ ょ）、促音（っ）、長音（ー）もそれぞれ<b>1文字</b>としてカウントされます（例: 「きょう」は4文字扱い）。</p>
+            </div>
+          </section>
+
+          <!-- 6. 戦略メモ -->
+          <section>
+            <h4 class="text-amber-400 font-bold mb-1.5"><i class="fa-solid fa-lightbulb mr-1"></i>⑥ 戦略メモ</h4>
+            <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 text-slate-300 space-y-1">
+              <ul class="list-disc list-inside space-y-0.5">
+                <li><b>3文字語を優先</b>で作る（2文字より組み合わせが多いため）</li>
+                <li>3文字語彙・2→3文字コンボを頭の中にストックしておく</li>
+                <li><b>濁音・半濁音は作りにくい</b>（麻雀の字牌ポジション）→ 先に切る</li>
+                <li>狙った牌でなくても既存の並び替えで完成することがある</li>
+              </ul>
+            </div>
+          </section>
+
+          <!-- 7. ハウスルール・難易度 -->
+          <section>
+            <h4 class="text-amber-400 font-bold mb-1.5"><i class="fa-solid fa-sliders mr-1"></i>⑦ 難易度調整（推奨）</h4>
+            <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 text-slate-300 space-y-1">
+              <ul class="list-disc list-inside space-y-0.5">
+                <li>小さな子: 揃える単語数を減らす（例: <b>2語で上がり</b>）</li>
+                <li>大人がチームを組んでサポートする</li>
+                <li>単語認定範囲を事前に取り決める（<b>固有名詞・略語の可否</b>）</li>
+                <li>変則ルール: 振り込み精算風、しばりルール（動物/食べ物/アニメ等）</li>
+                <li>長考防止に制限時間（例: <b>10秒</b>）</li>
+              </ul>
+            </div>
+          </section>
+
+          <!-- 注釈 -->
+          <div class="bg-slate-950 p-3 rounded-xl border border-amber-500/30 text-slate-300">
+            <i class="fa-solid fa-circle-info text-amber-400 mr-1"></i>カード版ではポン/カン/ロン/七対子の各ボタンは<b>表示されません</b>。上がりは<b>ツモのみ</b>。スコアの増減もありません。
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 4: パイ版 ルール&操作 -->
+      <div id="paneTile" class="bg-slate-900 border-x border-b border-slate-800 rounded-b-2xl p-4 md:p-6 hidden">
+        <div class="flex flex-col gap-4 text-xs leading-relaxed">
+          <h3 class="text-base font-bold text-emerald-300 flex items-center gap-2">
+            <i class="fa-solid fa-cubes"></i> 🀄 パイ版 — ルールブック
+          </h3>
+          <p class="text-slate-300">カード版を牌にした本格バージョン。手牌を隠して遊べるため読み合いが生まれ、公式案内ではカード版にない<b>ポン・カン・ロン</b>を追加しています。以下は公式に確認できる基本ルールと、このアプリで採用する拡張ルールを分けて表示しています。</p>
+
+          <!-- ルール・操作方法・勝利条件の要約 -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div class="bg-slate-950 p-3.5 rounded-xl border border-emerald-500/20">
+              <div class="font-bold text-emerald-400 mb-1 text-sm"><i class="fa-solid fa-book mr-1"></i>ルール</div>
+              <ul class="list-disc list-inside space-y-1 text-slate-300">
+                <li>手牌を組み合わせて<b>実在する単語</b>を作る</li>
+                <li>手牌は<b>隠せる</b>（読み合いが生まれる）</li>
+                <li>役・ドラなし。<b>ポン・カン・ロン</b>あり（チーはなし）</li>
+              </ul>
+            </div>
+            <div class="bg-slate-950 p-3.5 rounded-xl border border-emerald-500/20">
+              <div class="font-bold text-emerald-400 mb-1 text-sm"><i class="fa-solid fa-hand-pointer mr-1"></i>操作方法</div>
+              <ol class="list-decimal list-inside space-y-1 text-slate-300">
+                <li>手番で<b>山をタップ</b>して1枚引く</li>
+                <li>不要牌を選び<b>「選択した牌を捨てる」</b></li>
+                <li>他人の捨て牌で3文字語が作れるなら手札2枚選択→<b>「ポン」</b></li>
+                <li>4文字以上の語なら<b>「カン」</b>（文字数−3枚を補充）</li>
+                <li>揃ったら単語を<b>空白区切り</b>で入力し<b>「ツモ上がり / ロン」</b></li>
+              </ol>
+            </div>
+            <div class="bg-slate-950 p-3.5 rounded-xl border border-emerald-500/20">
+              <div class="font-bold text-emerald-400 mb-1 text-sm"><i class="fa-solid fa-trophy mr-1"></i>勝利条件</div>
+              <ul class="list-disc list-inside space-y-1 text-slate-300">
+                <li>手牌13個＋引いた1個＝<b>14個</b>で<b>【2＋3×4】</b>の5単語を完成</li>
+                <li>得点: <b>ロン +3／振込 −3</b>、<b>ツモ +3／他 各−1</b></li>
+                <li>最初に揃えた人の勝ち。複数回の合計点で勝敗を決める</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="bg-slate-950 p-3 rounded-xl border border-emerald-500/30 text-slate-300">
+            <div class="font-bold text-emerald-300 mb-1"><i class="fa-solid fa-book-open mr-1"></i>公式情報で確認できる基本ルール</div>
+            <ul class="list-disc list-inside space-y-1">
+              <li>手牌は<b>14個</b>で、<b>2文字語×1 ＋ 3文字語×4</b>の5単語を目指します。</li>
+              <li>カード版と違い、手牌を隠して遊べるため、相手の狙いを読む駆け引きがあります。</li>
+              <li>カード版にはない<b>ポン・カン・ロン</b>を使えます。</li>
+              <li>初回は基本ルールだけで遊び、慣れてからポン・ロンを追加してもよいと公式FAQで案内されています。</li>
+            </ul>
+            <a class="inline-block mt-2 text-emerald-300 hover:text-emerald-200 underline" href="https://hiragajong.com/products/haiban" target="_blank" rel="noopener noreferrer">公式パイ版商品ページを開く</a>
+          </div>
+
+          <!-- 基本情報カード -->
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+            <div class="bg-slate-950 p-2.5 rounded-xl border border-emerald-500/20">
+              <div class="text-emerald-400 font-bold"><i class="fa-solid fa-user-group mr-1"></i>人数</div>
+              <div class="text-slate-300">2〜4人</div>
+            </div>
+            <div class="bg-slate-950 p-2.5 rounded-xl border border-emerald-500/20">
+              <div class="text-emerald-400 font-bold"><i class="fa-solid fa-clock mr-1"></i>時間</div>
+              <div class="text-slate-300">約15〜60分</div>
+            </div>
+            <div class="bg-slate-950 p-2.5 rounded-xl border border-emerald-500/20">
+              <div class="text-emerald-400 font-bold"><i class="fa-solid fa-children mr-1"></i>対象</div>
+              <div class="text-slate-300">7歳以上</div>
+            </div>
+            <div class="bg-slate-950 p-2.5 rounded-xl border border-emerald-500/20">
+              <div class="text-emerald-400 font-bold"><i class="fa-solid fa-trophy mr-1"></i>勝敗</div>
+              <div class="text-slate-300">複数回・合計点</div>
+            </div>
+          </div>
+
+          <!-- 1. セット内容 -->
+          <section>
+            <h4 class="text-emerald-400 font-bold mb-1.5"><i class="fa-solid fa-box mr-1"></i>① セット内容</h4>
+            <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+              <p class="text-slate-300 mb-1">ひらがな牌 <b>計120個</b> ＋ 説明書:</p>
+              <ul class="list-disc list-inside space-y-1 text-slate-300 ml-1">
+                <li>「を」を除く<b>清音 全45音</b>: 各<b>2個</b>（合計90個）</li>
+                <li><b>濁点・半濁点・拗音・長音</b> 全30音: 各<b>1個</b>（合計30個）</li>
+                <li>牌サイズ: 約<b>24×17×11mm</b>（通常の麻雀牌よりひと回り小さい）</li>
+              </ul>
+            </div>
+          </section>
+
+          <!-- 2. セットアップ -->
+          <section>
+            <h4 class="text-emerald-400 font-bold mb-1.5"><i class="fa-solid fa-dice mr-1"></i>② セットアップ</h4>
+            <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 text-slate-300">
+              <ol class="list-decimal list-inside space-y-1">
+                <li>牌をよく混ぜ、<b>各プレイヤーに13枚ずつ</b>配る</li>
+                <li>残りは中央にまとめて置く（麻雀風に山を作ってもよい）</li>
+                <li>配られた牌を<b>立てて見やすく</b>並べる</li>
+                <li>単語を作りながら並べ替え可</li>
+                <li>中央の山は好きな場所から取れる</li>
+                <li>スタートプレイヤーを決める</li>
+              </ol>
+            </div>
+          </section>
+
+          <!-- 3. ルール + 操作手順 -->
+          <section class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div class="bg-slate-950 p-3.5 rounded-xl border border-emerald-500/20">
+              <div class="font-bold text-emerald-400 mb-1 text-sm"><i class="fa-solid fa-book mr-1"></i>ルール</div>
+              <ul class="list-disc list-inside space-y-1 text-slate-300">
+                <li>手番で山から牌を1個取り、<b>手牌13枚+取った1個=14枚</b>で判定</li>
+                <li>上がり形: <b>【2文字語×1 ＋ 3文字語×4】</b> = 5つの単語</li>
+                <li>単語の認定基準は開始前に合意（辞書掲載語のみ・固有名詞可など）</li>
+                <li>完成しない場合、<b>手牌から1枚を表向きに捨てる</b></li>
+                <li>先に5組を完成させた人が<b>アガリ</b></li>
+                <li>点数: <b>ロン +3/振り込み −3</b> ／ <b>ツモ +3/他全員 各−1</b></li>
+              </ul>
+            </div>
+            <div class="bg-slate-950 p-3.5 rounded-xl border border-emerald-500/20">
+              <div class="font-bold text-amber-400 mb-1 text-sm"><i class="fa-solid fa-hand-pointer mr-1"></i>操作手順</div>
+              <ol class="list-decimal list-inside space-y-1 text-slate-300">
+                <li>ヘッダーで<i class="fa-solid fa-cubes text-emerald-400"></i>「パイ版」を選び、部屋を作成/参加</li>
+                <li>「対局開始」を押すと13枚ずつ配牌・時計回りに手番開始</li>
+                <li>手番:<b>山をタップ</b>して1枚引く（ツモ）→ 手牌14枚</li>
+                <li>完成できるなら牌を選択→<b>「カン」</b>（または不要牌を<b>「選択した牌を捨てる」</b>）</li>
+                <li>他人の捨て牌直後に単語が作れるなら、手札2枚選択→<b>「ポン」</b>→ 1枚捨てる</li>
+                <li>作れたら入力欄に<b>「ねこ いす とり はな みず」のように空白区切り</b>で入力</li>
+                <li><b>「ツモ上がり / ロン」</b>タップ（捨て牌直後ならロン）→ 全員承認で勝ち&点数確定</li>
+              </ol>
+            </div>
+          </section>
+
+          <!-- 4. 鳴きルール -->
+          <section>
+            <h4 class="text-emerald-400 font-bold mb-1.5"><i class="fa-solid fa-bullhorn mr-1"></i>③ 鳴きルール（ポン / カン / ロン）</h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-slate-300">
+              <div class="bg-slate-950 p-3 rounded-xl border border-indigo-500/20">
+                <div class="font-bold text-indigo-300 mb-1"><i class="fa-solid fa-hand-back-fist mr-1"></i>ポン / ロン</div>
+                <ul class="list-disc list-inside space-y-0.5">
+                  <li>他プレイヤーの捨て牌で単語を作れる場合、「<b>ポン</b>」宣言で牌をもらえる</li>
+                  <li>上がりタイミングでのポンは「<b>ロン</b>」</li>
+                  <li>ポンは<b>捨てられた直後</b>にのみ宣言可能</li>
+                  <li>ポンで作った単語は手牌の右側に置き、<b>全員に見せる</b></li>
+                  <li>ポンしたら手牌を1枚捨て、左隣の手番になる</li>
+                  <li>ポンしたら<b>ロン不可（ツモ上がりのみ）</b></li>
+                  <li><b>自分が捨てた牌と同じ文字</b>をもらってのロンは不可</li>
+                </ul>
+              </div>
+              <div class="bg-slate-950 p-3 rounded-xl border border-purple-500/20">
+                <div class="font-bold text-purple-300 mb-1"><i class="fa-solid fa-crown mr-1"></i>カン</div>
+                <ul class="list-disc list-inside space-y-0.5">
+                  <li><b>4文字以上</b>の単語を作れたら「カン」できる（5文字以上でも可）</li>
+                  <li>できた単語は手牌の右側に置き全員に見せる</li>
+                  <li>カン後、<b>作った単語の文字数 − 3枚</b>を中央から補充</li>
+                  <li>カンしたら1枚捨て、左隣の手番になる</li>
+                </ul>
+                <div class="mt-2 bg-slate-900/70 p-2 rounded border border-rose-500/30 text-rose-200">
+                  <i class="fa-solid fa-ban mr-1"></i>数牌がないため「<b>チー</b>」はできない。1度でも鳴いたら以後は<b>ツモ上がりのみ</b>（麻雀と同じ）。
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- 5. 得点（点数計算） -->
+          <section>
+            <h4 class="text-emerald-400 font-bold mb-1.5"><i class="fa-solid fa-coins mr-1"></i>④ 得点（点数計算）</h4>
+            <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-slate-300">
+                <div>
+                  <div class="font-bold text-amber-300 mb-1">ロン</div>
+                  <ul class="list-disc list-inside space-y-0.5">
+                    <li>ロンした人: <b class="text-emerald-300">+3点</b></li>
+                    <li>振り込んだ人: <b class="text-rose-300">−3点</b></li>
+                  </ul>
+                </div>
+                <div>
+                  <div class="font-bold text-amber-300 mb-1">ツモ</div>
+                  <ul class="list-disc list-inside space-y-0.5">
+                    <li>ツモった人: <b class="text-emerald-300">+3点</b></li>
+                    <li>それ以外の全員: <b class="text-rose-300">各 −1点</b></li>
+                  </ul>
+                </div>
+              </div>
+              <p class="text-slate-400 mt-2">基本は上がれば3点。複数回プレイし合計点で勝敗決定。長考が出やすいためタイマー（例: 10秒〜）推奨。</p>
+            </div>
+          </section>
+
+          <!-- 6. 特殊役（任意ルール） -->
+          <section>
+            <h4 class="text-emerald-400 font-bold mb-1.5"><i class="fa-solid fa-star mr-1"></i>⑤ 特殊役（ローカルルール）</h4>
+            <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 text-slate-300 space-y-1">
+              <p><b class="text-amber-300">七対子:</b> 手牌のみで<b>2文字×7単語</b>を作れば上がり可能。<span class="text-rose-300">ポン・カンをしている場合は不可</span>。公式ルールではなく任意の追加役です。</p>
+              <p>役・ドラはなし（上がれば3点のシンプル設計）。</p>
+              <p class="text-slate-400">このアプリでは七対子を<b>待ち画面で明示的にON</b>にした場合にのみ採用されます。公式の基本ルールには含まれない、任意のローカルルールです。</p>
+            </div>
+          </section>
+
+          <!-- 7. ロン不可の厳格条件 -->
+          <section>
+            <h4 class="text-emerald-400 font-bold mb-1.5"><i class="fa-solid fa-shield-halved mr-1"></i>⑥ ロン不可の厳格条件</h4>
+            <div class="bg-slate-950 p-3 rounded-xl border border-rose-500/30 text-slate-300">
+              <p class="mb-1">ロン宣言が<b>拒否</b>されるケース（自動判定）:</p>
+              <ul class="list-disc list-inside space-y-0.5">
+                <li>捨て牌直後以外（次の手番者が既にツモしている）</li>
+                <li><b>自分が投げた文字</b>でのロン（同じ牌を再利用できない）</li>
+                <li><b>既に鳴き（ポン/カン）した人</b>によるロン（ツモのみ可）</li>
+              </ul>
+              <p class="mt-1 text-slate-400">加えて、ポンやカン後は<b>必ず1枚捨てる</b>まで手番終了できません（捨て牌でphase=drawへ遷移）。</p>
+            </div>
+          </section>
+
+          <!-- 8. 戦略メモ -->
+          <section>
+            <h4 class="text-emerald-400 font-bold mb-1.5"><i class="fa-solid fa-lightbulb mr-1"></i>⑦ 戦略メモ</h4>
+            <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 text-slate-300 space-y-1">
+              <ul class="list-disc list-inside space-y-0.5">
+                <li>使える文字（有効牌）は簡単に捨てない</li>
+                <li><b>4文字以上の単語でカン</b>して手牌を補充する発想</li>
+                <li>相手の捨て牌・手牌を見て待ちを構える</li>
+                <li>3文字語彙・2→3文字コンボをストック</li>
+                <li>濁音・半濁音は作りにくいため先に切る</li>
+              </ul>
+            </div>
+          </section>
+
+          <!-- 9. ハウスルール例 -->
+          <section>
+            <h4 class="text-emerald-400 font-bold mb-1.5"><i class="fa-solid fa-sliders mr-1"></i>⑧ ハウスルール例（任意）</h4>
+            <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 text-slate-300 space-y-1">
+              <p>以下のルールは公式基本ルールではないため、任意の追加ルールとして任意採用です:</p>
+              <ul class="list-disc list-inside space-y-0.5">
+                <li>役満の提案: <b>天和 / 地和</b>（配牌での成立）</li>
+                <li>食物一色: 全部食べ物・飲み物だけで構成</li>
+                <li>疑似俳句: カン等で<b>5・7・5</b>、または面前14牌で文章化</li>
+                <li>しばりルール: 動物しばり / 食べ物しばり / 地名しばり / アニメキャラクターしばり</li>
+                <li>点数倍率の変更（例: 9点）</li>
+              </ul>
+              <p class="text-slate-400 mt-1">ロン・ツモの点数、七対子、カンの補充枚数は公式商品ページに詳細が掲載されていないため、<b>このアプリの任意ルール</b>として表示・実装しています。遊ぶ前に採用するか確認してください。</p>
+            </div>
+          </section>
+
+          <!-- 注釈 -->
+          <div class="bg-slate-950 p-3 rounded-xl border border-emerald-500/30 text-slate-300">
+            <i class="fa-solid fa-circle-info text-emerald-400 mr-1"></i>パイ版ではポン/カン/ロン/七対子の各ボタンが自動表示されます。ただし<b>カード版</b>を選んだ場合は<b>これらのボタンは表示されません</b>。
+          </div>
         </div>
       </div>
 
@@ -425,8 +865,8 @@
 
     // --- 2. Pure Game Engine Reducer (Atomic Transactions) ---
     var MODES = {
-      card: { label: 'カード版', sizes: [2, 3, 3], piles: 4, calls: false },
-      tile: { label: '牌ばーじょん', sizes: [2, 3, 3, 3, 3], piles: 1, calls: true }
+      card: { label: 'カード版', sizes: [2, 3, 3], piles: 4, calls: false, score: false },
+      tile: { label: 'パイ版', sizes: [2, 3, 3, 3, 3], piles: 1, calls: true, score: true }
     };
 
     var SEION = 'あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわん';
@@ -443,6 +883,28 @@
     }
 
     function charOf(id) { return String(id || '').split('#')[0]; }
+
+    function countChars(arr) {
+      var m = {};
+      (arr || []).forEach(function(c) { m[c] = (m[c] || 0) + 1; });
+      return m;
+    }
+    function sameMultiset(a, b) {
+      var ma = countChars(a), mb = countChars(b);
+      var ka = Object.keys(ma);
+      if (ka.length !== Object.keys(mb).length) return false;
+      return ka.every(function(k) { return ma[k] === mb[k]; });
+    }
+    function validWordLengths(words, sizes) {
+      if (!words || words.length !== sizes.length) return false;
+      var ws = words.map(function(w) { return String(w).length; }).sort(function(a, b) { return a - b; });
+      var ss = sizes.slice().sort(function(a, b) { return a - b; });
+      return ws.every(function(l, i) { return l === ss[i]; });
+    }
+    function winSizes(me, action, cfg, settings) {
+      if (cfg.calls && action.chiitoi && settings && settings.chiitoi && !(me && me.called)) return [2, 2, 2, 2, 2, 2, 2];
+      return cfg.sizes;
+    }
 
     function shuffle(arr) {
       var list = arr.slice();
@@ -493,7 +955,7 @@
         if (existingSeats.length >= 4) return s;
         var newSeat = 0;
         while (existingSeats.indexOf(newSeat) !== -1) newSeat++;
-        s.players[t] = { id: t, name: action.name, seat: newSeat, hand: [], melds: [] };
+        s.players[t] = { id: t, name: action.name, seat: newSeat, hand: [], melds: [], score: 0, called: false, discarded: [] };
         logEvent(s, action.name + ' が入室しました。', t);
         return s;
       }
@@ -509,6 +971,8 @@
         players.forEach(function(p) {
           p.hand = deck.splice(0, handSize);
           p.melds = [];
+          p.called = false;
+          p.discarded = [];
         });
 
         s.piles = [];
@@ -519,6 +983,7 @@
 
         s.discards = [];
         s.lastDiscard = null;
+        s.phase = 'draw';
         s.status = 'playing';
         s.turnToken = players[0].id;
         s.claim = null;
@@ -527,25 +992,30 @@
       }
 
       if (action.type === 'draw') {
-        if (s.status !== 'playing' || s.turnToken !== t) return s;
+        if (s.status !== 'playing' || s.turnToken !== t || s.phase !== 'draw') return s;
         var pileIdx = action.pileIndex || 0;
         if (!s.piles[pileIdx] || s.piles[pileIdx].length === 0) return s;
 
-        var drawn = s.piles[pileIdx].pop();
-        me.hand.push(drawn);
+        me.hand.push(s.piles[pileIdx].pop());
+        s.phase = 'discard';
+        s.lastDiscard = null; // 捨て牌直後のポン/ロン受付を終了
         logEvent(s, me.name + ' が山札から牌を引きました。', t);
         return s;
       }
 
       if (action.type === 'discard') {
-        if (s.status !== 'playing' || s.turnToken !== t) return s;
+        if (s.status !== 'playing' || s.turnToken !== t || s.phase !== 'discard') return s;
         var idx = me.hand.indexOf(action.cardId);
         if (idx < 0) return s;
 
         me.hand.splice(idx, 1);
+        var dch = charOf(action.cardId);
+        me.discarded = me.discarded || [];
+        if (me.discarded.indexOf(dch) < 0) me.discarded.push(dch);
         s.discards = s.discards || [];
         s.discards.push({ id: action.cardId, by: t });
         s.lastDiscard = { id: action.cardId, by: t };
+        s.phase = 'draw';
 
         // Move to next player
         var plist = sortedPlayers(s);
@@ -558,16 +1028,76 @@
         return s;
       }
 
+      if (action.type === 'pon') {
+        if (s.status !== 'playing' || !modeCfg.calls) return s;
+        if (s.phase !== 'draw' || !s.lastDiscard || s.lastDiscard.by === t) return s;
+        var sel = action.tileIds || [];
+        if (sel.length !== 2) return s;
+        var hand = me.hand.slice();
+        for (var pi = 0; pi < sel.length; pi++) {
+          var hi = hand.indexOf(sel[pi]);
+          if (hi < 0) return s;
+          hand.splice(hi, 1);
+        }
+        me.hand = hand;
+        me.melds.push({ type: 'pon', chars: [charOf(s.lastDiscard.id), charOf(sel[0]), charOf(sel[1])] });
+        me.called = true;
+        s.lastDiscard = null;
+        s.turnToken = t;
+        s.phase = 'discard';
+        logEvent(s, me.name + ' がポン！捨て牌の後1枚捨ててください。', t);
+        return s;
+      }
+
+      if (action.type === 'kan') {
+        if (s.status !== 'playing' || !modeCfg.calls || s.turnToken !== t || s.phase !== 'discard') return s;
+        var ksel = action.tileIds || [];
+        if (ksel.length < 4) return s;
+        var khand = me.hand.slice();
+        for (var ki = 0; ki < ksel.length; ki++) {
+          var khi = khand.indexOf(ksel[ki]);
+          if (khi < 0) return s;
+          khand.splice(khi, 1);
+        }
+        var need = ksel.length - 3;
+        var wall = s.piles.reduce(function(a, p) { return a + p.length; }, 0);
+        if (wall < need) return s;
+        me.hand = khand;
+        me.melds.push({ type: 'kan', chars: ksel.map(charOf) });
+        me.called = true;
+        for (var n = 0; n < need; n++) {
+          for (var pj = 0; pj < s.piles.length; pj++) {
+            if (s.piles[pj].length > 0) { me.hand.push(s.piles[pj].pop()); break; }
+          }
+        }
+        logEvent(s, me.name + ' がカン（' + ksel.map(charOf).join('') + '）！ ' + need + '枚補充しました。', t);
+        return s;
+      }
+
       if (action.type === 'claim_agari') {
         if (s.status !== 'playing') return s;
+        var isRon = action.via === 'ron';
+        if (isRon && !modeCfg.calls) return s; // ルールブック順守: カード版は鳴きなし・ツモ上がりのみ
+        if (isRon && (!s.lastDiscard || s.lastDiscard.by === t)) return s;
+        if (isRon && (me.called || (me.discarded || []).indexOf(charOf(s.lastDiscard.id)) >= 0)) return s; // 鳴いたらロン不可・自分が捨てた文字のロン不可
+        var sizes = winSizes(me, action, modeCfg, s.settings || {});
+        var needTiles = sizes.reduce(function(a, b) { return a + b; }, 0);
+        var handChars = me.hand.map(charOf);
+        if (isRon) handChars.push(charOf(s.lastDiscard.id));
+        if (handChars.length !== needTiles) return s; // 8枚/14枚でのみ上がり可能
+        var words = (action.words || []).map(function(w) { return String(w).trim(); }).filter(Boolean);
+        if (!validWordLengths(words, sizes)) return s;
+        if (!sameMultiset(words.join('').split(''), handChars)) return s; // 宣言した単語が手牌と一致するか
         s.claim = {
           claimer: t,
           claimerName: me.name,
-          via: action.via || 'tsumo',
-          words: action.words || [],
+          via: isRon ? 'ron' : 'tsumo',
+          victim: isRon ? s.lastDiscard.by : null,
+          words: words,
+          chiitoi: !!action.chiitoi,
           approvals: {}
         };
-        logEvent(s, '🎉 ' + me.name + ' が上がりを宣言！全員の承認待ちです。', t);
+        logEvent(s, '🎉 ' + me.name + ' が上がりを宣言！（' + (isRon ? 'ロン' : 'ツモ') + '）全員の承認待ちです。', t);
         return s;
       }
 
@@ -583,7 +1113,17 @@
         if (allApproved) {
           s.status = 'ended';
           s.winnerToken = s.claim.claimer;
-          s.resultText = '🏆 ' + s.claim.claimerName + ' の和了（ツモ/ロン）！\n言葉: ' + (s.claim.words.join('、') || '完成');
+          var winner = s.players[s.claim.claimer];
+          if (modeCfg.score && winner) {
+            if (s.claim.via === 'ron' && s.claim.victim && s.players[s.claim.victim]) {
+              winner.score = (winner.score || 0) + 3;
+              s.players[s.claim.victim].score = (s.players[s.claim.victim].score || 0) - 3;
+            } else {
+              winner.score = (winner.score || 0) + 3;
+              sortedPlayers(s).forEach(function(p) { if (p.id !== winner.id) p.score = (p.score || 0) - 1; });
+            }
+          }
+          s.resultText = '🏆 ' + s.claim.claimerName + ' の和了（' + (s.claim.via === 'ron' ? 'ロン' : 'ツモ') + (s.claim.chiitoi ? '・七対子' : '') + '）！\n言葉: ' + (s.claim.words.join('、') || '完成');
           logEvent(s, '✅ 全員が承認。' + s.claim.claimerName + ' の勝利です！', t);
           s.claim = null;
         } else {
@@ -606,8 +1146,23 @@
         s.lastDiscard = null;
         s.claim = null;
         s.winnerToken = null;
-        sortedPlayers(s).forEach(function(p) { p.hand = []; p.melds = []; });
+        s.phase = null;
+        sortedPlayers(s).forEach(function(p) { p.hand = []; p.melds = []; p.called = false; p.discarded = []; });
         logEvent(s, '部屋の状態が初期化されました。', t);
+        return s;
+      }
+
+      if (action.type === 'set_mode') {
+        if (s.status !== 'waiting' || !MODES[action.mode]) return s;
+        s.mode = action.mode;
+        logEvent(s, 'モードが「' + MODES[s.mode].label + '」に変更されました。', t);
+        return s;
+      }
+
+      if (action.type === 'set_setting') {
+        if (s.status !== 'waiting') return s;
+        s.settings = s.settings || {};
+        if (action.key === 'chiitoi') s.settings.chiitoi = !!action.value;
         return s;
       }
 
@@ -632,7 +1187,7 @@
       mode: 'tile',
       roomData: null,
       roomRef: null,
-      selectedCardId: null,
+      selectedIds: [],
       localRoom: null
     };
 
@@ -647,9 +1202,10 @@
       statusMsg: $('statusMsg'), playerGrid: $('playerGrid'), pilesContainer: $('pilesContainer'), riverRow: $('riverRow'),
       handRow: $('handRow'), handCnt: $('handCnt'), actBox: $('actBox'), actTitle: $('actTitle'),
       ponBtn: $('ponBtn'), kanBtn: $('kanBtn'), agariBtn: $('agariBtn'), dahaiBtn: $('dahaiBtn'),
+      wordInput: $('wordInput'), chiitoiClaim: $('chiitoiClaim'), chiitoiClaimWrap: $('chiitoiClaimWrap'), chiitoiWrap: $('chiitoiWrap'), chiitoiSet: $('chiitoiSet'),
       claimApprovalBox: $('claimApprovalBox'), claimDetail: $('claimDetail'), approveBtn: $('approveBtn'), denyBtn: $('denyBtn'),
-      tabBLog: $('tabBLog'), tabBSlides: $('tabBSlides'),
-      paneLog: $('paneLog'), paneSlides: $('paneSlides'),
+      tabBLog: $('tabBLog'), tabBSlides: $('tabBSlides'), tabBCard: $('tabBCard'), tabBTile: $('tabBTile'),
+      paneLog: $('paneLog'), paneSlides: $('paneSlides'), paneCard: $('paneCard'), paneTile: $('paneTile'),
       logList: $('logList'),
       prevSlideBtn: $('prevSlideBtn'), nextSlideBtn: $('nextSlideBtn'), slideIndicator: $('slideIndicator'),
       toast: $('toast'), toastMsg: $('toastMsg'), modalOv: $('modalOv'), modalTitle: $('modalTitle'), modalBody: $('modalBody'), modalClose: $('modalClose')
@@ -807,25 +1363,48 @@
     }
 
     function handleDahai() {
-      if (!state.selectedCardId) {
-        showToast('捨てる牌を選択してください');
+      if (state.selectedIds.length !== 1) {
+        showToast('捨てる牌を1枚選択してください');
         return;
       }
-      dispatchAction({ type: 'discard', cardId: state.selectedCardId });
-      state.selectedCardId = null;
+      dispatchAction({ type: 'discard', cardId: state.selectedIds[0] });
+      state.selectedIds = [];
     }
 
-    function handleAgariClaim() {
+    function handlePon() {
+      if (state.selectedIds.length !== 2) {
+        showToast('手札から2枚選択してからポンしてください');
+        return;
+      }
+      dispatchAction({ type: 'pon', tileIds: state.selectedIds.slice() });
+      state.selectedIds = [];
+    }
+
+    function handleKan() {
+      if (state.selectedIds.length < 4) {
+        showToast('4枚以上選択してからカンしてください');
+        return;
+      }
+      dispatchAction({ type: 'kan', tileIds: state.selectedIds.slice() });
+      state.selectedIds = [];
+    }
+
+    function handleAgariClaim(via) {
       var r = state.roomData;
       if (!r) return;
       var me = r.players && r.players[state.token];
       if (!me) return;
 
-      var wordList = me.hand.map(function(id) { return charOf(id); });
+      var words = els.wordInput.value.trim().split(/[\s　]+/).filter(Boolean);
+      if (!words.length) {
+        showToast('完成した単語を空白区切りで入力してください');
+        return;
+      }
       dispatchAction({
         type: 'claim_agari',
-        via: 'tsumo',
-        words: [wordList.join('')]
+        via: via || 'tsumo',
+        words: words,
+        chiitoi: els.chiitoiClaim && els.chiitoiClaim.checked
       });
     }
 
@@ -875,12 +1454,15 @@
         var card = document.createElement('div');
         card.className = 'bg-slate-900 border ' + (isTurn ? 'border-amber-400 bg-amber-500/10' : 'border-slate-800') + ' rounded-xl p-3 flex flex-col gap-1 transition';
         if (p) {
+          var meldText = (p.melds && p.melds.length) ? ' / 鳴き: ' + p.melds.map(function(m) { return (m.type === 'pon' ? 'ポン' : 'カン') + '(' + m.chars.join('') + ')'; }).join(' ') : '';
+          var scoreText = modeCfg.score ? ' / 点: ' + (p.score || 0) : '';
           card.innerHTML = 
             '<div class="flex items-center justify-between text-xs font-bold text-slate-300">' +
               '<span>' + ['東', '南', '西', '北'][p.seat] + '家 ' + escapeHtml(p.name) + (isMe ? ' (あなた)' : '') + '</span>' +
               (isTurn ? '<span class="text-amber-400 font-extrabold animate-pulse">手番</span>' : '') +
             '</div>' +
-            '<div class="text-xs text-slate-400 mt-1">手札: ' + (p.hand ? p.hand.length : 0) + '枚</div>';
+            '<div class="text-xs text-slate-400 mt-1">手牌: ' + (p.hand ? p.hand.length : 0) + '枚' + meldText + scoreText + '</div>' +
+            (p.called ? '<div class="text-[10px] text-rose-300 font-bold">鳴き済み → ツモ上がりのみ</div>' : '');
         } else {
           card.innerHTML = '<div class="text-xs text-slate-600 font-bold py-2 text-center">空席</div>';
         }
@@ -924,11 +1506,14 @@
         els.handCnt.textContent = '(' + me.hand.length + ')';
         me.hand.forEach(function(cardId) {
           var tile = document.createElement('button');
-          var isSelected = state.selectedCardId === cardId;
+          var selIdx = state.selectedIds.indexOf(cardId);
+          var isSelected = selIdx >= 0;
           tile.className = 'w-10 h-14 bg-tileBg border-2 border-tileBorder rounded-xl flex items-center justify-center font-black text-slate-900 text-xl font-rounded tile-shadow transition-all ' + (isSelected ? 'tile-selected' : '');
           tile.textContent = charOf(cardId);
+          tile.setAttribute('aria-label', '牌 ' + charOf(cardId) + (isSelected ? '（選択中）' : ''));
           tile.onclick = function() {
-            state.selectedCardId = isSelected ? null : cardId;
+            if (isSelected) state.selectedIds.splice(selIdx, 1);
+            else state.selectedIds.push(cardId);
             renderUI();
           };
           els.handRow.appendChild(tile);
@@ -939,19 +1524,29 @@
       }
 
       // Action Box
-      if (r && r.status === 'playing' && r.turnToken === state.token) {
+      var myTurn = r && r.status === 'playing' && r.turnToken === state.token;
+      if (myTurn) {
         els.actBox.style.display = 'flex';
-        els.actTitle.textContent = 'あなたの手番です！';
-        els.dahaiBtn.style.display = 'inline-flex';
+        els.actTitle.textContent = (r.phase === 'draw') ? 'あなたの手番です！山札から引いてください。' : '引いた牌と合わせて単語を作り、1枚捨ててください。';
+        els.dahaiBtn.style.display = (r.phase === 'discard') ? 'inline-flex' : 'none';
+        els.agariBtn.innerHTML = modeCfg.calls ? '<i class="fa-solid fa-crown"></i> ツモ上がり / ロン' : '<i class="fa-solid fa-crown"></i> ツモ上がり';
         els.agariBtn.style.display = 'inline-flex';
+        els.wordInput.style.display = 'inline-flex';
+        els.chiitoiClaimWrap.style.display = (modeCfg.calls && r.settings && r.settings.chiitoi) ? 'inline-flex' : 'none';
+        els.ponBtn.style.display = (modeCfg.calls && r.phase === 'draw' && r.lastDiscard && r.lastDiscard.by !== state.token) ? 'inline-flex' : 'none';
+        els.kanBtn.style.display = (modeCfg.calls && r.phase === 'discard') ? 'inline-flex' : 'none';
       } else {
         els.actBox.style.display = 'none';
       }
 
+      // Chiitoi room setting (tile mode only, waiting only)
+      els.chiitoiWrap.style.display = (r && r.mode === 'tile' && r.status === 'waiting') ? 'inline-flex' : 'none';
+      if (r && r.mode === 'tile' && r.status === 'waiting') els.chiitoiSet.checked = !!(r.settings && r.settings.chiitoi);
+
       // Claim Approval Box
       if (r && r.claim) {
         els.claimApprovalBox.style.display = 'flex';
-        els.claimDetail.textContent = r.claim.claimerName + ' が「' + (r.claim.words.join('、') || '完成') + '」で上がりを宣言しました！';
+        els.claimDetail.textContent = r.claim.claimerName + ' が「' + (r.claim.words.join('、') || '完成') + '」で' + (r.claim.via === 'ron' ? 'ロン' : 'ツモ') + (r.claim.chiitoi ? '（七対子）' : '') + 'を宣言しました！';
       } else {
         els.claimApprovalBox.style.display = 'none';
       }
@@ -983,6 +1578,15 @@
         localStorage.setItem(KEYS.name, state.playerName);
       });
 
+      els.modeSelect.addEventListener('change', function() {
+        state.mode = els.modeSelect.value;
+        if (state.roomData && state.roomData.status === 'waiting') dispatchAction({ type: 'set_mode', mode: state.mode });
+      });
+
+      els.chiitoiSet.addEventListener('change', function() {
+        if (state.roomData && state.roomData.status === 'waiting') dispatchAction({ type: 'set_setting', key: 'chiitoi', value: els.chiitoiSet.checked });
+      });
+
       els.createBtn.addEventListener('click', createRoom);
       els.joinBtn.addEventListener('click', function() {
         var code = els.roomInput.value.trim().toUpperCase();
@@ -995,13 +1599,22 @@
       els.resetBtn.addEventListener('click', function() { dispatchAction({ type: 'reset' }); });
 
       els.dahaiBtn.addEventListener('click', handleDahai);
-      els.agariBtn.addEventListener('click', handleAgariClaim);
+      els.ponBtn.addEventListener('click', handlePon);
+      els.kanBtn.addEventListener('click', handleKan);
+      els.agariBtn.addEventListener('click', function() {
+        var r = state.roomData;
+        var modeCfg = MODES[(r && r.mode) || state.mode] || MODES.tile;
+        var via = (modeCfg.calls && r && r.phase === 'draw' && r.lastDiscard && r.lastDiscard.by !== state.token) ? 'ron' : 'tsumo';
+        handleAgariClaim(via);
+      });
       els.approveBtn.addEventListener('click', function() { dispatchAction({ type: 'approve_agari' }); });
       els.denyBtn.addEventListener('click', function() { dispatchAction({ type: 'deny_agari' }); });
 
       // Tab Controls
       els.tabBLog.addEventListener('click', function() { switchTab('log'); });
       els.tabBSlides.addEventListener('click', function() { switchTab('slides'); });
+      els.tabBCard.addEventListener('click', function() { switchTab('card'); });
+      els.tabBTile.addEventListener('click', function() { switchTab('tile'); });
 
       // Slide Controls
       if (els.prevSlideBtn) els.prevSlideBtn.addEventListener('click', function() { moveSlide(-1); });
@@ -1030,7 +1643,7 @@
     }
 
     function switchTab(name) {
-      var tabs = ['log', 'slides'];
+      var tabs = ['log', 'slides', 'card', 'tile'];
       tabs.forEach(function(t) {
         var btn = els['tabB' + capitalize(t)];
         var pane = els['pane' + capitalize(t)];
