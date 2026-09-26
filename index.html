@@ -33,7 +33,7 @@
 </div><div id="toast" class="toast" role="status" aria-live="polite"></div>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getDatabase, ref, onValue, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { getDatabase, ref, get, onValue, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 /* ==== Firebase設定（ここだけ差し替えれば動きます） ==== */
 const firebaseConfig={apiKey:"AIzaSyDTH8N9_9QAj_Id9KNnvVfN62v42zg-Rtk",authDomain:"hiragajan-af30f.firebaseapp.com",databaseURL:"https://hiragajan-af30f-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"hiragajan-af30f",storageBucket:"hiragajan-af30f.firebasestorage.app",messagingSenderId:"209578576362",appId:"1:209578576362:web:1875a3f7ce9ff21c93ca93"};
@@ -98,20 +98,26 @@ function connect(id){
   history.replaceState(null,"",location.pathname+"?room="+encodeURIComponent(id));
   stopRoom=onValue(roomRef(id),snap=>{
     roomState=snap.val();
-    if(!roomState){show("setup");notify("部屋が見つかりません。");return}
-    render();
-  },err=>notify(firebaseError(err)));
+    if(!roomState){leave();setError("setupError","部屋「"+escHtml(id)+"」が見つかりません。コードを確認して、もう一度参加してください。");$("roomInput").value=id;return}
+    setError("setupError","");render();
+  },err=>{notify(firebaseError(err))});
 }
 function leave(){if(stopRoom)stopRoom();stopRoom=null;roomState=null;roomId="";builder=null;callSelection=[];history.replaceState(null,"",location.pathname);show("setup")}
 
 /* ==== 部屋の作成・参加 ==== */
 async function createRoom(){
   const name=escName($("nameInput").value); if(!name){setError("setupError","名前を入力してください。");return}
-  const mode=document.querySelector('input[name="mode"]:checked').value, id=newRoomCode();
+  const mode=document.querySelector('input[name="mode"]:checked').value;
   setError("setupError","");
   try{
-    const res=await runTransaction(roomRef(id),cur=>cur?undefined:{roomId:id,status:"lobby",mode,hostToken:token,turnSeat:0,turnPhase:"draw",players:{[token]:{name,seat:0,score:0,melds:[]}},logs:[{text:name+"が部屋を作りました。",at:Date.now()}]});
-    if(!res.committed)throw Error("部屋の作成に失敗しました。もう一度お試しください。");
+    let id="";
+    for(let i=0;i<3;i++){
+      const code=newRoomCode();
+      const res=await runTransaction(roomRef(code),cur=>cur?undefined:{roomId:code,status:"lobby",mode,hostToken:token,turnSeat:0,turnPhase:"draw",players:{[token]:{name,seat:0,score:0,melds:[]}},logs:[{text:name+"が部屋を作りました。",at:Date.now()}]});
+      if(res.committed){id=code;break}
+    }
+    if(!id)throw Error("部屋の作成に失敗しました。もう一度お試しください。");
+    if(!(await get(roomRef(id))).exists())throw Error("作成した部屋を読み戻せませんでした。Realtime Database のルールと databaseURL を確認してください。");
     store.set(NAME_KEY,name); connect(id); notify("部屋を作りました。");
   }catch(e){setError("setupError",firebaseError(e))}
 }
@@ -124,7 +130,7 @@ async function joinRoom(){
   try{
     let failure="";
     const res=await runTransaction(roomRef(id),cur=>{
-      if(!cur){failure="部屋が見つかりません。";return}
+      if(!cur){failure="部屋「"+id+"」が見つかりません。コードを確認してください（同じFirebaseの部屋だけ参加できます）。";return}
       const players=cur.players||{};
       if(players[token]){players[token].name=name;return cur}
       if(cur.status!=="lobby"){failure="ゲーム開始後の新規参加はできません。";return}
