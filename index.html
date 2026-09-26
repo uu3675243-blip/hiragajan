@@ -276,8 +276,9 @@ dl.rules dd{margin:0;color:#d5e6dc}
 <div class="overlay" id="endOv"><div class="modal" role="dialog" aria-modal="true"><h3 id="endT">対局終了</h3><p id="endB">-</p><button class="btn-main" id="endClose" type="button">閉じる</button></div></div>
 <noscript><p style="padding:16px">このゲームのプレイには JavaScript が必要です。</p></noscript>
 
-<script src="https://www.gstatic.com/firebasejs/12.18.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/12.18.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 <script>
 'use strict';
 
@@ -761,9 +762,10 @@ function joinRoom() {
   ref.transaction(function (current) {
     return reduce(current, { type: 'join', token: S.token, name: name });
   }).then(function (result) {
-    if (!result.committed) {
-      if (!result.snapshot.exists()) throw appError('部屋が見つかりません。番号を確認してください。');
-      if (result.snapshot.val().status !== 'waiting' && !(result.snapshot.val().players || {})[S.token]) {
+    if (!result || !result.committed) {
+      var snapshot = result && result.snapshot;
+      if (!snapshot || !snapshot.exists()) throw appError('部屋が見つかりません。番号とFirebaseの設定を確認してください。');
+      if (snapshot.val().status !== 'waiting' && !(snapshot.val().players || {})[S.token]) {
         S.spectator = true;
         subscribe(roomId); toast('ゲーム開始済みのため観戦モードで接続しました。');
         return;
@@ -1215,7 +1217,11 @@ function initialize() {
     return;
   }
   try { firebase.initializeApp(FIREBASE_CONFIG); } catch (error) { fallbackLocal('Firebaseの初期化に失敗しました。'); return; }
-  Promise.resolve().then(function () {
+  /* ルールが認証必須でも書き込めるよう、匿名認証が済んでから操作を有効にする */
+  var authReady = firebase.auth
+    ? firebase.auth().signInAnonymously().catch(function (error) { console.warn('匿名認証に失敗（公開ルールなら続行します）:', error); })
+    : Promise.resolve();
+  authReady.then(function () {
     S.ready = true;
     E.status.textContent = 'オンライン準備完了。あそび方を選んで部屋を作成するか、番号を入力して参加できます。';
     if (savedLocal && savedLocal.players) { S.local = true; S.room = savedLocal; S.roomId = 'LOCAL'; render(); toast('前回のローカル対戦を復元しました'); return; }
