@@ -546,12 +546,11 @@
       if (roomRef) roomRef.off();
       currentRoomId = roomId;
       localStorage.setItem('hiraga_room', roomId);
-      roomRef = db.ref(`${DB_ROOT}/${roomId}`);
-
-      // URLクエリ更新
       const url = new URL(window.location);
       url.searchParams.set('room', roomId);
       window.history.replaceState({}, '', url);
+
+      roomRef = db.ref(`${DB_ROOT}/${roomId}`);
 
       roomRef.on('value', snapshot => {
         localRoom = snapshot.val();
@@ -575,10 +574,7 @@
       if (roomRef) roomRef.off();
       currentRoomId = null;
       localRoom = null;
-      wordSlots = [];
-      selectedTileId = null;
       localStorage.removeItem('hiraga_room');
-
       const url = new URL(window.location);
       url.searchParams.delete('room');
       window.history.replaceState({}, '', url);
@@ -880,8 +876,7 @@
     // 次の局へ進む
     btnNextRound.addEventListener('click', () => {
       winModal.classList.add('hidden');
-      wordSlots = [];
-      selectedTileId = null;
+      initWordSlots(localRoom ? localRoom.mode : 'card', true);
       if (!roomRef) return;
       roomRef.transaction(room => {
         if (!room) return room;
@@ -901,16 +896,16 @@
     });
 
     // 11. Word Slot Helpers
-    function initWordSlots(mode) {
+    function initWordSlots(mode, forceClear = false) {
       const counts = (mode === 'card') ? [2, 3, 3] : [2, 3, 3, 3, 3];
-      if (wordSlots.length !== counts.length) {
+      if (forceClear || wordSlots.length !== counts.length) {
         wordSlots = counts.map(() => []);
       }
     }
 
     btnClearBuilder.addEventListener('click', () => {
       if (!localRoom) return;
-      initWordSlots(localRoom.mode);
+      initWordSlots(localRoom.mode, true);
       render(localRoom);
     });
 
@@ -918,14 +913,6 @@
     function render(room) {
       const mode = room.mode || 'card';
       initWordSlots(mode);
-
-      // 手札に実在しない牌（前局の牌など）がスロットに残っていたら自動クリーンアップ
-      const myData = room.players ? (room.players[myToken] || { hand: [], melds: [] }) : { hand: [], melds: [] };
-      const myHand = myData.hand || [];
-      const handTileIds = new Set(myHand.map(t => t.id));
-      wordSlots.forEach((slot, sIdx) => {
-        wordSlots[sIdx] = slot.filter(t => handTileIds.has(t.id));
-      });
 
       const isHost = room.hostToken === myToken;
       const currentToken = room.order ? room.order[room.turnIndex] : null;
@@ -1025,6 +1012,10 @@
       // My Hand & Word Slots
       const myData = room.players[myToken] || { hand: [], melds: [] };
       const myHand = myData.hand || [];
+
+      // 前局の残りや手札に存在しない牌をスロットから安全に除去
+      const currentHandIdSet = new Set(myHand.map(t => t.id));
+      wordSlots = wordSlots.map(slot => (slot || []).filter(t => currentHandIdSet.has(t.id)));
 
       // Dark Kan possibility
       if (mode === 'tile' && isMyTurn) {
@@ -1200,22 +1191,13 @@
       }
     }
 
-    // ページ読み込み時の自動再接続（URLクエリまたはlocalStorage）
+    // Auto join on page load from query param ?room=XXXX or localStorage
     window.addEventListener('DOMContentLoaded', () => {
       const params = new URLSearchParams(window.location.search);
-      const urlRoom = params.get('room') || localStorage.getItem('hiraga_room');
-      if (urlRoom) {
-        inputRoomId.value = urlRoom;
-        // 部屋が存在するか確認して自動接続
-        db.ref(`${DB_ROOT}/${urlRoom}`).once('value').then(snap => {
-          if (snap.exists()) {
-            connectRoom(urlRoom);
-          } else {
-            localStorage.removeItem('hiraga_room');
-          }
-        }).catch(() => {
-          localStorage.removeItem('hiraga_room');
-        });
+      const savedRoom = params.get('room') || localStorage.getItem('hiraga_room');
+      if (savedRoom) {
+        inputRoomId.value = savedRoom.toUpperCase();
+        connectRoom(savedRoom.toUpperCase());
       }
     });
   </script>
