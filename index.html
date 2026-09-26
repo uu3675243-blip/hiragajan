@@ -6,7 +6,7 @@
   <title>ひらがじゃん 公式ルール版</title>
   <meta name="description" content="ひらがなで言葉を作る麻雀風ゲーム（カード版・牌版 完全対応）" />
   <meta property="og:title" content="ひらがじゃん 公式ルール版" />
-  <meta property="og:description" content="2〜4人対戦・公式120枚セット・高コントラスト視認性向上版" />
+  <meta property="og:description" content="2〜4人対戦・公式120枚セット・全員承認投票システム搭載" />
   <meta property="og:type" content="website" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
@@ -18,7 +18,7 @@
       touch-action: manipulation;
       user-select: none;
       -webkit-user-select: none;
-      background-color: #0d2818; /* 深みのある清潔な雀卓グリーン */
+      background-color: #0d2818;
       color: #f8fafc;
     }
     .tile-piece {
@@ -50,7 +50,7 @@
 </head>
 <body class="min-h-screen flex flex-col justify-between overflow-x-hidden">
 
-  <!-- Header: 高コントラストで見やすいバー -->
+  <!-- Header -->
   <header class="bg-slate-900 border-b border-slate-700 px-3 sm:px-4 py-2.5 flex items-center justify-between shadow-md">
     <div class="flex items-center gap-2">
       <span class="text-2xl">🀄</span>
@@ -60,7 +60,7 @@
     </div>
     <div class="flex items-center gap-2">
       <span id="userBadge" class="bg-slate-800 border border-slate-600 px-2.5 py-1 rounded text-white font-bold text-xs"></span>
-      <button id="btnShare" class="hidden bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-2.5 py-1 rounded text-xs shadow transition">共有</button>
+      <button id="btnShare" class="hidden bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-2.5 py-1 rounded text-xs shadow transition">部屋番号コピー</button>
       <button id="btnLeave" class="hidden bg-rose-700 hover:bg-rose-600 text-white font-bold px-2.5 py-1 rounded text-xs shadow transition">退室</button>
     </div>
   </header>
@@ -115,24 +115,18 @@
         </div>
 
         <div id="joinBox" class="hidden pt-2 space-y-2">
-          <input id="inputRoomId" type="text" placeholder="部屋ID（合言葉）を入力" class="w-full bg-slate-950 border border-slate-600 rounded-lg px-3 py-2 text-white font-bold text-sm uppercase focus:outline-none focus:border-amber-400" />
+          <input id="inputRoomId" type="text" placeholder="部屋番号を入力" class="w-full bg-slate-950 border border-slate-600 rounded-lg px-3 py-2 text-white font-bold text-sm uppercase focus:outline-none focus:border-amber-400" />
           <button id="btnJoinRoom" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-2.5 rounded-xl text-sm shadow-md transition">
             この部屋に入る
           </button>
         </div>
-      </div>
-
-      <div class="bg-slate-950/80 p-3 rounded-xl border border-slate-800 text-xs text-slate-300 space-y-1">
-        <div class="font-bold text-amber-400">📜 公式ルール・牌構成（120枚）</div>
-        <div>・45音×各2枚 ＋ 濁音半濁音25音×各1枚 ＋ 拗音長音5音×各1枚</div>
-        <div>・2人〜4人対戦対応（CPUなし・プレイヤー同士で言葉を審査）</div>
       </div>
     </div>
 
     <!-- 2. GAME BOARD SCREEN -->
     <div id="gameScreen" class="hidden flex-1 flex flex-col justify-between gap-2.5">
       
-      <!-- Top info bar: 鮮明な情報ヘッダー -->
+      <!-- Top info bar -->
       <div class="bg-slate-900 border border-slate-700 px-3 py-2 rounded-xl flex items-center justify-between text-xs shadow-md">
         <div class="flex items-center gap-3">
           <span id="boardModeTitle" class="font-black text-amber-300 bg-slate-950 px-2.5 py-1 rounded-md border border-slate-800"></span>
@@ -160,10 +154,8 @@
           </div>
         </div>
 
-        <!-- Discard River Tiles (白牌に黒文字で明瞭) -->
         <div id="discardRiver" class="flex flex-wrap gap-1.5 p-2 bg-slate-950/70 rounded-xl min-h-[64px] max-h-[110px] overflow-y-auto border border-slate-800"></div>
 
-        <!-- Action Log -->
         <div id="gameLog" class="text-xs text-amber-300 font-bold h-5 overflow-hidden text-center truncate pt-1"></div>
       </div>
 
@@ -177,10 +169,10 @@
         </button>
       </div>
 
-      <!-- Current Player Area: 見やすさを極めたコントラスト -->
+      <!-- Current Player Area -->
       <div class="bg-slate-900 rounded-2xl border-2 border-slate-700 p-3 shadow-2xl space-y-2.5">
         
-        <!-- Word Slots Builder (目標の言葉構築トレイ) -->
+        <!-- Word Slots Builder -->
         <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
           <div class="flex items-center justify-between text-xs mb-1.5">
             <span class="font-black text-amber-300" id="goalTitle">完成形を作るスロット</span>
@@ -188,19 +180,20 @@
               すべて手札に戻す
             </button>
           </div>
-          <!-- Slots container -->
           <div id="wordSlotsContainer" class="flex flex-wrap items-center gap-2"></div>
         </div>
 
-        <!-- Unassigned Hand Tiles (選択中の牌) -->
+        <!-- Unassigned Hand Tiles -->
         <div>
           <div class="flex items-center justify-between text-xs px-1 mb-1">
-            <span class="text-slate-300 font-bold text-[11px]">手札 / 手牌（牌をタップして選択）</span>
+            <div class="flex items-center gap-2">
+              <span class="text-slate-300 font-bold text-[11px]">手札 / 手牌</span>
+              <span class="text-[10px] text-amber-400 font-bold bg-slate-800 px-1.5 py-0.5 rounded">💡 2枚タップで並べ替え可能</span>
+            </div>
             <div id="meldActions" class="flex items-center gap-1 hidden">
               <button id="btnKan" class="bg-purple-600 hover:bg-purple-500 text-white font-black px-3 py-1 rounded-lg text-xs shadow transition">暗カン</button>
             </div>
           </div>
-          <!-- Hand tiles container -->
           <div id="myHandContainer" class="flex items-end justify-center gap-1.5 sm:gap-2 pt-1 pb-1.5 overflow-x-auto min-h-[70px]"></div>
         </div>
 
@@ -225,10 +218,94 @@
 
   </main>
 
-  <!-- Win Announcement Modal -->
+  <!-- 3. FOOTER TABS: ルール説明・操作方法 -->
+  <footer class="bg-slate-900 border-t border-slate-800 p-2 sm:p-3 mt-4">
+    <div class="max-w-4xl mx-auto space-y-2">
+      <div class="flex gap-2 border-b border-slate-800 pb-1">
+        <button id="tabBtnRules" class="px-3 py-1 text-xs font-black rounded-t-lg bg-amber-400 text-slate-950">
+          📜 公式ルール説明
+        </button>
+        <button id="tabBtnControls" class="px-3 py-1 text-xs font-black rounded-t-lg bg-slate-800 text-slate-300 hover:text-white">
+          🎮 操作方法
+        </button>
+      </div>
+
+      <!-- Tab Content: Rules -->
+      <div id="tabContentRules" class="text-xs text-slate-300 space-y-2 p-2 bg-slate-950/70 rounded-xl border border-slate-800">
+        <div>
+          <span class="font-black text-amber-400">【ゲーム概要】</span><br>
+          ひらがなカードや牌を使って言葉を作る麻雀風ボードゲーム。全120枚（45音×各2枚 ＋ 濁音半濁音25音×各1枚 ＋ 拗音長音5音×各1枚）。固有名詞や擬音語も全員が認めれば使用可能！
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 border-t border-slate-800">
+          <div class="bg-slate-900/90 p-2 rounded-lg border border-slate-700">
+            <span class="font-bold text-amber-300">🃏 カード版</span>
+            <ul class="list-disc list-inside space-y-0.5 text-[11px] text-slate-300 mt-1">
+              <li>手札7枚でスタート（オープン手札）</li>
+              <li>山札から1枚引いて8枚に</li>
+              <li>「2文字×1」「3文字×2」の計3単語でアガリ</li>
+            </ul>
+          </div>
+          <div class="bg-slate-900/90 p-2 rounded-lg border border-slate-700">
+            <span class="font-bold text-amber-300">🀄 牌版</span>
+            <ul class="list-disc list-inside space-y-0.5 text-[11px] text-slate-300 mt-1">
+              <li>手牌13枚でスタート（麻雀形式）</li>
+              <li>「2文字×1」「3文字×4」の計5単語（14文字）でアガリ</li>
+              <li>ポン（他人の捨て牌で3文字完成）</li>
+              <li>ロン（他人の捨て牌でアガリ成立）</li>
+              <li>暗カン（同じ牌4枚で宣言・山から補充）</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab Content: Controls -->
+      <div id="tabContentControls" class="hidden text-xs text-slate-300 space-y-1.5 p-2 bg-slate-950/70 rounded-xl border border-slate-800">
+        <div class="font-black text-amber-400">【画面の操作方法】</div>
+        <ul class="list-disc list-inside space-y-1 text-[11px] text-slate-300">
+          <li><strong class="text-white">手札の並べ替え</strong>：並べ替えたい牌をタップして選択し、別の牌をタップすると位置が入れ替わります。</li>
+          <li><strong class="text-white">スロットへの言葉配置</strong>：手札の牌を選んだあと、上の「＋」スロットをタップすると単語グループにセットできます。セット済みの牌をタップすると手札に戻ります。</li>
+          <li><strong class="text-white">牌を捨てる</strong>：手札から不要な牌を1枚タップして選択し、「捨てる」ボタンを押します。</li>
+          <li><strong class="text-white">アガリ（ひらがじゃん！）</strong>：スロットに規定の言葉を並べて「ひらがじゃん！」を押すと、<span class="text-amber-300 font-bold">他の全プレイヤーに言葉の承認確認（投票）</span>が送信されます。全員が承認すると勝利となります！</li>
+          <li><strong class="text-white">部屋番号コピー</strong>：ヘッダー右上の「部屋番号コピー」を押すと、友達に教える5文字の部屋番号だけがクリップボードに入ります。</li>
+        </ul>
+      </div>
+    </div>
+  </footer>
+
+  <!-- 4. APPROVAL VOTE MODAL (アガリ言葉の全員承認投票ダイアログ) -->
+  <div id="voteModal" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border-2 border-amber-400 rounded-2xl max-w-sm w-full p-5 text-center space-y-3.5 shadow-2xl">
+      <div class="text-4xl animate-bounce">📢</div>
+      <h3 class="text-xl font-black text-amber-400" id="voteModalTitle">「ひらがじゃん！」宣言</h3>
+      <p class="text-xs text-slate-300">以下の言葉が正しく成立しているか全員で確認してください：</p>
+      
+      <div id="voteWordsBox" class="bg-slate-950 p-3 rounded-xl border border-slate-800 flex flex-col gap-1 text-sm font-black text-amber-300"></div>
+
+      <div class="text-[11px] text-slate-400 font-bold" id="voteStatusText">
+        承認待ち: <span id="voteCountSpan">0</span> 人
+      </div>
+
+      <!-- 投票ボタン（宣言者以外が表示） -->
+      <div id="voteButtons" class="grid grid-cols-2 gap-2 pt-1">
+        <button id="btnVoteApprove" class="bg-emerald-600 hover:bg-emerald-500 text-white font-black py-2 rounded-xl text-xs shadow transition">
+          ⭕ 認める（承認）
+        </button>
+        <button id="btnVoteReject" class="bg-rose-700 hover:bg-rose-600 text-white font-black py-2 rounded-xl text-xs shadow transition">
+          ❌ 認めない（却下）
+        </button>
+      </div>
+
+      <!-- 宣言者用の待機表示 -->
+      <div id="voteWaitingSelf" class="hidden text-xs text-amber-400 font-bold py-1 bg-slate-950 rounded-lg">
+        他のプレイヤーの承認を待っています...
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. FINAL WIN ANNOUNCEMENT MODAL -->
   <div id="winModal" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-slate-900 border-2 border-amber-400 rounded-2xl max-w-sm w-full p-6 text-center space-y-4 shadow-2xl">
-      <div class="text-5xl animate-bounce">🀄</div>
+      <div class="text-5xl animate-bounce">🎉</div>
       <h3 id="winTitle" class="text-3xl font-black text-amber-400">ひらがじゃん！</h3>
       <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
         <div id="winPlayer" class="text-xs text-slate-300 font-bold">勝者</div>
@@ -273,21 +350,16 @@
     ];
     const YOUON_5 = ['ゃ','ゅ','ょ','っ','ー'];
 
-    // 120枚カード/牌（各牌に一意のIDを付与して重複文字のバグを完全解消）
     function createOfficial120Deck() {
       const deck = [];
       let seq = 1;
-      // 45音 × 2枚
       SEION_45.forEach(char => {
         deck.push({ id: `t_${seq++}`, char });
         deck.push({ id: `t_${seq++}`, char });
       });
-      // 濁音・半濁音 25音 × 1枚
       DAKUON_25.forEach(char => deck.push({ id: `t_${seq++}`, char }));
-      // 拗音・長音 5音 × 1枚
       YOUON_5.forEach(char => deck.push({ id: `t_${seq++}`, char }));
 
-      // シャッフル
       for (let i = deck.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [deck[i], deck[j]] = [deck[j], deck[i]];
@@ -302,9 +374,8 @@
     let currentRoomId = null;
     let roomRef = null;
     let localRoom = null;
-    let selectedTileId = null; // 牌IDで選択管理
+    let selectedTileId = null;
 
-    // Word builder slots: 各スロットに牌オブジェクトの配列を保持
     let wordSlots = [];
 
     // DOM Elements
@@ -344,11 +415,43 @@
     const btnWin = document.getElementById('btnWin');
     const meldActions = document.getElementById('meldActions');
     const btnKan = document.getElementById('btnKan');
+
+    // Vote Modal Elements
+    const voteModal = document.getElementById('voteModal');
+    const voteModalTitle = document.getElementById('voteModalTitle');
+    const voteWordsBox = document.getElementById('voteWordsBox');
+    const voteStatusText = document.getElementById('voteStatusText');
+    const voteButtons = document.getElementById('voteButtons');
+    const btnVoteApprove = document.getElementById('btnVoteApprove');
+    const btnVoteReject = document.getElementById('btnVoteReject');
+    const voteWaitingSelf = document.getElementById('voteWaitingSelf');
+
+    // Win Modal
     const winModal = document.getElementById('winModal');
     const winTitle = document.getElementById('winTitle');
     const winPlayer = document.getElementById('winPlayer');
     const winWordsDisplay = document.getElementById('winWordsDisplay');
     const btnNextRound = document.getElementById('btnNextRound');
+
+    // Footer Tabs
+    const tabBtnRules = document.getElementById('tabBtnRules');
+    const tabBtnControls = document.getElementById('tabBtnControls');
+    const tabContentRules = document.getElementById('tabContentRules');
+    const tabContentControls = document.getElementById('tabContentControls');
+
+    tabBtnRules.addEventListener('click', () => {
+      tabBtnRules.className = 'px-3 py-1 text-xs font-black rounded-t-lg bg-amber-400 text-slate-950';
+      tabBtnControls.className = 'px-3 py-1 text-xs font-black rounded-t-lg bg-slate-800 text-slate-300 hover:text-white';
+      tabContentRules.classList.remove('hidden');
+      tabContentControls.classList.add('hidden');
+    });
+
+    tabBtnControls.addEventListener('click', () => {
+      tabBtnControls.className = 'px-3 py-1 text-xs font-black rounded-t-lg bg-amber-400 text-slate-950';
+      tabBtnRules.className = 'px-3 py-1 text-xs font-black rounded-t-lg bg-slate-800 text-slate-300 hover:text-white';
+      tabContentControls.classList.remove('hidden');
+      tabContentRules.classList.add('hidden');
+    });
 
     inputName.value = myName;
     userBadge.textContent = myName;
@@ -394,6 +497,7 @@
             melds: []
           }
         },
+        pendingDeclaration: null, // アガリ検証用
         log: `${myName} が部屋を作成しました（${mode === 'card' ? 'カード版' : '牌版'}）`
       };
 
@@ -405,7 +509,7 @@
 
     btnJoinRoom.addEventListener('click', () => {
       const rid = inputRoomId.value.trim().toUpperCase();
-      if (!rid) return showToast('部屋IDを入力してください', true);
+      if (!rid) return showToast('部屋番号を入力してください', true);
       joinRoom(rid);
     });
 
@@ -431,7 +535,7 @@
         return room;
       }, (err, committed) => {
         if (err || !committed) {
-          showToast('部屋に参加できません（満員・対局中・存在しないID）', true);
+          showToast('参加できません（満員・対局中・無効な番号）', true);
         } else {
           connectRoom(roomId);
         }
@@ -453,10 +557,6 @@
         render(localRoom);
       }, err => showToast('接続エラー: ' + err.message, true));
 
-      const url = new URL(window.location);
-      url.searchParams.set('room', roomId);
-      window.history.replaceState({}, '', url);
-
       lobbyScreen.classList.add('hidden');
       gameScreen.classList.remove('hidden');
       roomBadge.classList.remove('hidden');
@@ -469,29 +569,30 @@
       if (roomRef) roomRef.off();
       currentRoomId = null;
       localRoom = null;
-      const url = new URL(window.location);
-      url.searchParams.delete('room');
-      window.history.replaceState({}, '', url);
-
       lobbyScreen.classList.remove('hidden');
       gameScreen.classList.add('hidden');
       roomBadge.classList.add('hidden');
       btnShare.classList.add('hidden');
       btnLeave.classList.add('hidden');
       winModal.classList.add('hidden');
+      voteModal.classList.add('hidden');
     }
 
     btnLeave.addEventListener('click', () => {
       if (confirm('退室しますか？')) exitToLobby();
     });
 
+    // 部屋番号のみをコピー
     btnShare.addEventListener('click', () => {
-      navigator.clipboard.writeText(window.location.href).then(() => {
-        showToast('招待URLをコピーしました！友達に共有してください');
-      }).catch(() => showToast('部屋ID: ' + currentRoomId));
+      if (!currentRoomId) return;
+      navigator.clipboard.writeText(currentRoomId).then(() => {
+        showToast(`部屋番号【${currentRoomId}】をコピーしました！`);
+      }).catch(() => {
+        prompt('部屋番号:', currentRoomId);
+      });
     });
 
-    // 5. Game Start (公式ルール: カード版7枚、牌版13枚)
+    // 5. Game Start
     btnStartGame.addEventListener('click', () => {
       if (!roomRef) return;
       roomRef.transaction(room => {
@@ -510,8 +611,8 @@
         room.turnIndex = 0;
         room.discardRiver = [];
         room.lastDiscard = null;
+        room.pendingDeclaration = null;
 
-        // 最初の人が山から1枚引く
         const firstPlayer = room.players[room.order[0]];
         if (room.deck.length > 0) {
           firstPlayer.hand.push(room.deck.shift());
@@ -528,7 +629,6 @@
       const targetId = selectedTileId;
       selectedTileId = null;
 
-      // スロットにその牌が入っていればスロットからも取り除く
       wordSlots.forEach(slot => {
         const idx = slot.findIndex(t => t.id === targetId);
         if (idx !== -1) slot.splice(idx, 1);
@@ -562,7 +662,6 @@
 
         room.log = `${player.name} が「${discarded.char}」を捨てました`;
 
-        // 手番送り
         room.turnIndex = (room.turnIndex + 1) % room.order.length;
         const nextToken = room.order[room.turnIndex];
         const nextPlayer = room.players[nextToken];
@@ -574,7 +673,6 @@
           return room;
         }
 
-        // 次のプレイヤーが山から1枚引く
         nextPlayer.hand.push(room.deck.shift());
         return room;
       });
@@ -592,7 +690,6 @@
       const chars = promptRes.trim().split('');
       if (chars.length !== 2) return alert('手札から2文字選んでください');
 
-      // 手札内にその文字が存在するかIDベースで探索
       const available = [...p.hand];
       const selectedTiles = [];
       for (const ch of chars) {
@@ -606,7 +703,6 @@
         const targetLast = room.lastDiscard;
         const player = room.players[myToken];
 
-        // 手札から2枚取り除く
         selectedTiles.forEach(t => {
           const idx = player.hand.findIndex(h => h.id === t.id);
           if (idx !== -1) player.hand.splice(idx, 1);
@@ -621,7 +717,6 @@
         }
         room.lastDiscard = null;
 
-        // ポンした人が続けて1枚捨てるため、手番をポンした人にセット
         room.turnIndex = room.order.indexOf(myToken);
         room.log = `${player.name} が「ポン！」と宣言し、「${completedWord}」を作りました`;
         return room;
@@ -657,7 +752,6 @@
         if (!player.melds) player.melds = [];
         player.melds.push(`[カン:${kanChar}×4]`);
 
-        // カン補充
         if (room.deck && room.deck.length > 0) {
           player.hand.push(room.deck.shift());
         }
@@ -670,26 +764,25 @@
     // 9. ロン (Ron)
     btnRon.addEventListener('click', () => {
       if (!roomRef || !localRoom || !localRoom.lastDiscard) return;
-      declareWin('ロン', localRoom.lastDiscard);
+      proposeWin('ロン', localRoom.lastDiscard);
     });
 
-    // 10. ツモ / ひらがじゃん！
+    // 10. ツモ / ひらがじゃん宣言 (Win提案)
     btnWin.addEventListener('click', () => {
-      declareWin('ツモ');
+      proposeWin('ツモ');
     });
 
-    function declareWin(type, ronTile = null) {
+    // アガリの宣言提案（投票フェーズへ移行）
+    function proposeWin(type, ronTile = null) {
       if (!localRoom || !roomRef) return;
       const mode = localRoom.mode;
       const req = (mode === 'card') ? [2, 3, 3] : [2, 3, 3, 3, 3];
       const p = localRoom.players[myToken];
       const melds = p.melds || [];
 
-      // スロット内の言葉
       const wordsFromSlots = wordSlots.map(s => s.map(t => t.char).join('')).filter(w => w.length > 0);
       const totalWords = [...wordsFromSlots, ...melds];
 
-      // ロン牌の組み込みチェック
       if (ronTile) {
         const flatChars = wordSlots.flat().map(t => t.char);
         if (!flatChars.includes(ronTile.char)) {
@@ -711,17 +804,61 @@
         return;
       }
 
+      // トランザクションで投票状態 pendingDeclaration を作成
       roomRef.transaction(room => {
         if (!room || room.status !== 'playing') return room;
-        const winner = room.players[myToken];
-        room.status = 'round_end';
-        room.winner = {
-          token: myToken,
-          name: winner.name,
+        const declarer = room.players[myToken];
+        
+        // 宣言者自身の票は自動承認
+        room.pendingDeclaration = {
+          declarerToken: myToken,
+          declarerName: declarer.name,
           type: type,
-          words: totalWords
+          words: totalWords,
+          votes: {
+            [myToken]: true
+          }
         };
-        room.log = `${winner.name} が「ひらがじゃん！」と宣言して勝利しました！（${type}）`;
+        room.log = `${declarer.name} が「ひらがじゃん！」を宣言！単語の承認投票中...`;
+        return room;
+      });
+    }
+
+    // 承認投票ボタン (Approve / Reject)
+    btnVoteApprove.addEventListener('click', () => castVote(true));
+    btnVoteReject.addEventListener('click', () => castVote(false));
+
+    function castVote(isApproved) {
+      if (!roomRef || !localRoom || !localRoom.pendingDeclaration) return;
+      roomRef.transaction(room => {
+        if (!room || !room.pendingDeclaration) return room;
+        const decl = room.pendingDeclaration;
+        if (!decl.votes) decl.votes = {};
+        decl.votes[myToken] = isApproved;
+
+        // もし却下された場合、即座に否決
+        if (!isApproved) {
+          const voterName = room.players[myToken] ? room.players[myToken].name : 'プレイヤー';
+          room.log = `【却下】${voterName} により単語が承認されませんでした。対局を続行します`;
+          room.pendingDeclaration = null;
+          return room;
+        }
+
+        // 全員が承認したかチェック
+        const allVoted = room.order.every(tok => decl.votes[tok] === true);
+        if (allVoted) {
+          // 全員承認！アガリ確定
+          room.status = 'round_end';
+          room.winner = {
+            token: decl.declarerToken,
+            name: decl.declarerName,
+            type: decl.type,
+            words: decl.words
+          };
+          room.log = `【全員承認】${decl.declarerName} のアガリが成立しました！（${decl.type}）`;
+          room.pendingDeclaration = null;
+        }
+
         return room;
       });
     }
@@ -734,6 +871,7 @@
         if (!room) return room;
         room.status = 'waiting';
         room.winner = null;
+        room.pendingDeclaration = null;
         room.deck = createOfficial120Deck();
         room.discardRiver = [];
         room.lastDiscard = null;
@@ -812,12 +950,10 @@
           const hand = p.hand || [];
 
           if (mode === 'card') {
-            // カード版公式ルール: 「全員から見えるように手元にオープンで置く」
             hand.forEach(t => {
               cardsHtml += `<div class="w-6 h-8 bg-white rounded border border-slate-300 text-slate-950 font-black text-xs flex items-center justify-center shadow-sm">${t.char}</div>`;
             });
           } else {
-            // 牌版公式ルール: 手牌は伏せ牌
             hand.forEach(() => {
               cardsHtml += `<div class="w-5 h-7 bg-slate-700 rounded border border-slate-500 text-[10px] text-amber-300 font-bold flex items-center justify-center shadow-sm">🀄</div>`;
             });
@@ -910,7 +1046,6 @@
               if (selectedTileId) {
                 const found = myHand.find(t => t.id === selectedTileId);
                 if (found) {
-                  // 他のスロットに入っていれば取り除く
                   wordSlots.forEach(s => {
                     const idx = s.findIndex(t => t.id === selectedTileId);
                     if (idx !== -1) s.splice(idx, 1);
@@ -927,7 +1062,7 @@
         wordSlotsContainer.appendChild(slotEl);
       });
 
-      // Render My Hand Tiles（スロット未割り当ての牌のみ）
+      // Render My Hand Tiles（手札並べ替え対応）
       myHandContainer.innerHTML = '';
       const assignedIds = new Set(wordSlots.flat().map(t => t.id));
       const unassignedHand = myHand.filter(t => !assignedIds.has(t.id));
@@ -940,8 +1075,28 @@
           isSelected ? 'active-selected ring-4 ring-amber-400' : ''
         }`;
         btn.textContent = tile.char;
+        
         btn.addEventListener('click', () => {
-          selectedTileId = isSelected ? null : tile.id;
+          if (!selectedTileId) {
+            // 牌を1枚選択
+            selectedTileId = tile.id;
+          } else if (selectedTileId === tile.id) {
+            // 選択解除
+            selectedTileId = null;
+          } else {
+            // 【手札並べ替え機能】: 既に別の牌が選ばれている状態でこの牌をタップしたら位置を入れ替え！
+            const idxA = myHand.findIndex(t => t.id === selectedTileId);
+            const idxB = myHand.findIndex(t => t.id === tile.id);
+            if (idxA !== -1 && idxB !== -1) {
+              const temp = myHand[idxA];
+              myHand[idxA] = myHand[idxB];
+              myHand[idxB] = temp;
+              // Firebaseの自プレイヤー手札順序も更新
+              roomRef.child(`players/${myToken}/hand`).set(myHand);
+              showToast('手札の位置を入れ替えました');
+            }
+            selectedTileId = null;
+          }
           render(localRoom);
         });
         myHandContainer.appendChild(btn);
@@ -953,17 +1108,55 @@
 
       if (isMyTurn) {
         handGuide.textContent = selectedTileId
-          ? '牌を選択中: 「捨てる」か、上のスロットの「＋」をタップして配置'
-          : '牌をタップして選択してください';
+          ? '牌を選択中: 「捨てる」か、スロット「＋」または別牌タップで並べ替え'
+          : '牌をタップして選択（2枚タップで入れ替え可能）';
       } else {
         handGuide.textContent = '手番待機中';
       }
 
-      // Win Modal Display
+      // Vote Modal Display (アガリ言葉の承認投票中)
+      if (room.pendingDeclaration) {
+        const decl = room.pendingDeclaration;
+        voteModal.classList.remove('hidden');
+        voteModalTitle.textContent = `${decl.declarerName} のアガリ宣言（${decl.type}）`;
+        voteWordsBox.innerHTML = '';
+        decl.words.forEach(w => {
+          const div = document.createElement('div');
+          div.className = 'tracking-widest bg-slate-900 border border-slate-800 py-1 rounded text-center text-base text-amber-300';
+          div.textContent = `【 ${w} 】`;
+          voteWordsBox.appendChild(div);
+        });
+
+        const votes = decl.votes || {};
+        const approvedCount = Object.values(votes).filter(v => v === true).length;
+        voteStatusText.textContent = `承認状況: ${approvedCount} / ${room.order.length} 人`;
+
+        if (decl.declarerToken === myToken) {
+          // 宣言者本人は待機
+          voteButtons.classList.add('hidden');
+          voteWaitingSelf.classList.remove('hidden');
+        } else {
+          // 他の人は承認・却下の投票ボタン表示
+          voteButtons.classList.remove('hidden');
+          voteWaitingSelf.classList.add('hidden');
+          // 既に投票済みならボタン文言変更
+          if (votes[myToken] === true) {
+            btnVoteApprove.textContent = '⭕ 承認済み';
+            btnVoteApprove.disabled = true;
+          } else {
+            btnVoteApprove.textContent = '⭕ 認める（承認）';
+            btnVoteApprove.disabled = false;
+          }
+        }
+      } else {
+        voteModal.classList.add('hidden');
+      }
+
+      // Final Win Modal Display
       if (room.status === 'round_end' && room.winner) {
         winModal.classList.remove('hidden');
         winTitle.textContent = 'ひらがじゃん！';
-        winPlayer.textContent = `${room.winner.name} の勝利！（${room.winner.type}）`;
+        winPlayer.textContent = `${room.winner.name} の勝利！（${room.winner.type}・全員承認済み）`;
         winWordsDisplay.innerHTML = '';
         (room.winner.words || []).forEach(w => {
           const item = document.createElement('div');
@@ -982,16 +1175,6 @@
         winModal.classList.add('hidden');
       }
     }
-
-    // Auto join from URL query ?room=XXXX
-    window.addEventListener('DOMContentLoaded', () => {
-      const params = new URLSearchParams(window.location.search);
-      const urlRoom = params.get('room');
-      if (urlRoom) {
-        inputRoomId.value = urlRoom;
-        joinRoom(urlRoom);
-      }
-    });
   </script>
 </body>
 </html>
