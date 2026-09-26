@@ -1,2044 +1,238 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="ひらがなカード／牌で単語を完成させる対戦ゲーム「ひらがじゃん」。GitHub Pages + Firebase Realtime Database で部屋を同期します。">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>ひらがじゃん</title>
 <style>
 :root{
-  --bg:#12151c; --bg2:#1b2030; --panel:#232a3d; --panel2:#2c3450; --line:#3a4463;
-  --text:#eef2ff; --muted:#9aa6c6; --accent:#ffcf5c; --accent2:#6ee7b7; --danger:#ff7b7b; --blue:#7cc6ff;
+  --bg:#0f172a; --bg2:#1e293b; --panel:rgba(255,255,255,.08); --line:rgba(255,255,255,.12);
+  --text:#e5eefc; --muted:#a9bbd6; --card:#f8fafc; --cardText:#0f172a; --acc:#f59e0b; --acc2:#fbbf24;
+  --ok:#10b981; --danger:#ef4444; --violet:#8b5cf6;
 }
 *{box-sizing:border-box}
-html,body{margin:0;padding:0}
-body{
-  background:radial-gradient(1200px 600px at 50% -10%, #223055 0%, var(--bg) 60%);
-  color:var(--text);
-  font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic",Meiryo,system-ui,sans-serif;
-  font-size:16px; line-height:1.7; min-height:100vh;
-}
-h1,h2,h3{line-height:1.4;margin:0 0 .5em}
-h2{font-size:1.15rem}
-h3{font-size:1rem;color:var(--accent)}
-a{color:var(--blue)}
-p{margin:.4em 0}
-ul,ol{margin:.4em 0;padding-left:1.4em}
-button{font:inherit}
-.site-header{
-  display:flex;align-items:center;gap:.8rem;flex-wrap:wrap;
-  padding:.8rem 1rem;border-bottom:1px solid var(--line);
-  background:rgba(18,21,28,.88);position:sticky;top:0;z-index:20;backdrop-filter:blur(6px);
-}
-.site-header .logo{font-size:1.3rem;font-weight:700;letter-spacing:.1em;color:var(--accent)}
-.site-header .tag{font-size:.75rem;color:var(--muted)}
-.conn{margin-left:auto;font-size:.78rem;padding:.15rem .6rem;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
-.conn.on{border-color:var(--accent2);color:var(--accent2)}
-.conn.err{border-color:var(--danger);color:var(--danger)}
-.tabs{display:flex;gap:.4rem;flex-wrap:wrap;padding:.6rem 1rem;border-bottom:1px solid var(--line);background:var(--bg2)}
-.tabs button{
-  background:transparent;border:1px solid var(--line);color:var(--muted);
-  padding:.4rem .9rem;border-radius:999px;cursor:pointer;font-size:.9rem;
-}
-.tabs button[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:#20180a;font-weight:700}
-main{padding:1rem;max-width:1100px;margin:0 auto}
-.tab-panel[hidden]{display:none}
-.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:1rem;margin-bottom:1rem}
-.panel.soft{background:var(--panel2)}
-.row{display:flex;gap:.6rem;flex-wrap:wrap;align-items:center}
-.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem}
-label{display:block;font-size:.85rem;color:var(--muted);margin-bottom:.3em}
-input[type=text]{
-  width:100%;padding:.55rem .7rem;border-radius:8px;border:1px solid var(--line);
-  background:#161b28;color:var(--text);font-size:1rem;
-}
-input[type=text]:focus{outline:2px solid var(--accent);outline-offset:1px}
-.btn{
-  display:inline-flex;align-items:center;gap:.4em;justify-content:center;
-  padding:.55rem 1rem;border-radius:9px;border:1px solid var(--line);
-  background:var(--panel2);color:var(--text);cursor:pointer;font-size:.92rem;
-}
-.btn:hover{filter:brightness(1.15)}
-.btn:disabled{opacity:.45;cursor:not-allowed;filter:none}
-.btn.primary{background:var(--accent);border-color:var(--accent);color:#241b06;font-weight:700}
-.btn.ok{background:var(--accent2);border-color:var(--accent2);color:#06251a;font-weight:700}
-.btn.warn{background:#7a3b3b;border-color:#a05252}
-.btn.small{padding:.3rem .6rem;font-size:.82rem}
-.btn.ghost{background:transparent}
-.btn.sel{background:var(--accent);border-color:var(--accent);color:#241b06;font-weight:700}
-.mode-select{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:.8rem}
-.mode-card{display:block;border:2px solid var(--line);border-radius:12px;padding:.9rem;cursor:pointer;background:#1a1f2e}
-.mode-card input{position:absolute;opacity:0;pointer-events:none}
-.mode-card.sel{border-color:var(--accent);background:#2a2413}
-.mode-card .t{display:block;font-weight:700;font-size:1.05rem;margin-bottom:.2rem}
-.mode-card .d{display:block;font-size:.82rem;color:var(--muted)}
-.room-head{display:flex;gap:.6rem;flex-wrap:wrap;align-items:center}
-.room-id{font-size:1.15rem;font-weight:700;letter-spacing:.16em;color:var(--accent)}
-.badge{display:inline-block;font-size:.75rem;padding:.1rem .55rem;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
-.badge.turn{border-color:var(--accent);color:var(--accent)}
-.badge.me{border-color:var(--blue);color:var(--blue)}
-.badge.off{border-color:#6b6b6b;color:#8d95ab}
-.badge.win{border-color:var(--accent2);color:var(--accent2)}
-.card-tile{
-  display:inline-flex;align-items:center;justify-content:center;
-  min-width:2.1rem;height:2.5rem;padding:0 .3rem;margin:.15rem;
-  background:linear-gradient(#fffdf5,#efe7d2);color:#2b2416;
-  border:1px solid #cbbf9c;border-radius:7px;
-  font-size:1.15rem;font-weight:700;box-shadow:0 2px 0 #b9ad8c;
-  user-select:none;
-}
-button.card-tile{cursor:pointer}
-button.card-tile:hover{transform:translateY(-2px)}
-.card-tile.small{min-width:1.6rem;height:2rem;font-size:.95rem;margin:.1rem;box-shadow:0 1px 0 #b9ad8c}
-.card-tile.back{background:linear-gradient(#3b4767,#28304a);color:#8ea0cc;border-color:#4a5878}
-.card-tile.dim{opacity:.35}
-.card-tile.empty{background:#1a1f2e;border:1px dashed var(--line);color:#4c597c;box-shadow:none;min-width:2.1rem}
-.card-tile.discard-tile{background:linear-gradient(#dceeff,#b9d2f5);border-color:#8fb0dc}
-.hand{display:flex;flex-wrap:wrap;align-items:center;min-height:2.9rem}
-.wordslot{
-  display:flex;align-items:center;gap:.15rem;padding:.3rem .4rem;border-radius:9px;
-  border:1px dashed var(--line);margin:.2rem 0;background:#1a1f2e;min-height:3.1rem;flex-wrap:wrap;
-}
-.wordslot .lbl{font-size:.74rem;color:var(--muted);min-width:5.4rem}
-.wordslot.active{border-color:var(--accent);border-style:solid;box-shadow:0 0 0 2px rgba(255,207,92,.2)}
-.player{display:flex;gap:.6rem;align-items:flex-start;padding:.6rem;border:1px solid var(--line);border-radius:10px;background:#1a1f2e;margin-bottom:.5rem;flex-wrap:wrap}
-.player.turn{border-color:var(--accent)}
-.player .pname{font-weight:700;min-width:6rem}
-.player .pmeta{font-size:.78rem;color:var(--muted);width:100%}
-.discard-area{display:flex;flex-wrap:wrap;gap:.05rem;max-height:11rem;overflow:auto}
-.discard-area .last{outline:3px solid var(--accent);outline-offset:1px}
-.msg{padding:.55rem .8rem;border-radius:9px;border:1px solid var(--line);background:#1a1f2e;margin-bottom:.6rem}
-.msg.warn{border-color:#a05252;background:#2b1c1c}
-.msg.ok{border-color:var(--accent2);background:#12281f}
-.msg.gold{border-color:var(--accent);background:#2a2413}
-.log{max-height:12rem;overflow:auto;font-size:.82rem;color:var(--muted)}
-.log div{border-bottom:1px dashed #2b3350;padding:.15rem 0}
-#modal-root{position:fixed;inset:0;display:none;z-index:60;background:rgba(6,8,14,.78);overflow:auto;padding:1rem}
-#modal-root.open{display:block}
-.modal{max-width:720px;margin:2rem auto;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:1rem}
-#toast-root{position:fixed;left:50%;bottom:1.2rem;transform:translateX(-50%);z-index:80;display:flex;flex-direction:column;gap:.4rem;align-items:center;pointer-events:none}
-.toast{background:#2c3450;border:1px solid var(--line);border-radius:999px;padding:.5rem 1rem;font-size:.88rem;box-shadow:0 6px 20px rgba(0,0,0,.4)}
-.toast.err{border-color:var(--danger);color:#ffdede}
-table.diff{border-collapse:collapse;width:100%;font-size:.85rem}
-table.diff th,table.diff td{border:1px solid var(--line);padding:.35rem .5rem;text-align:left}
-table.diff th{background:var(--panel2)}
-.rules h3{margin-top:1.1em}
-kbd{background:#2c3450;border:1px solid var(--line);border-radius:5px;padding:0 .35em;font-size:.85em}
-.hint{font-size:.8rem;color:var(--muted)}
-.words-line{font-size:.85rem;color:var(--text)}
+html,body{margin:0;min-height:100%;font-family:"Hiragino Sans","Yu Gothic UI",system-ui,sans-serif;background:linear-gradient(160deg,var(--bg),var(--bg2));color:var(--text)}
+button,input,select{font:inherit}
+button{cursor:pointer;border:none;border-radius:12px;padding:10px 14px;font-weight:800}
+button:disabled{opacity:.45;cursor:not-allowed}
+input,select,textarea{border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.08);color:var(--text);padding:10px 12px}
+textarea{width:100%;min-height:72px;resize:vertical}
+.shell{max-width:1240px;margin:0 auto;padding:12px}
+.top{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:14px;border:1px solid var(--line);background:var(--panel);border-radius:18px}
+.top h1{margin:0 auto 0 0;font-size:24px;background:linear-gradient(90deg,var(--acc2),var(--acc));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.p{background:linear-gradient(90deg,var(--acc2),var(--acc));color:#4a2b05}.s{background:#334155;color:#fff}.g{background:var(--ok);color:#fff}.r{background:var(--danger);color:#fff}.v{background:var(--violet);color:#fff}
+.grid{display:grid;grid-template-columns:360px 1fr;gap:12px;margin-top:12px}
+.panel{border:1px solid var(--line);background:var(--panel);border-radius:18px;padding:14px;box-shadow:0 10px 24px rgba(0,0,0,.18)}
+.sec{display:flex;flex-direction:column;gap:10px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.meta{display:flex;flex-wrap:wrap;gap:8px}.pill{padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid var(--line);font-size:12px;font-weight:700}
+.msg{padding:12px 14px;border-radius:14px;background:linear-gradient(180deg,#fff8dc,#fde68a);color:#6b3f00;font-weight:800}
+.players{display:grid;gap:8px}.pl{padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid var(--line)}.pl.act{outline:2px solid rgba(251,191,36,.8)}.nm{font-weight:900}.sub{font-size:12px;color:var(--muted);margin-top:4px}
+.tableArea{display:grid;gap:10px}
+.discards{display:flex;flex-wrap:wrap;gap:6px;min-height:52px}
+.dTile,.tile{width:54px;height:68px;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-direction:column;position:relative;background:var(--card);color:var(--cardText);box-shadow:0 8px 18px rgba(0,0,0,.18);border:2px solid transparent}
+.tile .k{font-size:26px;font-weight:900;line-height:1}.tile .m{font-size:9px;color:#64748b;margin-top:4px}
+.tile.sel{border-color:var(--acc);transform:translateY(-4px)}
+.tile.hidden{background:linear-gradient(145deg,#475569,#1f2937);color:#fff}
+.tile.small{width:46px;height:58px}.openWord{padding:8px 10px;border-radius:12px;background:rgba(255,255,255,.09);border:1px solid var(--line);display:flex;flex-wrap:wrap;gap:6px;align-items:center}.openWord .wl{font-size:12px;color:var(--muted);font-weight:700;min-width:72px}
+.handWrap{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;align-items:flex-end}
+.handInfo{font-size:12px;color:var(--muted)}
+.actions{display:grid;gap:8px}
+.rule{font-size:13px;line-height:1.75;color:var(--muted)}
+.hr{height:1px;background:var(--line);margin:4px 0}
+.logs{display:grid;gap:8px;max-height:280px;overflow:auto}.log{padding:8px 10px;border-radius:12px;background:rgba(255,255,255,.06);border:1px solid var(--line)}.lt{font-size:12px}.ls{font-size:10px;color:var(--muted);margin-top:4px}
+.badge{padding:4px 8px;border-radius:999px;background:rgba(251,191,36,.14);color:#fde68a;font-size:11px;font-weight:800}
+.chk{display:flex;align-items:center;gap:8px;font-size:13px}
+.chk input{width:18px;height:18px}
+.note{font-size:12px;color:#fde68a}
+@media(max-width:980px){.grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
-<header class="site-header">
-  <span class="logo">ひらがじゃん</span>
-  <span class="tag">カード版 / 牌版 対戦（身内向け）</span>
-  <span class="conn" id="conn-status">接続中…</span>
-</header>
+<div class="shell">
+  <div class="top">
+    <h1>🀄 ひらがじゃん</h1>
+    <input id="playerName" placeholder="名前" maxlength="20">
+    <select id="modeSel">
+      <option value="card">カード版</option>
+      <option value="tile">牌版</option>
+    </select>
+    <select id="maxPlayers">
+      <option value="2">2人</option>
+      <option value="3">3人</option>
+      <option value="4" selected>4人</option>
+    </select>
+    <label class="chk"><input type="checkbox" id="sevenPairs"> 七対子あり</label>
+    <input id="roomInput" placeholder="部屋ID" maxlength="12">
+    <button class="p" id="createBtn">部屋作成</button>
+    <button class="s" id="joinBtn">参加</button>
+    <button class="s" id="copyBtn">コピー</button>
+    <button class="g" id="startBtn">開始</button>
+    <button class="r" id="resetBtn">初期化</button>
+  </div>
 
-<nav class="tabs" role="tablist" aria-label="画面切り替え">
-  <button role="tab" id="tabbtn-game" data-act="switch-tab" data-tab="game" aria-selected="true">ゲーム</button>
-  <button role="tab" id="tabbtn-rules" data-act="switch-tab" data-tab="rules" aria-selected="false">ルール説明</button>
-  <button role="tab" id="tabbtn-howto" data-act="switch-tab" data-tab="howto" aria-selected="false">操作方法</button>
-  <button role="tab" id="tabbtn-common" data-act="switch-tab" data-tab="common" aria-selected="false">共通ルール</button>
-</nav>
+  <div class="grid">
+    <aside class="panel sec">
+      <div class="meta" id="meta"></div>
+      <div class="msg" id="message">部屋を作成するか参加してください。</div>
+      <div class="players" id="players"></div>
+      <div class="hr"></div>
+      <div><strong>進行</strong></div>
+      <div class="actions" id="actions"></div>
+      <div class="note">単語の意味・妥当性はプレイヤー同士で確認してください。アプリは主に配牌・山札・捨て牌・手番進行を管理します。</div>
+      <div class="hr"></div>
+      <div><strong>ルール要点</strong></div>
+      <div class="rule" id="rulesText"></div>
+    </aside>
 
-<main>
-  <section class="tab-panel" id="panel-game" role="tabpanel" aria-labelledby="tabbtn-game">
-    <div id="setup-view">
-      <div class="panel">
-        <h2>モードを選んで部屋を立てる</h2>
-        <p class="hint">部屋を立てる前に、あそぶモード（カード版／牌版）を選びます。</p>
-        <div class="mode-select" id="mode-select" role="radiogroup" aria-label="モード選択">
-          <label class="mode-card sel" data-act="pick-mode" data-mode="card">
-            <input type="radio" name="mode" value="card" checked>
-            <span class="t">カード版</span>
-            <span class="d">手札7枚・表向き・「3文字＋3文字＋2文字」（合計8枚）であがり。ポン／カン／ロンなし。</span>
-          </label>
-          <label class="mode-card" data-act="pick-mode" data-mode="tile">
-            <input type="radio" name="mode" value="tile">
-            <span class="t">牌版</span>
-            <span class="d">手札13個・非公開・「3・3・3・3・2」（合計14個）であがり。ポン／カン／ロン／ツモ／七対子／得点あり。</span>
-          </label>
-        </div>
+    <main class="sec">
+      <section class="panel sec">
+        <div class="row" style="justify-content:space-between"><strong>捨て牌</strong><span class="badge" id="pendingBadge">なし</span></div>
+        <div class="discards" id="discards"></div>
+      </section>
 
-        <div class="grid2" style="margin-top:1rem">
-          <div>
-            <label for="name-input">あなたの名前</label>
-            <input type="text" id="name-input" maxlength="12" placeholder="例：たろう" autocomplete="nickname">
-            <div class="row" style="margin-top:.6rem">
-              <button class="btn primary" data-act="create-room">部屋を立てる</button>
-            </div>
-          </div>
-          <div>
-            <label for="room-input">部屋番号で参加（8文字）</label>
-            <input type="text" id="room-input" maxlength="8" placeholder="例：ABCD2345" autocapitalize="characters" spellcheck="false">
-            <div class="row" style="margin-top:.6rem">
-              <button class="btn" data-act="join-room">部屋に参加する</button>
-            </div>
-          </div>
-        </div>
-        <p class="hint" id="config-warning" hidden></p>
-      </div>
-    </div>
+      <section class="panel sec">
+        <strong>公開メルド / 確定語</strong>
+        <div id="openWords"></div>
+      </section>
 
-    <div id="room-view" hidden>
-      <div class="panel">
-        <div class="room-head">
-          <span>部屋番号 <span class="room-id" id="room-id-label"></span></span>
-          <button class="btn small" data-act="copy-id">番号のみコピー</button>
-          <button class="btn small" data-act="copy-url">URLをコピー</button>
-          <span class="badge" id="mode-badge"></span>
-          <button class="btn small warn" data-act="leave" style="margin-left:auto">退出</button>
-        </div>
-        <p class="hint" id="room-hint"></p>
-      </div>
+      <section class="panel sec">
+        <strong>あなたの手札</strong>
+        <div class="handInfo" id="handInfo">-</div>
+        <div class="handWrap" id="hand"></div>
+      </section>
 
-      <div class="panel soft" id="status-panel"></div>
-      <div id="notice-area"></div>
-      <div id="result-area"></div>
+      <section class="panel sec">
+        <div class="row" style="justify-content:space-between"><strong>行動ログ</strong><span class="badge" id="statusBadge">待機中</span></div>
+        <div class="logs" id="logs"></div>
+      </section>
+    </main>
+  </div>
+</div>
 
-      <div class="grid2">
-        <div class="panel" id="my-area"></div>
-        <div class="panel" id="board-area"></div>
-      </div>
-
-      <div class="panel" id="players-area"></div>
-      <div class="panel">
-        <h3>ログ</h3>
-        <div class="log" id="log-area"></div>
-      </div>
-    </div>
-  </section>
-
-  <section class="tab-panel" id="panel-rules" role="tabpanel" aria-labelledby="tabbtn-rules" hidden>
-    <div class="panel">
-      <h2>ルール説明</h2>
-      <p class="hint">表示中のモードのルールを表示しています。</p>
-      <div class="row">
-        <button class="btn small" data-act="rules-mode" data-mode="card" id="rules-btn-card">カード版のルール</button>
-        <button class="btn small" data-act="rules-mode" data-mode="tile" id="rules-btn-tile">牌版のルール</button>
-        <button class="btn small" data-act="rules-mode" data-mode="diff" id="rules-btn-diff">2つの違い</button>
-      </div>
-    </div>
-    <div class="panel rules" id="rules-body"></div>
-  </section>
-
-  <section class="tab-panel" id="panel-howto" role="tabpanel" aria-labelledby="tabbtn-howto" hidden>
-    <div class="panel rules">
-      <h2>操作方法</h2>
-      <h3>1. 部屋を立てる／参加する</h3>
-      <ol>
-        <li>「ゲーム」タブでモード（<b>カード版</b>／<b>牌版</b>）を選びます。</li>
-        <li>名前を入れて <kbd>部屋を立てる</kbd> を押すと、8文字の部屋番号が出ます。</li>
-        <li>他の人は同じ部屋番号を入れて <kbd>部屋に参加する</kbd>、または共有されたURLを開いて参加します（2〜4人）。</li>
-        <li><kbd>番号のみコピー</kbd> で部屋番号だけ、<kbd>URLをコピー</kbd> で参加用URLをコピーできます。</li>
-      </ol>
-      <h3>2. ゲームを始める（部屋を立てた人＝ホスト）</h3>
-      <ul>
-        <li>牌版は必要なら <b>七対子（2文字×7組）を採用する</b> を先に切り替えます（開始前に決めます）。</li>
-        <li>2人以上そろったら <kbd>ゲーム開始</kbd>。手札が配られ、ホストが最初の手番です。</li>
-        <li>複数局あそぶときは、あがり後に <kbd>次の局へ</kbd>（得点は持ち越し）を使います。</li>
-      </ul>
-      <h3>3. 自分の手番</h3>
-      <ul>
-        <li><kbd>山から引く</kbd>：山から1枚引いて手札が1枚増えます（カード版：8枚／牌版：14個）。</li>
-        <li>手札は常に五十音順で表示されるので、並べ替えの操作は不要です（共通ルールの「並べ替え」はこれで満たします）。</li>
-        <li>あがりの形が作れるときは <kbd>あがり宣言</kbd>（牌版は <kbd>ツモ宣言</kbd>）。作れないときは手札の牌をクリックして捨てます（確認のうえ実行されます）。</li>
-      </ul>
-      <h3>4. 宣言のしかた（単語のつくり方）</h3>
-      <ol>
-        <li>宣言ボタンを押すと、単語の枠（例：3文字・3文字・2文字）と手札が開きます。</li>
-        <li>下の手札をクリックすると、前の枠から順に文字が入ります。枠の中の牌をクリックすると手札に戻ります。</li>
-        <li>枠をすべて埋めたら <kbd>宣言する</kbd>。他のプレイヤー全員が言葉として認めれば成立します（全員の合意）。</li>
-        <li>意見が分かれたときは <kbd>検索して確認</kbd> のリンクで辞書・検索を使えます。認められないときは <kbd>否認</kbd> で続行します。</li>
-      </ol>
-      <h3>5. ポン／カン／ロン（牌版のみ）</h3>
-      <ul>
-        <li><b>ポン</b>：誰かが捨てた直後に宣言できます。捨て牌＋手牌2個で3文字の単語を作ります。成立後は自分が1個捨てます。</li>
-        <li><b>カン</b>：自分が山から引いたあとに4文字以上の単語を作ります（5文字・6文字も可）。文字数から3を引いた数だけ山から補充し、そのあと1個捨てます。</li>
-        <li><b>ロン</b>：他の人が捨てた牌で自分のあがりが完成するときに宣言します。ポン／カンをした人と、自分が捨てたのと同じ文字ではロンできません。</li>
-        <li>ポン・ロンの受付は、次のプレイヤーが山から引くまでの間です。早い者勝ちになります。</li>
-      </ul>
-      <h3>6. 終わったあと</h3>
-      <ul>
-        <li>あがるとアガリ手（単語）と得点が表示されます。牌版は <b>ロン：+3／-3</b>、<b>ツモ：+3／他の人は各-1</b>。</li>
-        <li>山が尽きると流局です。ホストは <kbd>次の局へ</kbd> か <kbd>ルーム初期化</kbd>（待機中に戻す）を選べます。</li>
-        <li>手番の人が切断して進まないときは、ホストが <kbd>手番を進める</kbd> を使えます。</li>
-      </ul>
-    </div>
-  </section>
-
-  <section class="tab-panel" id="panel-common" role="tabpanel" aria-labelledby="tabbtn-common" hidden>
-    <div class="panel rules">
-      <h2>ひらがじゃん 共通ルール</h2>
-      <h3>目的</h3>
-      <p>ひらがなのカードまたは牌を引いて捨てながら、決められた文字数の単語を完成させる。<br>必要な単語をすべて完成させたプレイヤーが「あがり」となる。</p>
-      <h3>単語の判定</h3>
-      <ul>
-        <li>単語は、プレイヤー間で単語として認められれば使用できる。</li>
-        <li>辞書に載っているかどうかは必須条件としない。</li>
-        <li>固有名詞、擬音語、擬態語、造語も、プレイヤー間で認められれば使用できる。</li>
-        <li>単語を構成する文字の順番は正しくなければならない。</li>
-        <li>1つのカードまたは牌を、複数の単語で重複して使用してはならない。</li>
-        <li>単語の判定で意見が分かれた場合は、事前に決めた方法で判定する（全員の合意／多数決／辞書や検索による確認）。</li>
-        <li>「を」はカード・牌に含まれないため、使用できない。</li>
-      </ul>
-      <h3>共通のターン進行</h3>
-      <ol>
-        <li>山からカードまたは牌を1枚取る。</li>
-        <li>手元のカードまたは牌を並べ替える。</li>
-        <li>あがりの形を作れるか確認する。</li>
-        <li>あがりでなければ、手元から1枚捨てる。</li>
-        <li>次のプレイヤーへ手番を移す。</li>
-      </ol>
-    </div>
-  </section>
-</main>
-
-<div id="modal-root" role="dialog" aria-modal="true" aria-label="単語の入力"></div>
-<div id="toast-root" aria-live="polite"></div>
-
-<script src="https://www.gstatic.com/firebasejs/12.18.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script>
-/* =========================================================
-   ひらがじゃん（index.html 単一ファイル完結）
-   Firebase Realtime Database（compat v12.18.0 / compat モード）
-   ※ database-compat は initFirebase() 内で読み込みます
-   ========================================================= */
-
-/* ---- 設定（Firebase Console の値をそのまま貼り付け） ---- */
-var FIREBASE_CONFIG = {
-  apiKey: "AIzaSyDTH8N9_9QAj_Id9KNnvVfN62v42zg-Rtk",
-  authDomain: "hiragajan-af30f.firebaseapp.com",
-  databaseURL: "https://hiragajan-af30f-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "hiragajan-af30f",
-  storageBucket: "hiragajan-af30f.firebasestorage.app",
-  messagingSenderId: "209578576362",
-  appId: "1:209578576362:web:1875a3f7ce9ff21c93ca93"
-    
+/* Firebase config */
+var firebaseConfig={
+  apiKey:"AIzaSyDTH8N9_9QAj_Id9KNnvVfN62v42zg-Rtk",
+  authDomain:"hiragajan-af30f.firebaseapp.com",
+  databaseURL:"https://hiragajan-af30f-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId:"hiragajan-af30f",
+  storageBucket:"hiragajan-af30f.firebasestorage.app",
+  messagingSenderId:"209578576362",
+  appId:"1:209578576362:web:1875a3f7ce9ff21c93ca93"
 };
-
-/* ---- 定数 ---- */
-var ROOM_PATH = 'rooms_br';   /* Rules のトップキーと一致させる */
-var MAX_PLAYERS = 4;
-var LOG_MAX = 100;
-var ID_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-
-var KANA_BASE = 'あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわん';
-var KANA_DAKU = 'がぎぐげござじずぜぞだぢづでどばびぶべぼ';
-var KANA_HANDAKU = 'ぱぴぷぺぽ';
-var KANA_EXT = 'ゃゅょっー';
-/* 牌構成：あ〜ん（を除く45音）各2 + 濁音20 + 半濁音5 + 拗音長音5 = 120 */
-
-/* 五十音順（清音→濁音→半濁音の順）：並べ替え表示に使う */
-var SORT_GROUPS = [
-  'あ', 'い', 'う', 'え', 'お',
-  'かが', 'きぎ', 'くぐ', 'けげ', 'こご',
-  'さざ', 'しじ', 'すず', 'せぜ', 'そぞ',
-  'ただ', 'ちぢ', 'つづ', 'てで', 'とど',
-  'な', 'に', 'ぬ', 'ね', 'の',
-  'はばぱ', 'ひびぴ', 'ふぶぷ', 'へべぺ', 'ほぼぽ',
-  'ま', 'み', 'む', 'め', 'も',
-  'やゃ', 'ゆゅ', 'よょ',
-  'ら', 'り', 'る', 'れ', 'ろ',
-  'わ', 'ん', 'っ', 'ー'
-];
-
-var MODES = {
-  card: { key:'card', label:'カード版', slots:[3,3,2], initial:7, target:8, melds:false, scoring:false, chiitoi:false },
-  tile: { key:'tile', label:'牌版', slots:[3,3,3,3,2], initial:13, target:14, melds:true, scoring:true, chiitoi:true }
-};
-
-var SORT_ORDER = {};
-(function () {
-  var n = 0;
-  for (var g = 0; g < SORT_GROUPS.length; g++) {
-    var group = SORT_GROUPS[g];
-    for (var i = 0; i < group.length; i++) SORT_ORDER[group[i]] = n++;
-  }
-})();
-
-/* ---- ローカル状態 ---- */
-var S = {
-  pid: null, name: '', roomId: null, room: null, ref: null,
-  mode: 'card', rulesMode: 'card', tab: 'game', decl: null, busy: false, db: null
-};
-
-/* =========================================================
-   ユーティリティ
-   ========================================================= */
-function $(id) { return document.getElementById(id); }
-
-function esc(s) {
-  return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
-    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
-  });
-}
-
-function toast(msg, isErr) {
-  var root = $('toast-root');
-  if (!root) return;
-  var el = document.createElement('div');
-  el.className = 'toast' + (isErr ? ' err' : '');
-  el.textContent = msg;
-  root.appendChild(el);
-  setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 3600);
-}
-
-function setConn(text, cls) {
-  var el = $('conn-status');
-  if (!el) return;
-  el.textContent = text;
-  el.className = 'conn' + (cls ? ' ' + cls : '');
-}
-
-function getPid() {
-  var k = 'hj_pid';
-  try {
-    var v = localStorage.getItem(k);
-    if (v) return v;
-  } catch (e) {}
-  var v2 = randomHex(16);
-  try { localStorage.setItem(k, v2); } catch (e) {}
-  return v2;
-}
-
-function randomHex(n) {
-  var out = '';
-  try {
-    var buf = new Uint8Array(n);
-    crypto.getRandomValues(buf);
-    for (var i = 0; i < n; i++) out += buf[i].toString(16).padStart(2, '0');
-  } catch (e) {
-    for (var j = 0; j < n; j++) out += Math.floor(Math.random() * 256).toString(16).padStart(2, '0');
-  }
-  return out;
-}
-
-function randomRoomId() {
-  var out = '';
-  var buf = new Uint8Array(8);
-  try { crypto.getRandomValues(buf); }
-  catch (e) { for (var i = 0; i < 8; i++) buf[i] = Math.floor(Math.random() * 256); }
-  for (var k = 0; k < 8; k++) out += ID_ALPHABET[buf[k] % ID_ALPHABET.length];
-  return out;
-}
-
-function copyText(text, okMsg) {
-  function fallback() {
-    var ta = document.createElement('textarea');
-    ta.value = text;
-    ta.setAttribute('readonly', '');
-    ta.style.position = 'fixed';
-    ta.style.left = '-9999px';
-    document.body.appendChild(ta);
-    ta.select();
-    var ok = false;
-    try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
-    document.body.removeChild(ta);
-    toast(ok ? okMsg : 'コピーに失敗しました（手動で選択してください）', !ok);
-  }
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(text).then(function () { toast(okMsg); }, fallback);
-  } else {
-    fallback();
-  }
-}
-
-/* ---- 牌・手札 ---- */
-function buildDeck() {
-  var deck = [], i;
-  for (i = 0; i < KANA_BASE.length; i++) { deck.push(KANA_BASE[i]); deck.push(KANA_BASE[i]); }
-  for (i = 0; i < KANA_DAKU.length; i++) deck.push(KANA_DAKU[i]);
-  for (i = 0; i < KANA_HANDAKU.length; i++) deck.push(KANA_HANDAKU[i]);
-  for (i = 0; i < KANA_EXT.length; i++) deck.push(KANA_EXT[i]);
-  return deck;
-}
-
-function shuffle(arr) {
-  var a = arr.slice();
-  for (var i = a.length - 1; i > 0; i--) {
-    var j = Math.floor(Math.random() * (i + 1));
-    var t = a[i]; a[i] = a[j]; a[j] = t;
-  }
-  return a;
-}
-
-function sortHand(hand) {
-  return (hand || []).slice().sort(function (a, b) {
-    return (SORT_ORDER[a] == null ? 999 : SORT_ORDER[a]) - (SORT_ORDER[b] == null ? 999 : SORT_ORDER[b]);
-  });
-}
-
-function removeChars(hand, chars) {
-  var hs = (hand || []).slice();
-  (chars || []).forEach(function (ch) {
-    var i = hs.indexOf(ch);
-    if (i >= 0) hs.splice(i, 1);
-  });
-  return hs;
-}
-
-function isSevenPairs(hand) {
-  var h = hand || [];
-  if (h.length !== 14) return false;
-  var counts = {};
-  for (var i = 0; i < h.length; i++) counts[h[i]] = (counts[h[i]] || 0) + 1;
-  for (var k in counts) if (counts[k] !== 2) return false;
-  return true;
-}
-
-function sortedPlayers(room) {
-  var arr = [];
-  var players = (room && room.players) || {};
-  for (var k in players) if (players[k]) arr.push(players[k]);
-  arr.sort(function (a, b) { return (a.seat || 0) - (b.seat || 0); });
-  return arr;
-}
-
-function playerName(room, pid) {
-  var p = room && room.players && room.players[pid];
-  return p ? p.name : '（退出済み）';
-}
-
-function nextPid(room, pid) {
-  var arr = sortedPlayers(room);
-  if (!arr.length) return pid;
-  if (arr.length === 1) return arr[0].pid;
-  var idx = -1;
-  for (var i = 0; i < arr.length; i++) if (arr[i].pid === pid) { idx = i; break; }
-  if (idx < 0) return arr[0].pid;
-  for (var k = 1; k <= arr.length; k++) {
-    var cand = arr[(idx + k) % arr.length];
-    if (cand.connected !== false) return cand.pid;
-  }
-  return arr[(idx + 1) % arr.length].pid;
-}
-
-function meldsOf(room, pid) {
-  return ((room && room.game && room.game.melds && room.game.melds[pid]) || []);
-}
-
-/* 自分が過去に捨てた牌と同じ文字か（＝その文字ではロンできない） */
-function hasDiscardedChar(room, pid, ch) {
-  var pile = (room && room.game && room.game.discards && room.game.discards[pid]) || [];
-  return pile.indexOf(ch) >= 0;
-}
-
-function requiredTiles(room, pid) {
-  var base = room.mode === 'card' ? 8 : 14;
-  return base - 3 * meldsOf(room, pid).length;
-}
-
-function canAgariShape(room, pid, hand) {
-  /* あがりに必要な枚数がそろっているか（単語として認められるかはプレイヤー間の合意で決める） */
-  return hand.length === requiredTiles(room, pid);
-}
-
-/* あがり宣言で作る単語の枠。ポン・カンした単語の分だけ枠を減らす */
-function agariSlots(room, pid, isChiitoi) {
-  if (isChiitoi) return [2, 2, 2, 2, 2, 2, 2];
-  var cfg = MODES[room.mode] || MODES.card;
-  var melds = meldsOf(room, pid).length;
-  return cfg.slots.slice(Math.min(melds, cfg.slots.length));
-}
-
-function chiitoiEnabled(room, pid) {
-  return !!(room.mode === 'tile' && room.config && room.config.chiitoi) && meldsOf(room, pid).length === 0;
-}
-
-/* 宣言された単語の並びが、そのモードの正当な形か */
-function isLegalShape(room, pid, words, isChiitoi) {
-  var lens = (words || []).map(function (w) { return w.length; });
-  if (isChiitoi) {
-    return lens.length === 7 && lens.every(function (n) { return n === 2; });
-  }
-  var legal = agariSlots(room, pid, false);
-  if (lens.length !== legal.length) return false;
-  for (var i = 0; i < legal.length; i++) if (lens[i] !== legal[i]) return false;
-  return true;
-}
-
-function pushLog(logs, msg) {
-  var arr = (logs || []).slice();
-  arr.push({ msg: msg });
-  if (arr.length > LOG_MAX) arr = arr.slice(arr.length - LOG_MAX);
-  return arr;
-}
-
-function logMsg(room, msg) { room.logs = pushLog(room.logs, msg); }
-
-/* =========================================================
-   Firebase 初期化
-   ========================================================= */
-function roomUrl(id) {
-  return location.origin + location.pathname + '?room=' + id;
-}
-
-function touchUpdatedAt() {
-  if (!S.ref) return;
-  S.ref.child('updatedAt').set(firebase.database.ServerValue.TIMESTAMP).catch(function () {});
-}
-
-/* トランザクション実行（applyLocally は指定しない＝既定 true） */
-function txRoom(fn) {
-  if (!S.ref) return Promise.reject(new Error('no ref'));
-  return S.ref.transaction(fn).then(function (res) {
-    if (!res || !res.committed) {
-      var err = new Error('aborted');
-      err.aborted = true;
-      throw err;
-    }
-    return res.snapshot ? res.snapshot.val() : null;
-  });
-}
-
-function fbError(e) {
-  var code = (e && (e.code || e.message)) || '';
-  if (String(code).indexOf('PERMISSION_DENIED') >= 0) {
-    toast('データベースへの書き込みが拒否されました。Rules を確認してください。', true);
-  } else if (String(code).indexOf('aborted') >= 0) {
-    /* 意図的なabortは呼び出し側で処理 */
-  } else {
-    toast('通信エラーが発生しました：' + code, true);
-  }
-}
-
-var __initDone = false;
-function initFirebase() {
-  if (__initDone) return true;
-  if (typeof firebase === 'undefined' || !firebase.initializeApp || typeof firebase.database !== 'function') {
-    setConn('SDK読込中…', 'err');
-    loadDbCompat(function (ok) {
-      if (ok) { initFirebase(); }
-      else {
-        setConn('SDK読込失敗', 'err');
-        toast('Firebase SDKを読み込めませんでした（ネットワーク／CDNを確認してください）', true);
-      }
-    });
-    return false;
-  }
-  try {
-    var app = firebase.apps && firebase.apps.length ? firebase.app() : firebase.initializeApp(FIREBASE_CONFIG);
-    S.db = app.database();
-  } catch (e) {
-    setConn('初期化失敗', 'err');
-    toast('Firebase の初期化に失敗しました：' + (e && e.message ? e.message : e), true);
-    return false;
-  }
-  __initDone = true;
-  setConn('未参加');
-  return true;
-}
-
-var __loadingDb = false;
-function loadDbCompat(cb) {
-  if (__loadingDb) return;
-  __loadingDb = true;
-  var done = false;
-  function finish(ok) { if (done) return; done = true; __loadingDb = false; cb(ok); }
-  var s = document.createElement('script');
-  s.src = 'https://www.gstatic.com/firebasejs/12.18.0/firebase-database-compat.js';
-  s.onload = function () { finish(true); };
-  s.onerror = function () { finish(false); };
-  document.head.appendChild(s);
-  setTimeout(function () {
-    finish(typeof firebase !== 'undefined' && typeof firebase.database === 'function');
-  }, 10000);
-}
-
-/* =========================================================
-   部屋の監視
-   ========================================================= */
-function attachRoomRef(id) {
-  detachRoomRef();
-  S.roomId = id;
-  S.ref = S.db.ref(ROOM_PATH + '/' + id);
-  S.ref.on('value', onRoomValue, onRoomError);
-}
-
-function detachRoomRef() {
-  if (S.ref) S.ref.off();
-}
-
-function onRoomValue(snap) {
-  var v = snap.val();
-  setConn('接続OK', 'on');
-  var prevStatus = S.room && S.room.status;
-  S.room = v;
-  if (!v) {
-    S.room = null;
-    detachRoomRef();
-    S.ref = null;
-    S.roomId = null;
-    S.decl = null;
-    if (prevStatus) toast('部屋が削除されました', true);
-    renderAll();
-    return;
-  }
-  var g = S.room.game;
-  if (S.decl && (!g || !g.hands || (g.hands[S.pid] || []).length !== S.decl.handLen)) {
-    S.decl = null;
-  }
-  renderAll();
-}
-
-function onRoomError(e) {
-  setConn('読取エラー', 'err');
-  var code = String((e && (e.code || e.message)) || '');
-  if (code.indexOf('PERMISSION_DENIED') >= 0) {
-    toast('部屋データを読み取れません。Rules の .read を確認してください。', true);
-  } else {
-    toast('通信エラー：' + code, true);
-  }
-}
-
-/* =========================================================
-   部屋の作成 / 参加 / 退出
-   ========================================================= */
-function readName() {
-  var el = $('name-input');
-  var name = el ? el.value.trim() : '';
-  if (!name) name = S.name || '';
-  return name.slice(0, 12);
-}
-
-function requireName() {
-  var name = readName();
-  if (!name) {
-    toast('名前を入力してください', true);
-    var el = $('name-input');
-    if (el) el.focus();
-    return null;
-  }
-  S.name = name;
-  try { localStorage.setItem('hj_name', name); } catch (e) {}
-  return name;
-}
-
-function createRoom(tries) {
-  tries = tries || 0;
-  var name = requireName();
-  if (!name) return;
-  if (S.busy) return;
-  S.busy = true;
-  var id = randomRoomId();
-  var pid = S.pid;
-  var mode = S.mode;
-  var exists = false;
-
-  var tmpRef = S.db.ref(ROOM_PATH + '/' + id);
-  S.ref = tmpRef;
-
-  tmpRef.transaction(function (cur) {
-    if (cur !== null) { exists = true; return; } /* 既存 → abort */
-    var room = {
-      mode: mode,
-      hostId: pid,
-      status: 'waiting',
-      config: { chiitoi: false },
-      players: {},
-      game: null,
-      createdAt: 0,
-      updatedAt: 0,
-      logs: []
-    };
-    room.players[pid] = { pid: pid, name: name, seat: 0, score: 0, connected: true };
-    room.logs = pushLog(room.logs, name + ' が部屋を立てました（' + MODES[mode].label + '）');
-    return room;
-  }).then(function (res) {
-    if (!res || !res.committed) {
-      if (exists && tries < 5) { S.busy = false; return createRoom(tries + 1); }
-      S.busy = false;
-      if (exists) toast('部屋番号が重複しました。もう一度お試しください。', true);
-      return;
-    }
-    S.busy = false;
-    S.roomId = id;
-    attachRoomRef(id);
-    S.ref.child('createdAt').set(firebase.database.ServerValue.TIMESTAMP).catch(function () {});
-    touchUpdatedAt();
-    setupPresence();
-    try { history.replaceState(null, '', roomUrl(id)); } catch (e) {}
-    toast('部屋を立てました：' + id);
-  }).catch(function (e) { S.busy = false; fbError(e); });
-}
-
-function joinRoom(idOverride) {
-  var name = requireName();
-  if (!name) return;
-  var el = $('room-input');
-  var id = String(idOverride || (el ? el.value : '')).trim().toUpperCase();
-  if (!/^[A-Z0-9]{8}$/.test(id)) { toast('部屋番号は8文字の英数字です', true); return; }
-  if (S.busy) return;
-  S.busy = true;
-
-  var pid = S.pid;
-  var notFound = false, started = false, full = false;
-
-  var tmpRef = S.db.ref(ROOM_PATH + '/' + id);
-  S.ref = tmpRef;
-
-  tmpRef.transaction(function (cur) {
-    if (cur === null) { notFound = true; return; } /* abort */
-    if (!cur.players) cur.players = {};
-    var players = cur.players;
-
-    if (players[pid]) {
-      players[pid].name = name;
-      players[pid].connected = true;
-      cur.players = players;
-      logMsg(cur, name + ' が入室しました（再接続）');
-      return cur;
-    }
-    if (cur.status !== 'waiting') { started = true; return; }
-    var used = {}, count = 0, k;
-    for (k in players) if (players[k]) { used[players[k].seat] = true; count++; }
-    if (count >= MAX_PLAYERS) { full = true; return; }
-    var seat = 0;
-    while (used[seat]) seat++;
-    players[pid] = { pid: pid, name: name, seat: seat, score: 0, connected: true };
-    cur.players = players;
-    logMsg(cur, name + ' が入室しました');
-    return cur;
-  }).then(function (res) {
-    S.busy = false;
-    if (!res || !res.committed) {
-      if (notFound) {
-        S.ref = null;
-        toast('その部屋番号の部屋が見つかりません', true);
-      } else if (started) {
-        S.ref = null;
-        toast('その部屋はすでにゲーム中です（参加できません）', true);
-      } else if (full) {
-        S.ref = null;
-        toast('その部屋は満員です（最大' + MAX_PLAYERS + '人）', true);
-      }
-      return;
-    }
-    S.roomId = id;
-    attachRoomRef(id);
-    touchUpdatedAt();
-    setupPresence();
-    try { history.replaceState(null, '', roomUrl(id)); } catch (e) {}
-    toast('部屋に参加しました：' + id);
-  }).catch(function (e) { S.busy = false; fbError(e); });
-}
-
-function setupPresence() {
-  if (!S.ref || !S.pid) return;
-  var connRef = S.ref.child('players/' + S.pid + '/connected');
-  connRef.onDisconnect().set(false).catch(function () {});
-}
-
-function leaveRoom() {
-  if (!S.ref) return;
-  var pid = S.pid;
-  var ref = S.ref;
-  var gs = S.room && S.room.status;
-  ref.child('players/' + pid + '/connected').onDisconnect().cancel().catch(function () {});
-
-  var leavingName = playerName(S.room, pid);
-  var removed = false;
-  ref.transaction(function (room) {
-    if (!room) { removed = true; return; }
-    if (!room.players || !room.players[pid]) { return room; }
-    leavingName = playerNameSafe(room, pid);
-    if (room.status === 'waiting') {
-      delete room.players[pid];
-      var remaining = [];
-      for (var k in room.players) if (room.players[k]) remaining.push(room.players[k]);
-      if (!remaining.length) return null; /* 誰もいなければ部屋を削除 */
-      if (room.hostId === pid) {
-        remaining.sort(function (a, b) { return a.seat - b.seat; });
-        room.hostId = remaining[0].pid;
-        logMsg(room, remaining[0].name + ' がホストになりました');
-      }
-      logMsg(room, leavingName + ' が退出しました');
-      return room;
-    }
-    room.players[pid].connected = false;
-    if (room.hostId === pid) {
-      var arr = sortedPlayers(room).filter(function (p) { return p.pid !== pid && p.connected !== false; });
-      if (arr.length) room.hostId = arr[0].pid;
-    }
-    if (room.game && room.game.turn === pid && room.game.phase !== 'over') {
-      room.game.turn = nextPid(room, pid);
-      room.game.phase = 'draw';
-      room.game.drawn = false;
-      room.game.lastDiscard = null;
-      room.game.seq = (room.game.seq || 0) + 1;
-    }
-    logMsg(room, leavingName + ' の接続が切れました');
-    return room;
-  }).then(function () {
-    detachRoomRef();
-    S.ref = null;
-    S.roomId = null;
-    S.room = null;
-    S.decl = null;
-    try { history.replaceState(null, '', location.origin + location.pathname); } catch (e) {}
-    renderAll();
-    toast('部屋から退出しました');
-  }).catch(fbError);
-}
-
-/* transaction 内で名前を引くための安全版（name除去後の呼び出し用） */
-function playerNameSafe(room, pid) {
-  var p = room && room.players && room.players[pid];
-  return p ? p.name : 'プレイヤー';
-}
-
-/* =========================================================
-   ゲーム進行（すべて transaction 内で整合性を保つ）
-   ========================================================= */
-function toggleChiitoi() {
-  txRoom(function (room) {
-    if (!room) return;
-    if (room.status !== 'waiting') return;
-    if (room.hostId !== S.pid) return;
-    room.config = room.config || {};
-    room.config.chiitoi = !room.config.chiitoi;
-    logMsg(room, '七対子（2文字×7組）：' + (room.config.chiitoi ? '採用する' : '採用しない'));
-    return room;
-  }).then(touchUpdatedAt).catch(fbError);
-}
-
-function startGame() {
-  txRoom(function (room) {
-    if (!room) return;
-    if (room.hostId !== S.pid) return;
-    if (room.status !== 'waiting') return;
-    /* 待機中に切断したプレイヤーは席を解放する */
-    for (var pk in room.players) {
-      if (room.players[pk] && room.players[pk].connected === false) delete room.players[pk];
-    }
-    var ps = sortedPlayers(room);
-    if (ps.length < 2) return;
-    ps.forEach(function (p, si) { room.players[p.pid].seat = si; });
-    if (!room.players[room.hostId]) room.hostId = ps[0].pid;
-    var cfg = MODES[room.mode] || MODES.card;
-    var deck = shuffle(buildDeck());
-    var hands = {}, discards = {}, melds = {};
-    for (var i = 0; i < ps.length; i++) {
-      var h = [];
-      for (var d = 0; d < cfg.initial; d++) h.push(deck.pop());
-      hands[ps[i].pid] = h;
-      discards[ps[i].pid] = [];
-      melds[ps[i].pid] = [];
-    }
-    var round = (room.round || 0) + 1;
-    room.round = round;
-    room.status = 'playing';
-    room.game = {
-      turn: room.hostId,
-      phase: 'draw',
-      drawn: false,
-      wall: deck,
-      hands: hands,
-      melds: melds,
-      discards: discards,
-      lastDiscard: null,
-      judgement: null,
-      result: null,
-      seq: 1
-    };
-    logMsg(room, '第' + round + '局 開始（' + cfg.label + '／' + cfg.slots.join('・') + '）');
-    return room;
-  }).then(touchUpdatedAt).catch(fbError);
-}
-
-function nextRound() {
-  txRoom(function (room) {
-    if (!room) return;
-    if (room.hostId !== S.pid) return;
-    if (room.status !== 'finished') return;
-    var ps = sortedPlayers(room);
-    if (ps.length < 2) return;
-    var cfg = MODES[room.mode] || MODES.card;
-    var deck = shuffle(buildDeck());
-    var hands = {}, discards = {}, melds = {};
-    for (var i = 0; i < ps.length; i++) {
-      var h = [];
-      for (var d = 0; d < cfg.initial; d++) h.push(deck.pop());
-      hands[ps[i].pid] = h;
-      discards[ps[i].pid] = [];
-      melds[ps[i].pid] = [];
-    }
-    var round = (room.round || 1) + 1;
-    room.round = round;
-    room.status = 'playing';
-    room.game = {
-      turn: room.hostId, phase: 'draw', drawn: false, wall: deck,
-      hands: hands, melds: melds, discards: discards,
-      lastDiscard: null, judgement: null, result: null, seq: 1
-    };
-    logMsg(room, '第' + round + '局 開始（得点は持ち越し）');
-    return room;
-  }).then(touchUpdatedAt).catch(fbError);
-}
-
-function resetRoom() {
-  txRoom(function (room) {
-    if (!room) return;
-    if (room.hostId !== S.pid) return;
-    for (var k in room.players) if (room.players[k]) room.players[k].score = 0;
-    room.status = 'waiting';
-    room.game = null;
-    room.round = 0;
-    logMsg(room, 'ルームを初期化しました（待機中に戻りました）');
-    return room;
-  }).then(touchUpdatedAt).catch(fbError);
-}
-
-function drawTile() {
-  txRoom(function (room) {
-    if (!room || !room.game) return;
-    var g = room.game;
-    if (room.status !== 'playing' || g.phase !== 'draw' || g.turn !== S.pid) return;
-    if (!g.wall || !g.wall.length) {
-      g.phase = 'over';
-      g.result = { winnerId: null, type: 'draw', words: [], scoring: {} };
-      room.status = 'finished';
-      logMsg(room, '山が尽きました（流局）');
-      return room;
-    }
-    var tile = g.wall.pop();
-    g.hands = g.hands || {};
-    g.hands[S.pid] = (g.hands[S.pid] || []).concat([tile]);
-    g.drawn = true;
-    g.phase = 'discard';
-    g.lastDiscard = null;
-    g.seq = (g.seq || 0) + 1;
-    return room;
-  }).then(touchUpdatedAt).catch(fbError);
-}
-
-function discardTile(ch) {
-  txRoom(function (room) {
-    if (!room || !room.game) return;
-    var g = room.game;
-    if (room.status !== 'playing' || g.phase !== 'discard' || g.turn !== S.pid) return;
-    var hand = g.hands[S.pid] || [];
-    var i = hand.indexOf(ch);
-    if (i < 0) return;
-    hand = hand.slice();
-    hand.splice(i, 1);
-    g.hands[S.pid] = hand;
-    g.discards = g.discards || {};
-    g.discards[S.pid] = (g.discards[S.pid] || []).concat([ch]);
-    g.lastDiscard = { pid: S.pid, ch: ch };
-    g.drawn = false;
-    g.turn = nextPid(room, S.pid);
-    g.phase = 'draw';
-    g.seq = (g.seq || 0) + 1;
-    logMsg(room, playerNameSafe(room, S.pid) + ' が「' + ch + '」を捨てました');
-    return room;
-  }).then(touchUpdatedAt).catch(fbError);
-}
-
-function skipTurn() {
-  txRoom(function (room) {
-    if (!room || !room.game) return;
-    if (room.hostId !== S.pid) return;
-    var g = room.game;
-    if (room.status !== 'playing') return;
-    g.turn = nextPid(room, g.turn);
-    g.phase = 'draw';
-    g.drawn = false;
-    g.lastDiscard = null;
-    g.seq = (g.seq || 0) + 1;
-    logMsg(room, 'ホストが手番を進めました（次の手番：' + playerNameSafe(room, g.turn) + '）');
-    return room;
-  }).then(touchUpdatedAt).catch(fbError);
-}
-
-/* ---- 宣言（判定待ち）を開始 ---- */
-function submitDeclare(decl) {
-  txRoom(function (room) {
-    if (!room || !room.game) return;
-    var g = room.game;
-    if (room.status !== 'playing') return;
-    var j = {
-      type: decl.type,
-      byId: S.pid,
-      words: decl.words,
-      handChars: decl.handChars,
-      discardCh: decl.discardCh || null,
-      loserId: null,
-      approvals: {},
-      rejects: {},
-      prevPhase: g.phase,
-      at: 0
-    };
-    if (decl.type === 'pon' || decl.type === 'ron') {
-      if (!g.lastDiscard || g.lastDiscard.pid === S.pid) return;
-      j.loserId = g.lastDiscard.pid;
-    }
-    if (decl.type === 'tsumo' || decl.type === 'agari' || decl.type === 'kan') {
-      if (g.turn !== S.pid || g.phase !== 'discard' || !g.drawn) return;
-    }
-    if (decl.type === 'kan' && room.mode !== 'tile') return;
-    if ((decl.type === 'pon' || decl.type === 'ron') && room.mode !== 'tile') return;
-
-    /* --- 検証：手牌にある文字だけを使っているか --- */
-    var myHand = (g.hands && g.hands[S.pid]) || [];
-    var pool = myHand.slice();
-    var ok = true;
-    (decl.handChars || []).forEach(function (ch) {
-      var i = pool.indexOf(ch);
-      if (i >= 0) pool.splice(i, 1);
-      else ok = false;
-    });
-    if (!ok) return;
-
-    /* --- 検証：枠の文字数合計と使用牌数が一致するか --- */
-    var wordTotal = 0, discardUsed = 0;
-    (decl.words || []).forEach(function (w) {
-      wordTotal += w.length;
-      w.forEach(function (ch) { if (decl.discardCh && ch === decl.discardCh) discardUsed++; });
-    });
-    var handUsed = (decl.handChars || []).length;
-
-    if (decl.type === 'pon' || decl.type === 'ron') {
-      if (discardUsed !== 1) return;               /* 捨て牌の文字はちょうど1枚使う */
-      if (wordTotal !== handUsed + 1) return;
-    } else {
-      if (wordTotal !== handUsed) return;
-    }
-
-    if (decl.type === 'agari' || decl.type === 'tsumo') {
-      if (!canAgariShape(room, S.pid, myHand)) return;
-      if (handUsed !== myHand.length) return;
-      var isC7 = chiitoiEnabled(room, S.pid) && isSevenPairs(myHand);
-      if (!isLegalShape(room, S.pid, decl.words, isC7)) return;
-    }
-    if (decl.type === 'ron') {
-      var comb = myHand.concat([decl.discardCh]);
-      /* ポン・カンをした人はロンできない */
-      if (meldsOf(room, S.pid).length > 0) return;
-      /* 自分が捨てた牌と同じ文字ではロンできない */
-      if (hasDiscardedChar(room, S.pid, decl.discardCh)) return;
-      if (comb.length !== requiredTiles(room, S.pid)) return;
-      var isC7r = chiitoiEnabled(room, S.pid) && isSevenPairs(comb);
-      if (!isC7r && comb.length !== 14) return;
-      if (handUsed !== myHand.length) return;
-      if (!isLegalShape(room, S.pid, decl.words, isC7r)) return;
-    }
-    if (decl.type === 'pon') {
-      if (handUsed !== 2) return;
-      if (discardUsed !== 1) return;
-      if (!decl.words || decl.words.length !== 1 || decl.words[0].length !== 3) return;
-    }
-    if (decl.type === 'kan') {
-      if (!decl.words || decl.words.length !== 1) return;
-      if (decl.words[0].length < 4) return;
-      if (handUsed !== decl.words[0].length) return;
-    }
-
-    g.judgement = j;
-    g.phase = 'judge';
-    g.seq = (g.seq || 0) + 1;
-    logMsg(room, playerNameSafe(room, S.pid) + ' が「' + decl.words[0].join('') + (decl.words.length > 1 ? '…' : '') + '」を宣言（判定待ち）');
-    return room;
-  }).then(function () {
-    S.decl = null;
-    renderAll();
-  }).catch(fbError);
-}
-
-function judgeApproval(isReject) {
-  txRoom(function (room) {
-    if (!room || !room.game) return;
-    var g = room.game;
-    var j = g.judgement;
-    if (!j) return;
-    j.approvals = j.approvals || {};
-    j.rejects = j.rejects || {};
-    if (j.byId === S.pid) return;
-    if (j.approvals[S.pid] || j.rejects[S.pid]) return;
-    if (isReject) {
-      j.rejects[S.pid] = true;
-      logMsg(room, playerNameSafe(room, S.pid) + ' が否認しました。宣言は取り消されます');
-      g.judgement = null;
-      g.phase = j.prevPhase || 'draw';
-      g.seq = (g.seq || 0) + 1;
-      return room;
-    }
-    j.approvals[S.pid] = true;
-    /* 接続中の他プレイヤー全員の合意で成立（切断者は待たない） */
-    var others = sortedPlayers(room).filter(function (p) { return p.pid !== j.byId && p.connected !== false; });
-    var allOk = others.every(function (p) { return j.approvals[p.pid]; });
-    if (allOk) return applyJudgement(room);
-    return room;
-  }).then(touchUpdatedAt).catch(fbError);
-}
-
-/* ホストによる判定キャンセル（承認がそろわない場合の救済） */
-function cancelJudge() {
-  txRoom(function (room) {
-    if (!room || !room.game) return;
-    if (room.hostId !== S.pid) return;
-    var g = room.game;
-    var j = g.judgement;
-    if (!j) return;
-    g.judgement = null;
-    g.phase = j.prevPhase || 'draw';
-    g.seq = (g.seq || 0) + 1;
-    logMsg(room, 'ホストが判定をキャンセルしました（手番を戻します）');
-    return room;
-  }).then(touchUpdatedAt).catch(fbError);
-}
-
-function applyJudgement(room) {
-  var g = room.game;
-  var j = g.judgement;
-  if (!j) return room;
-  var byName = playerNameSafe(room, j.byId);
-
-  if (j.type === 'tsumo' || j.type === 'agari' || j.type === 'ron') {
-    room.status = 'finished';
-    var scoring = {};
-    if (room.mode === 'tile') {
-      if (j.type === 'ron') {
-        scoring[j.byId] = 3;
-        if (j.loserId) scoring[j.loserId] = -3;
-      } else {
-        scoring[j.byId] = 3;
-        sortedPlayers(room).forEach(function (p) { if (p.pid !== j.byId) scoring[p.pid] = -1; });
-      }
-      for (var k in scoring) {
-        if (room.players[k]) room.players[k].score = (room.players[k].score || 0) + scoring[k];
-      }
-    }
-    g.result = {
-      winnerId: j.byId,
-      type: j.type,
-      loserId: j.loserId || null,
-      words: j.words,
-      melds: meldsOf(room, j.byId),
-      scoring: scoring
-    };
-    g.phase = 'over';
-    g.judgement = null;
-    g.seq = (g.seq || 0) + 1;
-    logMsg(room, byName + ' が' + (j.type === 'ron' ? 'ロン' : (j.type === 'tsumo' ? 'ツモ' : 'あがり')) + '（' + j.words.map(function (w) { return w.join(''); }).join(' / ') + '）');
-    return room;
-  }
-
-  if (j.type === 'pon') {
-    if (g.lastDiscard && j.discardCh && g.discards && g.discards[j.loserId]) {
-      var pile = g.discards[j.loserId].slice();
-      var di = pile.lastIndexOf(j.discardCh);
-      if (di >= 0) pile.splice(di, 1);
-      g.discards[j.loserId] = pile;
-    }
-    g.hands[j.byId] = removeChars(g.hands[j.byId], j.handChars);
-    g.melds[j.byId] = meldsOf(room, j.byId).concat([{ type: 'pon', tiles: j.words[0] }]);
-    g.turn = j.byId;
-    g.phase = 'discard';
-    g.drawn = false;
-    g.lastDiscard = null;
-    g.judgement = null;
-    g.seq = (g.seq || 0) + 1;
-    logMsg(room, byName + ' がポン（' + j.words[0].join('') + '）');
-    return room;
-  }
-
-  if (j.type === 'kan') {
-    var L = j.words[0].length;
-    g.hands[j.byId] = removeChars(g.hands[j.byId], j.handChars);
-    g.melds[j.byId] = meldsOf(room, j.byId).concat([{ type: 'kan', tiles: j.words[0] }]);
-    var extra = Math.max(0, L - 3);
-    var drawn = 0;
-    for (var e = 0; e < extra; e++) {
-      if (g.wall && g.wall.length) { g.hands[j.byId].push(g.wall.pop()); drawn++; }
-    }
-    g.phase = 'discard';
-    g.drawn = true;
-    g.judgement = null;
-    g.seq = (g.seq || 0) + 1;
-    logMsg(room, byName + ' がカン（' + j.words[0].join('') + '／' + drawn + '個補充）');
-    return room;
-  }
-
-  g.judgement = null;
-  return room;
-}
-
-/* =========================================================
-   宣言モーダル（単語づくり）
-   ========================================================= */
-function openDeclare(type, kanLen) {
-  var room = S.room;
-  if (!room || !room.game) { toast('ゲーム中のみ宣言できます', true); return; }
-  var g = room.game;
-  var hand = (g.hands && g.hands[S.pid]) || [];
-  var slots = [];
-  var cfg = MODES[room.mode] || MODES.card;
-
-  if (type === 'pon') {
-    slots = [3];
-  } else if (type === 'kan') {
-    slots = [kanLen || 4];
-  } else if (type === 'ron') {
-    var combined = hand.concat([g.lastDiscard.ch]);
-    slots = agariSlots(room, S.pid, chiitoiEnabled(room, S.pid) && isSevenPairs(combined));
-  } else {
-    slots = agariSlots(room, S.pid, chiitoiEnabled(room, S.pid) && isSevenPairs(hand));
-  }
-
-  var filled = slots.map(function () { return []; });
-  S.decl = {
-    type: type,
-    slots: slots,
-    filled: filled,
-    kanLen: slots[0],
-    handLen: hand.length,
-    hand: sortHand(hand),
-    discardCh: (type === 'pon' || type === 'ron') ? g.lastDiscard.ch : null
-  };
-  renderModal();
-}
-
-function closeDeclare() { S.decl = null; renderModal(); }
-
-function declUsedCount(ch) {
-  var n = 0;
-  S.decl.filled.forEach(function (slot) {
-    slot.forEach(function (it) { if (it.src === 'hand' && it.ch === ch) n++; });
-  });
-  return n;
-}
-
-function declPickHand(dIdx) {
-  var it = S.decl.hand[dIdx];
-  if (!it) return;
-  var total = S.decl.filled.reduce(function (a, s) { return a + s.length; }, 0);
-  var max = S.decl.slots.reduce(function (a, s) { return a + s; }, 0);
-  if (total >= max) { toast('すべての枠が埋まっています', true); return; }
-  var handOfChar = S.decl.hand.filter(function (c) { return c === it; }).length;
-  if (declUsedCount(it) >= handOfChar) return;
-  for (var i = 0; i < S.decl.slots.length; i++) {
-    if (S.decl.filled[i].length < S.decl.slots[i]) {
-      S.decl.filled[i] = S.decl.filled[i].concat([{ src: 'hand', dIdx: dIdx, ch: it }]);
-      break;
-    }
-  }
-  renderModal();
-}
-
-function declPickDiscard() {
-  var dc = S.decl.discardCh;
-  if (!dc) return;
-  if (S.decl.filled.some(function (s) { return s.some(function (x) { return x.src === 'discard'; }); })) return;
-  for (var i = 0; i < S.decl.slots.length; i++) {
-    if (S.decl.filled[i].length < S.decl.slots[i]) {
-      S.decl.filled[i] = S.decl.filled[i].concat([{ src: 'discard', dIdx: -1, ch: dc }]);
-      break;
-    }
-  }
-  renderModal();
-}
-
-function declUnfill(si, fi) {
-  var slot = S.decl.filled[si].slice();
-  if (fi < 0 || fi >= slot.length) return;
-  slot.splice(fi, 1);
-  S.decl.filled[si] = slot;
-  renderModal();
-}
-
-function declIsFull() {
-  for (var i = 0; i < S.decl.slots.length; i++) {
-    if (S.decl.filled[i].length !== S.decl.slots[i]) return false;
-  }
-  return true;
-}
-
-function declWords() {
-  return S.decl.filled.map(function (slot) { return slot.map(function (x) { return x.ch; }); });
-}
-
-function declSubmit() {
-  if (!declIsFull()) { toast('すべての枠を埋めてください', true); return; }
-  var words = declWords();
-  var handChars = [];
-  S.decl.filled.forEach(function (slot) {
-    slot.forEach(function (x) { if (x.src === 'hand') handChars.push(x.ch); });
-  });
-  submitDeclare({
-    type: S.decl.type,
-    words: words,
-    handChars: handChars,
-    discardCh: S.decl.discardCh
-  });
-}
-
-/* =========================================================
-   描画
-   ========================================================= */
-function tileSpan(ch, opts) {
-  opts = opts || {};
-  var cls = 'card-tile' + (opts.small ? ' small' : '') + (opts.cls ? ' ' + opts.cls : '');
-  var attrs = '';
-  if (opts.act) {
-    attrs = ' data-act="' + opts.act + '"' + (opts.data || '');
-  }
-  var tag = opts.act ? 'button' : 'span';
-  var title = opts.title ? ' title="' + esc(opts.title) + '"' : '';
-  return '<' + tag + ' class="' + cls + '"' + attrs + title + '>' + esc(ch) + '</' + tag + '>';
-}
-
-function renderAll() {
-  renderTabs();
-  renderSetup();
-  renderRoom();
-  renderRules();
-  renderModal();
-}
-
-function renderTabs() {
-  var map = { game: 'tabbtn-game', rules: 'tabbtn-rules', howto: 'tabbtn-howto', common: 'tabbtn-common' };
-  for (var k in map) {
-    var b = $(map[k]);
-    if (b) b.setAttribute('aria-selected', S.tab === k ? 'true' : 'false');
-    var p = $('panel-' + k);
-    if (p) p.hidden = (S.tab !== k);
-  }
-}
-
-function renderSetup() {
-  var inRoom = !!S.roomId;
-  $('setup-view').hidden = inRoom;
-  $('room-view').hidden = !inRoom;
-  document.querySelectorAll('.mode-card').forEach(function (el) {
-    var on = el.getAttribute('data-mode') === S.mode;
-    el.classList.toggle('sel', on);
-    var radio = el.querySelector('input[type=radio]');
-    if (radio) radio.checked = on;
-  });
-  var warn = $('config-warning');
-  if (warn) {
-    var bad = String(FIREBASE_CONFIG.apiKey || '').indexOf('AIzaSy') !== 0 || !FIREBASE_CONFIG.databaseURL;
-    warn.hidden = !bad;
-    warn.textContent = bad
-      ? '⚠ FIREBASE_CONFIG の値（apiKey など）が正しく貼り付けられていない可能性があります。Firebase Console の設定値と照合してください。'
-      : '';
-  }
-}
-
-function renderRules() {
-  var body = $('rules-body');
-  if (!body) return;
-  $('rules-btn-card').className = 'btn small' + (S.rulesMode === 'card' ? ' sel' : '');
-  $('rules-btn-tile').className = 'btn small' + (S.rulesMode === 'tile' ? ' sel' : '');
-  $('rules-btn-diff').className = 'btn small' + (S.rulesMode === 'diff' ? ' sel' : '');
-
-  if (S.rulesMode === 'card') {
-    body.innerHTML =
-      '<h2>ひらがじゃん カード版</h2>' +
-      '<h3>使用するもの</h3><ul>' +
-      '<li>ひらがなカード120枚</li><li>プレイ人数：2人以上（推奨2〜4人）</li><li>対象年齢：7歳以上</li></ul>' +
-      '<h3>カード構成</h3><ul>' +
-      '<li>「あ」〜「ん」から「を」を除いた45音：各2枚</li>' +
-      '<li>濁音・半濁音：各1枚</li><li>拗音・長音：各1枚</li><li>合計120枚</li></ul>' +
-      '<h3>準備</h3><ol>' +
-      '<li>カードをよく混ぜる。</li><li>各プレイヤーに7枚ずつ配る。</li>' +
-      '<li>配られたカードは表向きにして、全員が見えるようにする。</li>' +
-      '<li>残りのカードを山札として中央に置く。</li><li>じゃんけんなどで最初のプレイヤーを決める。</li></ol>' +
-      '<h3>あがりの形</h3><ul>' +
-      '<li>3文字の単語／3文字の単語／2文字の単語</li>' +
-      '<li>合計8枚のカードで「3文字・3文字・2文字」の形を作る。</li></ul>' +
-      '<h3>手番</h3><ol>' +
-      '<li>山札からカードを1枚引く。</li><li>手札が8枚になる。</li>' +
-      '<li>3文字・3文字・2文字の3単語を作れるか確認する。</li>' +
-      '<li>作れた場合は「あがり」となり、ゲーム終了。</li>' +
-      '<li>作れない場合は、手札からカードを1枚捨てる。</li>' +
-      '<li>手札を7枚に戻し、次のプレイヤーの手番になる。</li></ol>' +
-      '<h3>カード版の勝敗</h3><ul>' +
-      '<li>最初に「3文字・3文字・2文字」の単語を完成させたプレイヤーの勝ち。</li>' +
-      '<li>基本ルールでは、ポン・カン・ロン・ツモ・リーチは使用しない。</li>' +
-      '<li>複数回遊ぶ場合は、勝者に1点を与え、合計点で勝者を決めてもよい。</li></ul>';
-  } else if (S.rulesMode === 'tile') {
-    body.innerHTML =
-      '<h2>ひらがじゃん 牌版</h2>' +
-      '<h3>使用するもの</h3><ul>' +
-      '<li>ひらがな牌120個</li><li>プレイ人数：2〜4人</li><li>対象年齢：7歳以上</li></ul>' +
-      '<h3>牌構成</h3><ul>' +
-      '<li>「あ」〜「ん」から「を」を除いた45音：各2個</li>' +
-      '<li>濁音・半濁音：各1個</li><li>拗音・長音：各1個</li><li>合計120個</li></ul>' +
-      '<h3>準備</h3><ol>' +
-      '<li>牌をよく混ぜる。</li><li>各プレイヤーに13個ずつ配る。</li>' +
-      '<li>配られた牌は手元に立て、相手から見えないようにする。</li>' +
-      '<li>残りの牌を山として中央に置く。</li><li>スタートプレイヤーを決める。</li></ol>' +
-      '<h3>基本のあがりの形</h3><ul>' +
-      '<li>3文字の単語×4 ＋ 2文字の単語×1</li>' +
-      '<li>合計14個の牌で「3文字・3文字・3文字・3文字・2文字」の形を作る。</li></ul>' +
-      '<h3>基本の手番</h3><ol>' +
-      '<li>山から牌を1個取る。</li><li>手牌が14個になる。</li>' +
-      '<li>あがりの形を作れるか確認する。</li>' +
-      '<li>作れた場合は「ツモ」と宣言してあがる。</li>' +
-      '<li>作れない場合は、手牌から牌を1個捨てる。</li>' +
-      '<li>次のプレイヤーの手番になる。</li></ol>' +
-      '<h3>ポン</h3><ul>' +
-      '<li>他のプレイヤーが牌を捨てた直後に宣言できる。</li>' +
-      '<li>捨てられた牌と自分の手牌を使い、3文字の単語を作れる場合に宣言できる。</li>' +
-      '<li>ポンした単語は手牌の右側に表向きで置く。</li>' +
-      '<li>ポンしたプレイヤーは、牌を1個捨てる。</li>' +
-      '<li>ポンの後は、ポンしたプレイヤーの左隣から手番を再開する。</li>' +
-      '<li>ポンした場合、ロンはできない。ポンした後にあがる場合は、ツモのみとなる。</li></ul>' +
-      '<h3>カン</h3><ul>' +
-      '<li>4文字以上の単語を作れる場合に宣言できる。5文字以上の単語でもカンとして扱える。</li>' +
-      '<li>カンした単語は手牌の右側に表向きで置く。</li>' +
-      '<li>作った単語の文字数から3を引いた数だけ、山から牌を補充する（4文字：1個／5文字：2個／6文字：3個）。</li>' +
-      '<li>カンしたプレイヤーは、必要に応じて牌を1個捨てる。</li>' +
-      '<li>カンした後にあがる場合は、ツモのみとなる。</li></ul>' +
-      '<h3>ロン</h3><ul>' +
-      '<li>他のプレイヤーが捨てた牌によって、あがりの形が完成する場合に宣言できる。</li>' +
-      '<li>捨てられた牌を使って、3文字・3文字・3文字・3文字・2文字の形を完成させる。</li>' +
-      '<li>自分が捨てた牌と同じ文字を使ってロンすることはできない。</li>' +
-      '<li>ポンまたはカンをしたプレイヤーはロンできない。</li></ul>' +
-      '<h3>七対子（オプションルール）</h3><ul>' +
-      '<li>2文字の単語×7組（合計14個）でもあがれる。</li>' +
-      '<li>ポンまたはカンをした場合、七対子ではあがれない。</li>' +
-      '<li>採用するかどうかは、ゲーム開始前に決める。</li></ul>' +
-      '<h3>得点</h3>' +
-      '<p><b>ロン</b>：ロンしたプレイヤー +3点／ロンされたプレイヤー -3点</p>' +
-      '<p><b>ツモ</b>：ツモしたプレイヤー +3点／その他のプレイヤー 各-1点</p>' +
-      '<h3>牌版の勝敗</h3><ul>' +
-      '<li>1回のゲームで最初にあがったプレイヤーが、その局の勝者となる。</li>' +
-      '<li>複数局行う場合は、得点を合計する。</li>' +
-      '<li>最終的に合計点が最も多いプレイヤーがゲーム全体の勝者となる。</li></ul>';
-  } else {
-    body.innerHTML =
-      '<h2>カード版と牌版の違い</h2>' +
-      '<table class="diff"><thead><tr><th>項目</th><th>カード版</th><th>牌版</th></tr></thead><tbody>' +
-      '<tr><td>初期手札</td><td>7枚</td><td>13個</td></tr>' +
-      '<tr><td>あがり時の枚数</td><td>8枚</td><td>14個</td></tr>' +
-      '<tr><td>あがりの形</td><td>3・3・2</td><td>3・3・3・3・2</td></tr>' +
-      '<tr><td>手札</td><td>表向き</td><td>非公開</td></tr>' +
-      '<tr><td>ポン</td><td>基本なし</td><td>あり</td></tr>' +
-      '<tr><td>カン</td><td>基本なし</td><td>あり</td></tr>' +
-      '<tr><td>ロン</td><td>基本なし</td><td>あり</td></tr>' +
-      '<tr><td>ツモ</td><td>基本なし</td><td>あり</td></tr>' +
-      '<tr><td>七対子</td><td>なし</td><td>オプション</td></tr>' +
-      '<tr><td>得点</td><td>基本なし</td><td>あり</td></tr>' +
-      '<tr><td>単語判定</td><td>プレイヤー間で認められれば可</td><td>プレイヤー間で認められれば可</td></tr>' +
-      '</tbody></table>';
-  }
-}
-
-function renderRoom() {
-  var room = S.room;
-  if (!S.roomId || !room) {
-    if (S.roomId && !room) {
-      $('status-panel').innerHTML = '<p>部屋のデータを読み込み中です…</p>';
-    }
-    return;
-  }
-  var me = S.pid;
-  var isHost = room.hostId === me;
-  var g = room.game;
-  var cfg = MODES[room.mode] || MODES.card;
-
-  $('room-id-label').textContent = S.roomId;
-  var mb = $('mode-badge');
-  mb.textContent = cfg.label;
-  var hint = $('room-hint');
-  hint.textContent = (room.mode === 'tile' ? '手札は非公開／ポン・カン・ロン・ツモ・得点あり' : '手札は表向き／ポン・カン・ロン・ツモなし')
-    + '｜あがり：' + cfg.slots.join('・') + '（' + cfg.target + (room.mode === 'card' ? '枚' : '個') + '）'
-    + (room.mode === 'tile' && room.config && room.config.chiitoi ? '／七対子あり' : '');
-
-  /* ---- ステータス ---- */
-  var ps = sortedPlayers(room);
-  var turnName = g ? playerName(room, g.turn) : '-';
-  var st;
-  if (room.status === 'waiting') {
-    st = '<h2>待機中</h2><p>参加者：' + ps.length + ' / ' + MAX_PLAYERS + ' 人（2人以上で開始できます）</p>' +
-      '<p>ホスト：' + esc(playerName(room, room.hostId)) + '</p>';
-    if (room.mode === 'tile') {
-      st += '<div class="row"><label style="margin:0"><input type="checkbox" id="chiitoi-check" ' +
-        (room.config && room.config.chiitoi ? 'checked' : '') + (isHost ? '' : ' disabled') + '> 七対子（2文字×7組）を採用する</label></div>';
-    }
-    st += '<div class="row" style="margin-top:.6rem">' +
-      '<button class="btn primary" data-act="start-game" ' + (isHost && ps.length >= 2 ? '' : 'disabled') + '>ゲーム開始</button>' +
-      (isHost ? '' : '<span class="hint">開始できるのはホストだけです</span>') +
-      '</div>';
-  } else if (room.status === 'playing') {
-    st = '<h2>対戦中（第' + (room.round || 1) + '局）</h2>' +
-      '<p>手番：<span class="badge turn">' + esc(turnName) + '</span>' +
-      (g.turn === me ? ' <span class="badge me">あなたの手番</span>' : '') +
-      ' <span class="badge">山 ' + ((g.wall || []).length) + ' 個</span>' +
-      (g.phase === 'judge' ? ' <span class="badge turn">判定待ち</span>' : '') + '</p>';
-  } else {
-    st = '<h2>終了（第' + (room.round || 1) + '局）</h2>';
-  }
-  $('status-panel').innerHTML = st;
-
-  /* ---- 通知 ---- */
-  var notice = '';
-  if (room.status === 'playing' && g) {
-    if (g.phase === 'judge' && g.judgement) {
-      notice += '<div class="msg gold">' + esc(playerName(room, g.judgement.byId)) + ' の「' +
-        g.judgement.words.map(function (w) { return esc(w.join('')); }).join(' / ') + '」宣言について判定中です。</div>';
-    }
-    if (g.turn === me && g.phase === 'draw') notice += '<div class="msg ok">あなたの手番です。山から引いてください。</div>';
-    if (g.turn === me && g.phase === 'discard') {
-      var hand = (g.hands && g.hands[me]) || [];
-      if (g.drawn && canAgariShape(room, me, hand)) {
-        notice += '<div class="msg gold">あがりの形が作れます！「' + (room.mode === 'card' ? 'あがり宣言' : 'ツモ宣言') + '」ができます。</div>';
-      } else {
-        notice += '<div class="msg">あなたの手番です。手札の牌をクリックして1個捨ててください。</div>';
-      }
-    }
-    if (room.mode === 'tile' && g.phase === 'draw' && g.lastDiscard && g.lastDiscard.pid !== me) {
-        var canPon = ((g.hands && g.hands[me]) || []).length >= 2;
-      var canRon = meldsOf(room, me).length === 0 &&
-        (function () {
-          var comb = ((g.hands && g.hands[me]) || []).concat([g.lastDiscard.ch]);
-          if (room.config && room.config.chiitoi && isSevenPairs(comb)) return true;
-          return comb.length === requiredTiles(room, me);
-        })();
-      if (canPon || canRon) {
-        notice += '<div class="msg warn">' + esc(playerName(room, g.lastDiscard.pid)) + ' が「' + esc(g.lastDiscard.ch) + '」を捨てました。' +
-          (canPon ? 'ポンできます。' : '') + (canRon ? 'ロンできます！' : '') + '（次のプレイヤーが引くまで）</div>';
-      }
-    }
-  }
-  var na = $('notice-area');
-  if (na.innerHTML !== notice) na.innerHTML = notice;
-
-  /* ---- 自分のエリア ---- */
-  var my = '';
-  if (room.status === 'playing' && g) {
-    var myHand = sortHand((g.hands && g.hands[me]) || []);
-    var myMelds = meldsOf(room, me);
-    var myTurn = g.turn === me;
-    var canDiscard = myTurn && g.phase === 'discard';
-    var canDraw = myTurn && g.phase === 'draw' && room.status === 'playing';
-    var canTsumo = myTurn && g.phase === 'discard' && g.drawn && canAgariShape(room, me, myHand);
-    var canKan = room.mode === 'tile' && myTurn && g.phase === 'discard' && g.drawn && myHand.length >= 4;
-    var canPon = room.mode === 'tile' && g.phase === 'draw' && g.lastDiscard && g.lastDiscard.pid !== me && myHand.length >= 2;
-    var canRon = room.mode === 'tile' && g.phase === 'draw' && g.lastDiscard && g.lastDiscard.pid !== me &&
-      meldsOf(room, me).length === 0 && !hasDiscardedChar(room, me, g.lastDiscard.ch) &&
-      (function () {
-        var comb = myHand.concat([g.lastDiscard.ch]);
-        if (room.config && room.config.chiitoi && isSevenPairs(comb)) return true;
-        return comb.length === requiredTiles(room, me);
-      })();
-    var judged = g.phase === 'judge' || (g.judgement && g.judgement.byId === me);
-
-    my += '<h3>あなたの手札（' + myHand.length + '／必要 ' + requiredTiles(room, me) + '）</h3>';
-    my += '<div class="hand">' + myHand.map(function (ch, i) {
-      if (canDiscard && !judged) {
-        return tileSpan(ch, { act: 'discard', data: ' data-ch="' + esc(ch) + '"', title: 'クリックで捨てる' });
-      }
-      return tileSpan(ch, {});
-    }).join('') + '</div>';
-
-    if (myMelds.length) {
-      my += '<h3>ポン・カン（表向き）</h3>';
-      myMelds.forEach(function (m) {
-        my += '<div class="wordslot"><span class="lbl">' + (m.type === 'pon' ? 'ポン' : 'カン') + '</span>' +
-          m.tiles.map(function (c) { return tileSpan(c, { small: true }); }).join('') + '</div>';
-      });
-    }
-
-    my += '<div class="row" style="margin-top:.6rem">';
-    my += '<button class="btn primary" data-act="draw" ' + (canDraw ? '' : 'disabled') + '>山から引く</button>';
-    if (room.mode === 'card') {
-      my += '<button class="btn ok" data-act="declare" data-type="agari" ' + (canTsumo && !judged ? '' : 'disabled') + '>あがり宣言</button>';
-    } else {
-      my += '<button class="btn ok" data-act="declare" data-type="tsumo" ' + (canTsumo && !judged ? '' : 'disabled') + '>ツモ宣言</button>';
-      my += '<button class="btn" data-act="declare" data-type="kan" ' + (canKan && !judged ? '' : 'disabled') + '>カン</button>';
-      my += '<button class="btn" data-act="declare" data-type="pon" ' + (canPon && !judged ? '' : 'disabled') + '>ポン</button>';
-      my += '<button class="btn" data-act="declare" data-type="ron" ' + (canRon && !judged ? '' : 'disabled') + '>ロン</button>';
-    }
-    if (isHost) {
-      my += '<button class="btn small ghost" data-act="skip-turn">手番を進める</button>';
-    }
-    my += '</div>';
-    if (canDiscard && !judged) my += '<p class="hint">手札をクリックすると捨てます（確認が出ます）。</p>';
-  } else if (room.status === 'finished') {
-    my += '<h3>この局は終了しました</h3><p class="hint">ホストが次の局へ進むか、ルームを初期化できます。</p>';
-  } else {
-    my += '<h3>まだゲームが始まっていません</h3><p class="hint">2人以上そろったらホストが「ゲーム開始」を押します。</p>';
-  }
-  $('my-area').innerHTML = my;
-
-  /* ---- ボード（判定・山） ---- */
-  var board = '';
-  if (room.status === 'playing' && g) {
-    board += '<h3>単語の判定</h3>';
-    var j = g.judgement;
-    if (!j) {
-      board += '<p class="hint">宣言があるとここに単語が表示され、全員が承認／否認します（全員の合意で成立）。</p>';
-    } else {
-      var others = sortedPlayers(room).filter(function (p) { return p.pid !== j.byId; });
-      var okCount = others.filter(function (p) { return j.approvals && j.approvals[p.pid]; }).length;
-      board += '<p><b>' + esc(playerName(room, j.byId)) + '</b> の宣言（' +
-        (j.type === 'pon' ? 'ポン' : (j.type === 'kan' ? 'カン' : (j.type === 'ron' ? 'ロン' : (j.type === 'tsumo' ? 'ツモ' : 'あがり')))) + '）</p>';
-      j.words.forEach(function (w) {
-        board += '<div class="wordslot"><span class="lbl">' + w.length + '文字</span>' +
-          w.map(function (c) { return tileSpan(c, { small: true }); }).join('') +
-          '<span class="words-line" style="margin-left:.5rem">「' + esc(w.join('')) + '」</span>' +
-          '<a class="words-line" style="margin-left:.5rem" href="https://www.google.com/search?q=' +
-          encodeURIComponent(w.join('') + ' 意味') + '" target="_blank" rel="noopener noreferrer">検索して確認</a></div>';
-      });
-      board += '<p class="hint">承認 ' + okCount + ' / ' + others.length + '</p>';
-      if (j.byId === me) {
-        board += '<p class="hint">ほかのプレイヤーの承認を待っています。</p>';
-      } else if (!(j.approvals && j.approvals[me]) && !(j.rejects && j.rejects[me])) {
-        board += '<div class="row"><button class="btn ok" data-act="approve">承認する</button>' +
-          '<button class="btn warn" data-act="reject">否認する</button></div>';
-      } else {
-        board += '<p class="hint">あなたは' + (j.approvals && j.approvals[me] ? '承認しました。' : '否認しました。') + '</p>';
-      }
-      if (room.hostId === me) {
-        board += '<div class="row"><button class="btn small ghost" data-act="cancel-judge">判定をキャンセル（ホスト）</button></div>';
-      }
-    }
-    board += '<h3 style="margin-top:1rem">山</h3><p>残り ' + ((g.wall || []).length) + ' 個</p>';
-    if (g.lastDiscard) {
-      board += '<p>最後の捨て牌：' + tileSpan(g.lastDiscard.ch, { small: true }) + '（' + esc(playerName(room, g.lastDiscard.pid)) + '）</p>';
-    }
-  } else if (room.status === 'waiting') {
-    board += '<h3>遊びかた</h3><p class="hint">モード：' + cfg.label + '／あがりの形：' + cfg.slots.join('・') +
-      '（' + cfg.target + (room.mode === 'card' ? '枚' : '個') + '）</p>' +
-      '<p class="hint">「操作方法」タブに手順の説明があります。</p>';
-  } else {
-    board += '<h3>結果</h3><p class="hint">下の結果表示を確認してください。</p>';
-  }
-  $('board-area').innerHTML = board;
-
-  /* ---- 結果 ---- */
-  var res = '';
-  if (room.status === 'finished' && g && g.result) {
-    var r = g.result;
-    if (r.type === 'draw') {
-      res = '<div class="msg warn"><b>流局</b>：山が尽きました。</div>';
-    } else {
-      res = '<div class="msg gold"><b>' + esc(playerName(room, r.winnerId)) + '</b> があがりました！' +
-        '（' + (r.type === 'ron' ? 'ロン' : (r.type === 'tsumo' ? 'ツモ' : 'あがり')) + '）</div>';
-            if (r.words && r.words.length) {
-        res += '<div class="panel soft">';
-        r.words.forEach(function (w, i) {
-          res += '<div class="wordslot"><span class="lbl">' + (i + 1) + '語目 ' + w.length + '文字</span>' +
-            w.map(function (c) { return tileSpan(c, { small: true }); }).join('') +
-            '<span class="words-line" style="margin-left:.5rem">「' + esc(w.join('')) + '」</span></div>';
-        });
-        if (r.melds && r.melds.length) {
-          r.melds.forEach(function (m) {
-            res += '<div class="wordslot"><span class="lbl">' + (m.type === 'pon' ? 'ポン' : 'カン') + '</span>' +
-              m.tiles.map(function (c) { return tileSpan(c, { small: true }); }).join('') + '</div>';
-          });
-        }
-        res += '</div>';
-      }
-      if (room.mode === 'tile' && r.scoring) {
-        res += '<p class="hint">得点：' + Object.keys(r.scoring).map(function (k) {
-          return esc(playerName(room, k)) + ' ' + (r.scoring[k] > 0 ? '+' : '') + r.scoring[k];
-        }).join('／') + '</p>';
-      }
-    }
-    if (isHost) {
-      res += '<div class="row"><button class="btn primary" data-act="next-round">次の局へ</button>' +
-        '<button class="btn warn" data-act="reset-room">ルーム初期化</button></div>';
-    } else {
-      res += '<p class="hint">ホストが次の局へ進むか、ルームを初期化するのを待ってください。</p>';
-    }
-  }
-  var ra = $('result-area');
-  if (ra.innerHTML !== res) ra.innerHTML = res;
-
-  /* ---- プレイヤー一覧 ---- */
-  var pa = '';
-  var showHands = room.mode === 'card';
-  ps.forEach(function (p) {
-    var pHand = (g && g.hands && g.hands[p.pid]) || [];
-    var pMelds = meldsOf(room, p.pid);
-    var pile = (g && g.discards && g.discards[p.pid]) || [];
-    pa += '<div class="player' + (g && g.turn === p.pid && room.status === 'playing' ? ' turn' : '') + '">';
-    pa += '<span class="pname">' + esc(p.name) + (p.pid === me ? '（あなた）' : '') + '</span>';
-    if (p.pid === room.hostId) pa += '<span class="badge">ホスト</span>';
-    if (p.pid === me) pa += '<span class="badge me">自分</span>';
-    if (room.mode === 'tile') pa += '<span class="badge">手牌 ' + pHand.length + '個</span>';
-    if (p.connected === false) pa += '<span class="badge off">切断</span>';
-    if (room.mode === 'tile') pa += '<span class="badge win">' + (p.score || 0) + '点</span>';
-    if (g && g.result && g.result.winnerId === p.pid) pa += '<span class="badge turn">あがり</span>';
-
-    pa += '<div class="pmeta">手札' + (showHands ? '' : '（非公開）') + '：</div>';
-    if (showHands) {
-      pa += '<div class="hand">' + sortHand(pHand).map(function (c) { return tileSpan(c, { small: true }); }).join('') + '</div>';
-    } else {
-      pa += '<div class="hand">' + pHand.map(function () { return tileSpan('', { small: true, cls: 'back' }); }).join('') + '</div>';
-    }
-    if (pMelds.length) {
-      pa += '<div class="pmeta">ポン・カン：</div><div class="hand">';
-      pMelds.forEach(function (m) {
-        pa += '<span class="wordslot" style="min-height:2.2rem;padding:.1rem .3rem">' +
-          m.tiles.map(function (c) { return tileSpan(c, { small: true }); }).join('') + '</span>';
-      });
-      pa += '</div>';
-    }
-    if (pile.length) {
-      pa += '<div class="pmeta">捨て牌（' + pile.length + '）：</div><div class="discard-area">' +
-        pile.map(function (c, i) {
-          var isLast = g && g.lastDiscard && g.lastDiscard.pid === p.pid && i === pile.length - 1;
-          return tileSpan(c, { small: true, cls: isLast ? 'last' : '' });
-        }).join('') + '</div>';
-    }
-    pa += '</div>';
-  });
-  $('players-area').innerHTML = pa;
-
-  /* ---- ログ ---- */
-  var logs = (room.logs || []).slice().reverse();
-  $('log-area').innerHTML = logs.map(function (l) {
-    return '<div>' + esc(l && l.msg ? l.msg : '') + '</div>';
-  }).join('');
-}
-
-function renderModal() {
-  var root = $('modal-root');
-  if (!S.decl) {
-    if (root.classList.contains('open')) { root.classList.remove('open'); root.innerHTML = ''; }
-    return;
-  }
-  var D = S.decl;
-  var room = S.room;
-  var html = '<div class="modal">';
-  var typeLabel = D.type === 'pon' ? 'ポン' : (D.type === 'kan' ? 'カン' : (D.type === 'ron' ? 'ロン' : (D.type === 'tsumo' ? 'ツモ宣言' : 'あがり宣言')));
-  html += '<h2>' + typeLabel + '：単語を作る</h2>';
-  html += '<p class="hint">手札をクリックすると、前の枠から順に文字が入ります。枠の中の牌をクリックすると戻せます。全員が言葉として認めれば成立します。</p>';
-
-  if (D.type === 'kan') {
-    html += '<div class="row"><span class="hint">単語の文字数（4〜6文字／手札の枚数まで）：</span>';
-    [4, 5, 6].forEach(function (n) {
-      if (n > D.hand.length) return;
-      html += '<button class="btn small' + (D.kanLen === n ? ' sel' : '') + '" data-act="decl-kanlen" data-len="' + n + '">' + n + '文字</button>';
-    });
-    html += '</div>';
-  }
-
-  D.slots.forEach(function (len, si) {
-    html += '<div class="wordslot"><span class="lbl">' + (si + 1) + '語目（' + len + '文字）</span>';
-    for (var i = 0; i < len; i++) {
-      var it = D.filled[si][i];
-      if (it) {
-        html += tileSpan(it.ch, { cls: it.src === 'discard' ? 'discard-tile' : '', act: 'decl-unfill', data: ' data-si="' + si + '" data-fi="' + i + '"', title: 'クリックで戻す' });
-      } else {
-        html += tileSpan('　', { cls: 'empty' });
-      }
-    }
-    html += '</div>';
-  });
-
-  html += '<h3>手札</h3>';
-  html += '<div class="hand">' + D.hand.map(function (ch, i) {
-    var total = D.hand.filter(function (c) { return c === ch; }).length;
-    var used = declUsedCount(ch);
-    return tileSpan(ch, {
-      cls: used >= total ? 'dim' : '',
-      act: 'decl-pick-hand',
-      data: ' data-didx="' + i + '"',
-      title: 'クリックで枠に入れる'
-    });
-  }).join('') + '</div>';
-
-  if (D.discardCh) {
-    var dUsed = D.filled.some(function (s) { return s.some(function (x) { return x.src === 'discard'; }); });
-    html += '<h3>捨てられた牌</h3><div class="hand">' +
-      tileSpan(D.discardCh, { cls: 'discard-tile' + (dUsed ? ' dim' : ''), act: dUsed ? '' : 'decl-pick-discard', title: 'クリックで枠に入れる' }) +
-      '</div>';
-  }
-
-  html += '<div class="row" style="margin-top:1rem">' +
-    '<button class="btn ok" data-act="decl-submit" ' + (declIsFull() ? '' : 'disabled') + '>宣言する</button>' +
-    '<button class="btn ghost" data-act="decl-cancel">キャンセル</button>';
-  if (declIsFull()) {
-    var w0 = declWords();
-    html += '<a class="btn small" target="_blank" rel="noopener noreferrer" href="https://www.google.com/search?q=' +
-      encodeURIComponent(w0.map(function (w) { return w.join(''); }).join(' ')) + '">検索して確認</a>';
-  }
-  html += '</div></div>';
-  root.innerHTML = html;
-  root.classList.add('open');
-}
-
-/* =========================================================
-   アクション
-   ========================================================= */
-function onAction(act, el) {
-  switch (act) {
-    case 'switch-tab':
-      S.tab = el.getAttribute('data-tab');
-      renderAll();
-      break;
-    case 'pick-mode':
-      S.mode = el.getAttribute('data-mode');
-      renderAll();
-      break;
-    case 'rules-mode':
-      S.rulesMode = el.getAttribute('data-mode');
-      renderRules();
-      break;
-    case 'create-room':
-      if (initFirebase()) createRoom(0);
-      break;
-    case 'join-room':
-      if (initFirebase()) joinRoom(null);
-      break;
-    case 'leave':
-      if (S.ref) leaveRoom();
-      break;
-    case 'copy-id':
-      if (S.roomId) copyText(S.roomId, '部屋番号をコピーしました：' + S.roomId);
-      break;
-    case 'copy-url':
-      if (S.roomId) copyText(roomUrl(S.roomId), '参加用URLをコピーしました');
-      break;
-    case 'toggle-chiitoi':
-      toggleChiitoi();
-      break;
-    case 'start-game':
-      startGame();
-      break;
-    case 'next-round':
-      nextRound();
-      break;
-    case 'reset-room':
-      resetRoom();
-      break;
-    case 'draw':
-      drawTile();
-      break;
-    case 'skip-turn':
-      skipTurn();
-      break;
-    case 'discard': {
-      var ch = el.getAttribute('data-ch');
-      if (!ch) break;
-      if (window.confirm('「' + ch + '」を捨てますか？')) discardTile(ch);
-      break;
-    }
-    case 'declare': {
-      var t = el.getAttribute('data-type');
-      if (!S.room || !S.room.game) { toast('ゲーム中のみ宣言できます', true); break; }
-      openDeclare(t, 4);
-      break;
-    }
-    case 'decl-pick-hand':
-      if (S.decl) declPickHand(parseInt(el.getAttribute('data-didx'), 10));
-      break;
-    case 'decl-pick-discard':
-      if (S.decl) declPickDiscard();
-      break;
-    case 'decl-unfill':
-      if (S.decl) declUnfill(parseInt(el.getAttribute('data-si'), 10), parseInt(el.getAttribute('data-fi'), 10));
-      break;
-    case 'decl-kanlen':
-      if (S.decl) {
-        S.decl.kanLen = parseInt(el.getAttribute('data-len'), 10);
-        S.decl.slots = [S.decl.kanLen];
-        S.decl.filled = [[]];
-        renderModal();
-      }
-      break;
-    case 'decl-submit':
-      if (S.decl) declSubmit();
-      break;
-    case 'decl-cancel':
-      closeDeclare();
-      break;
-    case 'approve':
-      judgeApproval(false);
-      break;
-    case 'reject':
-      judgeApproval(true);
-      break;
-    case 'cancel-judge':
-      if (window.confirm('判定をキャンセルして宣言前の状態に戻しますか？')) cancelJudge();
-      break;
-    default:
-      break;
-  }
-}
-
-document.addEventListener('click', function (ev) {
-  var el = ev.target.closest ? ev.target.closest('[data-act]') : null;
-  if (!el) return;
-  var act = el.getAttribute('data-act');
-  if (!act) return;
-  if (el.tagName === 'LABEL' && act === 'pick-mode') {
-    /* ラベル内のラジオ選択 */
-  }
-  ev.preventDefault();
-  onAction(act, el);
-});
-
-document.addEventListener('change', function (ev) {
-  var el = ev.target;
-  if (el && el.id === 'chiitoi-check') {
-    toggleChiitoi();
-  }
-});
-
-/* =========================================================
-   起動
-   ========================================================= */
-function boot() {
-  S.pid = getPid();
-  try {
-    var n = localStorage.getItem('hj_name');
-    if (n) { S.name = n; var el = $('name-input'); if (el) el.value = n; }
-  } catch (e) {}
-
-  var params = new URLSearchParams(location.search);
-  var r = (params.get('room') || '').toUpperCase();
-  if (r) { var ri = $('room-input'); if (ri) ri.value = r.slice(0, 8); }
-
-  /* ?tab=rules / ?mode=tile で初期表示を指定できる */
-  var t = (params.get('tab') || '').toLowerCase();
-  if (['game', 'rules', 'howto', 'common'].indexOf(t) >= 0) {
-    S.tab = t;
-    S.rulesMode = 'card';
-  }
-  var md = (params.get('mode') || '').toLowerCase();
-  if (md === 'card' || md === 'tile') {
-    S.mode = md;
-    S.rulesMode = md;
-  }
-
-  renderAll();
-
-  /* 部屋のリスナー解除（ページ退出時・メモリリーク防止） */
-  window.addEventListener('beforeunload', function () {
-    detachRoomRef();
-  });
-
-  if (!initFirebase()) return;
-  autoJoinFromUrl();
-}
-
-/* URLの ?room=XXXXXXXX から自動参加（名前未入力なら入力欄を用意して待つ） */
-function autoJoinFromUrl() {
-  var params = new URLSearchParams(location.search);
-  var r = (params.get('room') || '').toUpperCase();
-  if (!/^[A-Z0-9]{8}$/.test(r)) return;
-  var ri = $('room-input');
-  if (ri) ri.value = r;
-  if (!readName()) {
-    toast('名前を入れて「部屋に参加する」を押してください（部屋：' + r + '）');
-    var ni = $('name-input');
-    if (ni) ni.focus();
-    return;
-  }
-  joinRoom(r);
-}
-
-boot();
+var ROOM_PATH='rooms_br';
+firebase.initializeApp(firebaseConfig);
+var db=firebase.database();
+
+/* Character set: 120 tiles */
+var BASE=['あ','い','う','え','お','か','き','く','け','こ','さ','し','す','せ','そ','た','ち','つ','て','と','な','に','ぬ','ね','の','は','ひ','ふ','へ','ほ','ま','み','む','め','も','や','ゆ','よ','ら','り','る','れ','ろ','わ','ん'];
+var DAKU=['が','ぎ','ぐ','げ','ご','ざ','じ','ず','ぜ','ぞ','だ','ぢ','づ','で','ど','ば','び','ぶ','べ','ぼ','ぱ','ぴ','ぷ','ぺ','ぽ'];
+var SMALL=['ゃ','ゅ','ょ','っ','ー'];
+var META={};
+BASE.forEach(function(k){META[k]={kind:'基本',count:2};}); DAKU.forEach(function(k){META[k]={kind:'濁/半濁',count:1};}); SMALL.forEach(function(k){META[k]={kind:'拗音/長音',count:1};});
+
+var E={}; ['playerName','modeSel','maxPlayers','sevenPairs','roomInput','createBtn','joinBtn','copyBtn','startBtn','resetBtn','meta','message','players','actions','rulesText','discards','pendingBadge','openWords','handInfo','hand','logs','statusBadge'].forEach(function(id){E[id]=document.getElementById(id);});
+var LS={token:'hgj_tk',room:'hgj_room',name:'hgj_name'};
+var S={token:loadToken(),roomId:localStorage.getItem(LS.room)||'',playerName:localStorage.getItem(LS.name)||'',room:null,unsub:null,selected:[],shownWinner:'',manualWords:''};
+
+function loadToken(){var t=localStorage.getItem(LS.token); if(!t){t='hgj_'+Math.random().toString(36).slice(2)+Date.now().toString(36); localStorage.setItem(LS.token,t);} return t;}
+function roomRef(id){return db.ref(ROOM_PATH+'/'+id);} 
+function toast(msg){alert(msg);} /* simple & robust */
+function nowIso(){return new Date().toISOString();}
+function sortChars(arr){return arr.slice().sort(function(a,b){return a.ch.localeCompare(b.ch,'ja');});}
+function makeDeck(){var d=[]; BASE.forEach(function(ch){for(var i=0;i<2;i++)d.push({id:ch+'_'+i+'_'+Math.random().toString(36).slice(2,7),ch:ch});}); DAKU.forEach(function(ch){d.push({id:ch+'_0_'+Math.random().toString(36).slice(2,7),ch:ch});}); SMALL.forEach(function(ch){d.push({id:ch+'_0_'+Math.random().toString(36).slice(2,7),ch:ch});}); return shuffle(d);}
+function shuffle(a){var r=a.slice(); for(var i=r.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)); var t=r[i]; r[i]=r[j]; r[j]=t;} return r;}
+function multiset(chars){var m={}; chars.forEach(function(c){m[c]=(m[c]||0)+1;}); return m;}
+function sameMultiset(a,b){var ma=multiset(a),mb=multiset(b),ka=Object.keys(ma),kb=Object.keys(mb); if(ka.length!==kb.length)return false; for(var i=0;i<ka.length;i++){var k=ka[i]; if(ma[k]!==mb[k])return false;} return true;}
+function parseWords(input){return String(input||'').trim().split(/\s+/).filter(Boolean);}
+function sumLens(ws){return ws.reduce(function(n,w){return n+Array.from(w).length;},0);}
+function lens(ws){return ws.map(function(w){return Array.from(w).length;}).sort(function(a,b){return a-b;});}
+function mySeat(){if(!S.room)return -1; var ps=S.room.players||[]; for(var i=0;i<ps.length;i++) if(ps[i].token===S.token) return ps[i].seat; return -1;}
+function myPlayer(){var s=mySeat(); return s<0?null:(S.room.players||[]).find(function(p){return p.seat===s;})||null;}
+function handOf(seat){var h=S.room&&S.room.hands&&S.room.hands[String(seat)]; return h?sortChars(h):[];}
+function openOf(seat){return (S.room&&S.room.openWords&&S.room.openWords[String(seat)])||[];}
+function discardsOf(seat){return (S.room&&S.room.discardBySeat&&S.room.discardBySeat[String(seat)])||[];}
+function nextSeat(seat){var n=(S.room.players||[]).length; return n?((seat+1)%n):0;}
+function log(st,text){st.logs=st.logs||[]; st.logs.push({at:nowIso(),text:text}); if(st.logs.length>120) st.logs=st.logs.slice(-120);}
+function saveName(){S.playerName=(E.playerName.value||'').trim().slice(0,20); localStorage.setItem(LS.name,S.playerName);}
+
+function createRoom(){saveName(); var roomId=Math.random().toString(36).slice(2,8).toUpperCase(); var mode=E.modeSel.value; var maxPlayers=Number(E.maxPlayers.value||4); var st={roomId:roomId,mode:mode,maxPlayers:maxPlayers,options:{sevenPairs:!!E.sevenPairs.checked},status:'waiting',turnSeat:0,phase:'draw',pendingDiscard:null,players:[{seat:0,token:S.token,name:S.playerName||'ホスト',score:0,lockedRon:false}],hands:{'0':[]},openWords:{'0':[]},discardBySeat:{'0':[]},discards:[],deck:[],winner:null,logs:[]}; log(st,(S.playerName||'ホスト')+' が部屋を作成'); roomRef(roomId).set(st).then(function(){S.roomId=roomId; localStorage.setItem(LS.room,roomId); subscribe(roomId); E.roomInput.value=roomId; history.replaceState({},'',location.pathname+'?room='+roomId);}).catch(function(e){toast('作成失敗: '+e.message);});}
+function joinRoom(){saveName(); var roomId=(E.roomInput.value||'').trim().toUpperCase(); if(!roomId) return toast('部屋IDを入力してください'); roomRef(roomId).transaction(function(st){ if(!st) return st; var ps=st.players||[]; for(var i=0;i<ps.length;i++){ if(ps[i].token===S.token){ ps[i].name=S.playerName||ps[i].name; return st; }} if(st.status!=='waiting') throw new Error('開始後は参加できません'); if(ps.length>=Number(st.maxPlayers||4)) throw new Error('満席です'); var seat=ps.length; ps.push({seat:seat,token:S.token,name:S.playerName||('プレイヤー'+(seat+1)),score:0,lockedRon:false}); st.players=ps; st.hands[String(seat)]=[]; st.openWords[String(seat)]=[]; st.discardBySeat[String(seat)]=[]; log(st,(S.playerName||('プレイヤー'+(seat+1)))+' が参加'); return st; }).then(function(r){ if(r.committed){S.roomId=roomId; localStorage.setItem(LS.room,roomId); subscribe(roomId); history.replaceState({},'',location.pathname+'?room='+roomId);} }).catch(function(e){toast('参加失敗: '+e.message);});}
+function subscribe(roomId){ if(S.unsub) S.unsub(); var ref=roomRef(roomId); var cb=function(snap){ var v=snap.val(); if(!v) return; S.room=v; render(); }; ref.on('value',cb); S.unsub=function(){ref.off('value',cb);}; }
+function startGame(){ mutate(function(st){ if(st.status!=='waiting') throw new Error('すでに開始済みです'); if((st.players||[]).length<2) throw new Error('2人以上必要です'); st.deck=makeDeck(); st.discards=[]; st.pendingDiscard=null; st.winner=null; st.logs=[]; var init=st.mode==='card'?7:13; st.hands={}; st.openWords={}; st.discardBySeat={}; st.players.forEach(function(p){ st.hands[String(p.seat)]=[]; st.openWords[String(p.seat)]=[]; st.discardBySeat[String(p.seat)]=[]; p.lockedRon=false; for(var i=0;i<init;i++) st.hands[String(p.seat)].push(st.deck.shift()); st.hands[String(p.seat)]=sortChars(st.hands[String(p.seat)]); }); st.status='playing'; st.turnSeat=0; st.phase='draw'; log(st,'ゲーム開始（'+(st.mode==='card'?'カード版':'牌版')+'）'); }); }
+function resetRoom(){ if(!confirm('部屋を初期化しますか？')) return; mutate(function(st){ var players=(st.players||[]).map(function(p,i){return {seat:i,token:p.token,name:p.name,score:p.score||0,lockedRon:false};}); var mode=st.mode; var opts=st.options||{sevenPairs:false}; st.roomId=st.roomId; st.mode=mode; st.maxPlayers=st.maxPlayers; st.options=opts; st.status='waiting'; st.turnSeat=0; st.phase='draw'; st.pendingDiscard=null; st.players=players; st.hands={}; st.openWords={}; st.discardBySeat={}; players.forEach(function(p){st.hands[String(p.seat)]=[]; st.openWords[String(p.seat)]=[]; st.discardBySeat[String(p.seat)]=[];}); st.discards=[]; st.deck=[]; st.winner=null; st.logs=[]; log(st,'部屋を初期化'); }); }
+function mutate(fn){ if(!S.roomId) return toast('先に部屋へ参加してください'); roomRef(S.roomId).transaction(function(st){ if(!st) return st; try{ fn(st); return st; } catch(e){ toast(e.message); return; } }); }
+
+function drawOne(){ mutate(function(st){ ensureTurn(st,'draw'); if(!st.deck||!st.deck.length) throw new Error('山札がありません'); st.hands[String(mySeat())].push(st.deck.shift()); st.hands[String(mySeat())]=sortChars(st.hands[String(mySeat())]); st.phase='discard'; log(st,playerNameBySeat(st,mySeat())+' が山から1枚引いた'); }); }
+function ensureTurn(st,needPhase){ if(st.status!=='playing') throw new Error('対局中ではありません'); var seat=findSeat(st,S.token); if(seat<0) throw new Error('参加者ではありません'); if(st.turnSeat!==seat) throw new Error('あなたの手番ではありません'); if(needPhase && st.phase!==needPhase) throw new Error('この操作は '+needPhase+' フェーズのみです'); }
+function findSeat(st,token){ var ps=st.players||[]; for(var i=0;i<ps.length;i++) if(ps[i].token===token) return ps[i].seat; return -1; }
+function playerNameBySeat(st,seat){ var ps=st.players||[]; for(var i=0;i<ps.length;i++) if(ps[i].seat===seat) return ps[i].name; return 'P'+(seat+1); }
+function advanceAfterDiscard(st,discardSeat){ if(st.mode==='card'){ st.turnSeat=nextSeatLocal(st,discardSeat); st.phase='draw'; st.pendingDiscard=null; } else { st.turnSeat=nextSeatLocal(st,discardSeat); st.phase='claim'; st.pendingDiscard={seat:discardSeat,tile:st.discards[st.discards.length-1]}; } }
+function nextSeatLocal(st,seat){ var n=(st.players||[]).length; return n?((seat+1)%n):0; }
+function discardSelected(){ if(S.selected.length!==1) return toast('1枚選んでください'); var tileId=S.selected[0]; mutate(function(st){ ensureTurn(st,'discard'); var seat=findSeat(st,S.token); var h=st.hands[String(seat)]||[]; var idx=h.findIndex(function(t){return t.id===tileId;}); if(idx<0) throw new Error('手札にありません'); var tile=h.splice(idx,1)[0]; st.discards.push({seat:seat,ch:tile.ch,id:tile.id,at:nowIso()}); st.discardBySeat[String(seat)].push(tile.ch); st.hands[String(seat)]=sortChars(h); log(st,playerNameBySeat(st,seat)+' が「'+tile.ch+'」を捨てた'); advanceAfterDiscard(st,seat); }); S.selected=[]; }
+function noClaimAdvance(){ mutate(function(st){ if(st.status!=='playing'||st.phase!=='claim') throw new Error('いまは流せません'); var seat=findSeat(st,S.token); if(seat!==st.turnSeat) throw new Error('次手番プレイヤーだけが進行できます'); st.pendingDiscard=null; st.phase='draw'; log(st,playerNameBySeat(st,seat)+' が捨て牌を流してツモへ進んだ'); }); }
+function claimPon(){ if(S.selected.length!==2) return toast('ポン用に手札2枚を選んでください'); if(!(S.room&&S.room.pendingDiscard)) return toast('捨て牌がありません'); var word=prompt('3文字の単語を入力してください（ポン）'); if(!word) return; var chars=S.selected.map(getSelectedChar).filter(Boolean); chars.push(S.room.pendingDiscard.tile.ch); var wordChars=Array.from(word); if(wordChars.length!==3) return toast('3文字で入力してください'); if(!sameMultiset(chars,wordChars)) return toast('選択文字と単語の文字が一致しません'); var selIds=S.selected.slice(); mutate(function(st){ if(st.status!=='playing'||st.phase!=='claim'||!st.pendingDiscard) throw new Error('いまはポンできません'); var seat=findSeat(st,S.token); if(seat<0) throw new Error('参加者ではありません'); if(seat===st.pendingDiscard.seat) throw new Error('捨てた本人はポンできません'); var h=st.hands[String(seat)]||[]; var used=[]; selIds.forEach(function(id){ var idx=h.findIndex(function(t){return t.id===id;}); if(idx<0) throw new Error('選択牌がありません'); used.push(h.splice(idx,1)[0]); }); st.openWords[String(seat)].push({type:'pon',word:word,chars:wordChars,from:st.pendingDiscard.seat,at:nowIso()}); st.pendingDiscard=null; st.turnSeat=seat; st.phase='discard'; var p=(st.players||[]).find(function(x){return x.seat===seat;}); if(p) p.lockedRon=true; log(st,playerNameBySeat(st,seat)+' がポン「'+word+'」'); }); S.selected=[]; }
+function claimKan(){ if(S.selected.length<4) return toast('カン用に4文字以上選んでください'); var chars=S.selected.map(getSelectedChar).filter(Boolean); var word=prompt('4文字以上の単語を入力してください（カン）'); if(!word) return; var wordChars=Array.from(word); if(wordChars.length<4) return toast('4文字以上で入力してください'); if(!sameMultiset(chars,wordChars)) return toast('選択文字と単語の文字が一致しません'); var selIds=S.selected.slice(); mutate(function(st){ ensureTurn(st,'discard'); if(st.mode!=='tile') throw new Error('カンは牌版のみです'); var seat=findSeat(st,S.token); var h=st.hands[String(seat)]||[]; selIds.forEach(function(id){ var idx=h.findIndex(function(t){return t.id===id;}); if(idx<0) throw new Error('選択牌がありません'); h.splice(idx,1); }); st.openWords[String(seat)].push({type:'kan',word:word,chars:wordChars,from:null,at:nowIso()}); var drawN=wordChars.length-3; for(var i=0;i<drawN;i++){ if(!st.deck.length) break; h.push(st.deck.shift()); } st.hands[String(seat)]=sortChars(h); var p=(st.players||[]).find(function(x){return x.seat===seat;}); if(p) p.lockedRon=true; log(st,playerNameBySeat(st,seat)+' がカン「'+word+'」を公開（補充 '+drawN+'）'); }); S.selected=[]; }
+function claimRon(){ if(!(S.room&&S.room.pendingDiscard)) return toast('捨て牌がありません'); var st=S.room; var seat=mySeat(); var me=myPlayer(); if(!me) return; if(me.lockedRon) return toast('ポンまたはカン後はロンできません'); var dch=st.pendingDiscard.tile.ch; if(discardsOf(seat).includes(dch)) return toast('同じ文字を自分で捨てているためロンできません'); var words=prompt('ロン形の単語をスペース区切りで入力してください'); if(!words) return; var ws=parseWords(words); var open=openOf(seat); var chars=handOf(seat).map(function(t){return t.ch;}).concat([dch]); validateTileWin(ws,chars,open.length,(st.options||{}).sevenPairs,true); mutate(function(st2){ if(st2.phase!=='claim'||!st2.pendingDiscard) throw new Error('いまはロンできません'); var seat2=findSeat(st2,S.token); var me2=(st2.players||[]).find(function(p){return p.seat===seat2;}); if(me2&&me2.lockedRon) throw new Error('ポン/カン後はロンできません'); finishWinner(st2,seat2,'ロン',words,st2.pendingDiscard.seat); }); }
+function claimTsumo(){ var st=S.room; var seat=mySeat(); var chars=handOf(seat).map(function(t){return t.ch;}); var words=prompt(st.mode==='card'?'あがりの3単語をスペース区切りで入力（3文字・3文字・2文字）':'あがりの単語をスペース区切りで入力'); if(!words) return; var ws=parseWords(words); if(st.mode==='card'){ validateCardWin(ws,chars); } else { validateTileWin(ws,chars,openOf(seat).length,(st.options||{}).sevenPairs,false); }
+ mutate(function(st2){ ensureTurn(st2,'discard'); finishWinner(st2,findSeat(st2,S.token),st2.mode==='card'?'あがり':'ツモ',words,null); }); }
+function finishWinner(st,seat,method,words,loserSeat){ st.status='ended'; st.phase='ended'; st.winner={seat:seat,method:method,words:words,at:nowIso()}; if(st.mode==='tile'){ (st.players||[]).forEach(function(p){ if(p.seat===seat) p.score=(p.score||0)+3; else if(method==='ツモ') p.score=(p.score||0)-1; else if(method==='ロン'&&p.seat===loserSeat) p.score=(p.score||0)-3; }); } st.resultSummary=playerNameBySeat(st,seat)+' が'+method+'！ 単語: '+words; log(st,st.resultSummary); }
+function validateCardWin(ws,chars){ if(ws.length!==3) throw new Error('3単語を入力してください'); var ls=lens(ws); if(String(ls)!=='2,3,3') throw new Error('3文字・3文字・2文字で入力してください'); var all=[]; ws.forEach(function(w){ all=all.concat(Array.from(w)); }); if(all.length!==8) throw new Error('合計8文字にしてください'); if(!sameMultiset(all,chars)) throw new Error('手札8文字と単語の文字が一致しません'); }
+function validateTileWin(ws,chars,openCount,allow7pairs,isRon){ if(openCount>0){ var all=[]; ws.forEach(function(w){ all=all.concat(Array.from(w)); }); if(!ws.length) throw new Error('残り手牌で作る単語を入力してください'); if(!sameMultiset(all,chars)) throw new Error('手牌の文字と入力単語が一致しません'); return; } var ls=lens(ws); var all=[]; ws.forEach(function(w){ all=all.concat(Array.from(w)); }); if(!sameMultiset(all,chars)) throw new Error('手牌の文字と入力単語が一致しません'); if(allow7pairs && ws.length===7 && ls.every(function(v){return v===2;})) return; if(String(ls)!=='2,3,3,3,3') throw new Error('標準形は3・3・3・3・2、または七対子(2×7)です'); }
+function getSelectedChar(id){ var h=handOf(mySeat()); var t=h.find(function(x){return x.id===id;}); return t?t.ch:null; }
+function toggleTile(id){ var idx=S.selected.indexOf(id); if(idx>=0) S.selected.splice(idx,1); else S.selected.push(id); render(); }
+
+function render(){ renderMeta(); renderPlayers(); renderHand(); renderActions(); renderDiscards(); renderOpen(); renderLogs(); renderRules(); }
+function renderMeta(){ var st=S.room; if(!st){ E.meta.innerHTML=''; E.message.textContent='部屋を作成するか参加してください。'; return; } var seat=mySeat(); var my=seat>=0?(S.room.players||[]).find(function(p){return p.seat===seat;}):null; var meta=[
+  '部屋: '+st.roomId,
+  '版: '+(st.mode==='card'?'カード版':'牌版'),
+  '手番: '+playerNameBySeat(st,st.turnSeat),
+  'フェーズ: '+phaseLabel(st),
+  '山札: '+(st.deck?st.deck.length:0),
+  '捨て: '+(st.discards?st.discards.length:0),
+  'あなた: '+(my?my.name+' (P'+(seat+1)+')':'観戦')
+ ]; E.meta.innerHTML=meta.map(function(t){return '<span class="pill">'+esc(t)+'</span>';}).join(''); E.message.textContent=messageText(st); E.statusBadge.textContent=statusLabel(st.status); }
+function phaseLabel(st){ return ({draw:'ツモ',discard:'整理/捨て',claim:'ポン/ロン確認',ended:'終了'})[st.phase]||st.phase; }
+function statusLabel(s){ return ({waiting:'待機中',playing:'対局中',ended:'終了'})[s]||s; }
+function messageText(st){ var seat=mySeat(); if(st.status==='waiting') return '参加者がそろったら開始してください。'; if(st.status==='ended') return st.resultSummary||'対局終了'; if(seat<0) return playerNameBySeat(st,st.turnSeat)+' の手番です。'; if(st.phase==='claim'){ if(st.pendingDiscard){ if(st.turnSeat===seat) return '誰もポン/ロンしないなら「流して次へ」でツモへ進めます。'; if(st.pendingDiscard.seat!==seat && st.mode==='tile') return '他家の捨て牌「'+st.pendingDiscard.tile.ch+'」にポン/ロンできます。'; } return '申告待ちです。'; } if(seat!==st.turnSeat) return playerNameBySeat(st,st.turnSeat)+' の手番です。'; if(st.phase==='draw') return '山から1枚取りましょう。'; if(st.phase==='discard') return '手札を確認して、あがり申告または1枚捨ててください。'; return '進行中です。'; }
+function renderPlayers(){ var st=S.room; E.players.innerHTML=''; if(!st) return; var seat=mySeat(); (st.players||[]).forEach(function(p){ var hCount=(st.hands&&st.hands[String(p.seat)]||[]).length; var open=openOf(p.seat); var disc=discardsOf(p.seat); var div=document.createElement('div'); div.className='pl'+(st.turnSeat===p.seat?' act':''); var extra=''; if(st.mode==='card'){ var chars=(st.hands[String(p.seat)]||[]).map(function(t){return t.ch;}).join(' '); extra='<div class="sub">手札公開: '+esc(chars||'なし')+'</div>'; } div.innerHTML='<div class="nm">'+(p.seat===seat?'⭐ ':'')+esc(p.name)+'</div><div class="sub">手札 '+hCount+' / 公開語 '+open.length+' / 捨て '+disc.length+' / 得点 '+(p.score||0)+'</div>'+extra; E.players.appendChild(div); }); }
+function renderHand(){ var st=S.room; E.hand.innerHTML=''; if(!st){E.handInfo.textContent='-'; return;} var seat=mySeat(); var h=seat<0?[]:handOf(seat); E.handInfo.textContent=seat<0?'観戦中':('手札 '+h.length+' 枚' + (st.mode==='tile'?'（他家には非公開）':'（全員公開）')); h.forEach(function(t){ var d=document.createElement('button'); d.className='tile small'+(S.selected.indexOf(t.id)>=0?' sel':''); d.innerHTML='<div class="k">'+esc(t.ch)+'</div><div class="m">'+esc((META[t.ch]||{}).kind||'')+'</div>'; d.onclick=function(){ toggleTile(t.id); }; E.hand.appendChild(d); }); }
+function renderActions(){ var st=S.room; E.actions.innerHTML=''; if(!st) return; var seat=mySeat(); var can=seat===st.turnSeat && st.status==='playing'; var addBtn=function(cls,txt,fn,disabled){ var b=document.createElement('button'); b.className=cls; b.textContent=txt; b.disabled=!!disabled; b.onclick=fn; E.actions.appendChild(b); };
+ addBtn('s','部屋IDコピー',function(){ navigator.clipboard.writeText(st.roomId).then(function(){toast('コピーしました');}); },!st.roomId);
+ addBtn('g','開始',startGame, !(st.status==='waiting' && seat>=0 && (st.players||[]).length>=2));
+ addBtn('r','初期化',resetRoom, seat<0);
+ if(st.status!=='playing') return;
+ if(can && st.phase==='draw') addBtn('p','山から1枚取る',drawOne,false);
+ if(can && st.phase==='discard'){
+   addBtn('v','あがり申告',claimTsumo,false);
+   addBtn('s','1枚捨てる',discardSelected,S.selected.length!==1);
+   if(st.mode==='tile') addBtn('v','カン申告',claimKan,S.selected.length<4);
+ }
+ if(st.mode==='tile' && st.phase==='claim' && st.pendingDiscard){
+   if(seat>=0 && seat!==st.pendingDiscard.seat) {
+     addBtn('v','ポン申告',claimPon,S.selected.length!==2);
+     addBtn('r','ロン申告',claimRon,false);
+   }
+   if(seat===st.turnSeat) addBtn('g','流して次へ',noClaimAdvance,false);
+ }
+ var info=document.createElement('div'); info.className='rule'; info.innerHTML='選択中: '+(S.selected.map(getSelectedChar).join(' ')||'なし'); E.actions.appendChild(info);
+ }
+function renderDiscards(){ var st=S.room; E.discards.innerHTML=''; if(!st) return; var ds=st.discards||[]; ds.slice(-24).forEach(function(d){ var b=document.createElement('div'); b.className='dTile'; b.innerHTML='<div class="k">'+esc(d.ch)+'</div><div class="m">P'+(d.seat+1)+'</div>'; E.discards.appendChild(b); }); if(st.pendingDiscard&&st.pendingDiscard.tile) E.pendingBadge.textContent='確認中: 「'+st.pendingDiscard.tile.ch+'」'; else E.pendingBadge.textContent='なし'; }
+function renderOpen(){ var st=S.room; E.openWords.innerHTML=''; if(!st) return; (st.players||[]).forEach(function(p){ var open=openOf(p.seat); if(!open.length) return; open.forEach(function(w){ var div=document.createElement('div'); div.className='openWord'; div.innerHTML='<span class="wl">'+esc(p.name)+' / '+esc(w.type.toUpperCase())+'</span>'+w.chars.map(function(ch){return '<span class="tile small"><span class="k">'+esc(ch)+'</span></span>';}).join('')+'<span class="badge">'+esc(w.word)+'</span>'; E.openWords.appendChild(div); }); }); if(!E.openWords.innerHTML) E.openWords.innerHTML='<div class="rule">まだ公開語はありません。</div>'; }
+function renderLogs(){ var st=S.room; E.logs.innerHTML=''; if(!st) return; var logs=st.logs||[]; logs.slice().reverse().forEach(function(l){ var d=document.createElement('div'); d.className='log'; d.innerHTML='<div class="lt">'+esc(l.text)+'</div><div class="ls">'+esc(fmtTime(l.at))+'</div>'; E.logs.appendChild(d); }); }
+function renderRules(){ var mode=E.modeSel.value; if(S.room) mode=S.room.mode; E.rulesText.innerHTML = mode==='card'
+  ? 'カード版: 7枚配布 → ツモで8枚 → 3文字・3文字・2文字の3単語を作れたらあがり。<br>手札は全員公開です。辞書判定は自動ではなく、参加者の合意で進めてください。'
+  : '牌版: 13枚配牌 → ツモで14枚 → 標準は3・3・3・3・2、七対子ONなら2文字×7も可。<br>ポン/カン/ロンは自己申告＋口頭確認で進めます。ポン/カン後はロン不可、ロンは自分が捨てた同文字では不可です。'; }
+function fmtTime(t){ try{return new Date(t).toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit',second:'2-digit'});}catch(e){return t||'';} }
+function esc(s){ return String(s||'').replace(/[&<>"']/g,function(m){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];}); }
+
+/* init */
+E.playerName.value=S.playerName; if(S.roomId) E.roomInput.value=S.roomId; var q=new URL(location.href).searchParams.get('room'); if(q){ S.roomId=q.toUpperCase(); E.roomInput.value=S.roomId; localStorage.setItem(LS.room,S.roomId); }
+E.playerName.addEventListener('change',saveName); E.modeSel.addEventListener('change',renderRules); E.createBtn.onclick=createRoom; E.joinBtn.onclick=joinRoom; E.copyBtn.onclick=function(){ var id=(S.room&&S.room.roomId)||E.roomInput.value||''; if(id) navigator.clipboard.writeText(id).then(function(){toast('コピーしました');}); }; E.startBtn.onclick=startGame; E.resetBtn.onclick=resetRoom; renderRules(); if(S.roomId) subscribe(S.roomId);
 </script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495" integrity="sha512-iIg7k2xntmwu6/uSb5tpc/hySgZc4eoL31yB29W6tJFo2akwjPWcEqnCEdJvGexCL0KEQwVYv5BlowfhVz26hg==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","spa":2}' crossorigin="anonymous"></script>
 </body>
 </html>
