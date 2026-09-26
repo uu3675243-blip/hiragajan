@@ -759,8 +759,13 @@ function joinRoom() {
   var name = sanitizeName(E.name.value); E.name.value = name; localStorage.setItem(NAME_KEY, name);
   var ref = roomRef(roomId);
   S.spectator = false;
-  ref.transaction(function (current) {
-    return reduce(current, { type: 'join', token: S.token, name: name });
+  /* 先に一度読み込む（キャッシュの空の端末では transaction の current が null になり、
+     存在する部屋でも「部屋が見つかりません」と誤判定するため） */
+  ref.once('value').then(function (snap) {
+    if (!snap.exists()) throw appError('部屋が見つかりません。番号とFirebaseの設定を確認してください。');
+    return ref.transaction(function (current) {
+      return reduce(current, { type: 'join', token: S.token, name: name });
+    });
   }).then(function (result) {
     if (!result || !result.committed) {
       var snapshot = result && result.snapshot;
@@ -1217,19 +1222,11 @@ function initialize() {
     return;
   }
   try { firebase.initializeApp(FIREBASE_CONFIG); } catch (error) { fallbackLocal('Firebaseの初期化に失敗しました。'); return; }
-  /* ルールが認証必須でも書き込めるよう、匿名認証が済んでから操作を有効にする */
-  var authReady = firebase.auth
-    ? firebase.auth().signInAnonymously().catch(function (error) { console.warn('匿名認証に失敗（公開ルールなら続行します）:', error); })
-    : Promise.resolve();
-  authReady.then(function () {
-    S.ready = true;
-    E.status.textContent = 'オンライン準備完了。あそび方を選んで部屋を作成するか、番号を入力して参加できます。';
-    if (savedLocal && savedLocal.players) { S.local = true; S.room = savedLocal; S.roomId = 'LOCAL'; render(); toast('前回のローカル対戦を復元しました'); return; }
-    render();
-  }).catch(function (error) {
-    E.createBtn.disabled = true; E.joinBtn.disabled = true;
-    fallbackLocal('オンライン接続に失敗しました。');
-  });
+  /* 公開ルール前提のため匿名認証は使わない（読み込むと auth/configuration-not-found になるだけ） */
+  S.ready = true;
+  E.status.textContent = 'オンライン準備完了。あそび方を選んで部屋を作成するか、番号を入力して参加できます。';
+  if (savedLocal && savedLocal.players) { S.local = true; S.room = savedLocal; S.roomId = 'LOCAL'; render(); toast('前回のローカル対戦を復元しました'); return; }
+  render();
 }
 initialize();
 </script>
