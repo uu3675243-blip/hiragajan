@@ -545,7 +545,13 @@
     function connectRoom(roomId) {
       if (roomRef) roomRef.off();
       currentRoomId = roomId;
+      localStorage.setItem('hiraga_room', roomId);
       roomRef = db.ref(`${DB_ROOT}/${roomId}`);
+
+      // URLクエリ更新
+      const url = new URL(window.location);
+      url.searchParams.set('room', roomId);
+      window.history.replaceState({}, '', url);
 
       roomRef.on('value', snapshot => {
         localRoom = snapshot.val();
@@ -569,6 +575,14 @@
       if (roomRef) roomRef.off();
       currentRoomId = null;
       localRoom = null;
+      wordSlots = [];
+      selectedTileId = null;
+      localStorage.removeItem('hiraga_room');
+
+      const url = new URL(window.location);
+      url.searchParams.delete('room');
+      window.history.replaceState({}, '', url);
+
       lobbyScreen.classList.remove('hidden');
       gameScreen.classList.add('hidden');
       roomBadge.classList.add('hidden');
@@ -866,6 +880,8 @@
     // 次の局へ進む
     btnNextRound.addEventListener('click', () => {
       winModal.classList.add('hidden');
+      wordSlots = [];
+      selectedTileId = null;
       if (!roomRef) return;
       roomRef.transaction(room => {
         if (!room) return room;
@@ -902,6 +918,14 @@
     function render(room) {
       const mode = room.mode || 'card';
       initWordSlots(mode);
+
+      // 手札に実在しない牌（前局の牌など）がスロットに残っていたら自動クリーンアップ
+      const myData = room.players ? (room.players[myToken] || { hand: [], melds: [] }) : { hand: [], melds: [] };
+      const myHand = myData.hand || [];
+      const handTileIds = new Set(myHand.map(t => t.id));
+      wordSlots.forEach((slot, sIdx) => {
+        wordSlots[sIdx] = slot.filter(t => handTileIds.has(t.id));
+      });
 
       const isHost = room.hostToken === myToken;
       const currentToken = room.order ? room.order[room.turnIndex] : null;
@@ -1175,6 +1199,25 @@
         winModal.classList.add('hidden');
       }
     }
+
+    // ページ読み込み時の自動再接続（URLクエリまたはlocalStorage）
+    window.addEventListener('DOMContentLoaded', () => {
+      const params = new URLSearchParams(window.location.search);
+      const urlRoom = params.get('room') || localStorage.getItem('hiraga_room');
+      if (urlRoom) {
+        inputRoomId.value = urlRoom;
+        // 部屋が存在するか確認して自動接続
+        db.ref(`${DB_ROOT}/${urlRoom}`).once('value').then(snap => {
+          if (snap.exists()) {
+            connectRoom(urlRoom);
+          } else {
+            localStorage.removeItem('hiraga_room');
+          }
+        }).catch(() => {
+          localStorage.removeItem('hiraga_room');
+        });
+      }
+    });
   </script>
 </body>
 </html>
